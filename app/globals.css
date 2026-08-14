@@ -75,8 +75,8 @@
 }
 
 @theme inline {
-  --font-sans: 'Geist', 'Geist Fallback';
-  --font-mono: 'Geist Mono', 'Geist Mono Fallback';
+  --font-sans: Arial, Helvetica, 'Segoe UI', sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -126,6 +126,7 @@
     @apply min-h-full;
   }
   body {
-    @apply min-h-full bg-background text-foreground;
+    @apply min-h-full bg-background text-foreground font-sans;
+    font-family: Arial, Helvetica, 'Segoe UI', sans-serif;
   }
 }

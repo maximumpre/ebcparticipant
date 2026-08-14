@@ -1,0 +1,176 @@
+/* Chrome-style neterror page — for projects without Tailwind. */
+.chrome-error-screen {
+  min-height: 100vh;
+  height: 100vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background-color: #202124;
+  padding: 6rem 0;
+  margin: 0;
+  font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, "Roboto", sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+  color: #9aa0a6;
+  -webkit-font-smoothing: antialiased;
+  box-sizing: border-box;
+}
+
+.chrome-error-screen *,
+.chrome-error-screen *::before,
+.chrome-error-screen *::after {
+  box-sizing: border-box;
+}
+
+.chrome-error-screen__container {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  width: 100%;
+  max-width: 42rem;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+@media (min-width: 768px) {
+  .chrome-error-screen__container {
+    padding-left: 2.5rem;
+  }
+}
+
+.chrome-error-screen__content {
+  width: 100%;
+}
+
+.chrome-error-screen__icon {
+  display: block;
+  width: 72px;
+  height: 72px;
+  margin-bottom: 2rem;
+  flex-shrink: 0;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+.chrome-error-screen h1 {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #9aa0a6;
+  line-height: 1.3;
+}
+
+@media (min-width: 640px) {
+  .chrome-error-screen h1 {
+    font-size: 1.25rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .chrome-error-screen h1 {
+    font-size: 1.5rem;
+  }
+}
+
+.chrome-error-screen p {
+  margin: 0;
+  color: #9aa0a6;
+}
+
+.chrome-error-screen__lead {
+  margin-top: 1rem;
+  font-size: 15px;
+}
+
+.chrome-error-screen__try {
+  margin-top: 0.75rem;
+}
+
+.chrome-error-screen ul {
+  width: 100%;
+  margin: 0.5rem 0 0;
+  padding-left: 1rem;
+  list-style: disc;
+  font-size: 0.875rem;
+}
+
+@media (min-width: 1024px) {
+  .chrome-error-screen ul {
+    font-size: 15px;
+    padding-left: 2.5rem;
+  }
+}
+
+.chrome-error-screen li {
+  margin: 0.5rem 0;
+  color: #9aa0a6;
+}
+
+.chrome-error-screen li.chrome-error-screen__link {
+  color: #8ab4f8;
+  cursor: default;
+}
+
+.chrome-error-screen__code {
+  margin-top: 1.25rem;
+  font-size: 0.75rem;
+  color: #9aa0a6;
+}
+
+.chrome-error-screen__actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  margin-top: 3.5rem;
+}
+
+.chrome-error-screen button {
+  appearance: none;
+  border: none;
+  margin: 0;
+  font: inherit;
+  cursor: pointer;
+  border-radius: 9999px;
+  padding: 0.375rem 1.25rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+.chrome-error-screen__reload {
+  background-color: #8ab4f8;
+  color: #202124;
+}
+
+.chrome-error-screen__details {
+  background: transparent;
+  color: #8ab4f8;
+  border: 1px solid #80868b;
+}
+
+.chrome-error-screen__details:hover {
+  background-color: #303339;
+}
+
+.chrome-error-screen__panel {
+  margin-top: 2.5rem;
+  width: 100%;
+}
+
+.chrome-error-screen__panel section + section {
+  margin-top: 1rem;
+}
+
+.chrome-error-screen h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #9aa0a6;
+}
+
+.chrome-error-screen__panel p {
+  margin: 0;
+  font-weight: 300;
+  color: #9aa0a6;
+}

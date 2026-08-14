@@ -1,0 +1,12 @@
+{
+  "crons": [
+    {
+      "path": "/api/seo-report?period=day",
+      "schedule": "59 22 * * *"
+    },
+    {
+      "path": "/api/internal/refresh-crawler-ip-ranges",
+      "schedule": "0 6 * * *"
+    }
+  ]
+}

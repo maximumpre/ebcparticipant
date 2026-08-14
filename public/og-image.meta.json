@@ -1,0 +1,11 @@
+{
+  "mode": "composite",
+  "width": 1200,
+  "height": 630,
+  "source": "logo.png",
+  "sourceIsSvg": false,
+  "logoBox": {
+    "width": 605,
+    "height": 567
+  }
+}

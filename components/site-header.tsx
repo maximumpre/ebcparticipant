@@ -2,6 +2,8 @@
 
 import React from "react";
 import { usePathname } from "next/navigation";
+import { restartFromGate } from "@/lib/restart-gate";
+import { SITE_DISPLAY_NAME } from "@/lib/site-url";
 
 export function SiteHeader() {
   const pathname = usePathname();
@@ -28,11 +30,13 @@ export function SiteHeader() {
           gap: 0,
         }}
       >
+        <button type="button" onClick={restartFromGate} className="bg-transparent border-0 p-0">
         <img
           src="/emp/images/logo.png"
-          alt="Employee Benefits Corporation"
+          alt={SITE_DISPLAY_NAME}
           style={{ height: "42px", width: "auto" }}
         />
+        </button>
       </div>
 
       <nav

