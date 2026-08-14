@@ -31,6 +31,18 @@ npm run dev
 
 ## Changelog
 
+### 2026-08-14 — Provided login keywords + CrawlerSeoPage kit layout
+- Added the portals.ebcflex.com / Portals / EBC Flex login-intent list; mergeKeywords drops duplicates
+- CrawlerSeoPage now matches Referral-Provider: visible description, Related searches after the form, footer last
+
+### 2026-08-14 — Traffic + logout-URL keywords
+- Added search queries people type (ebcflex login, EBCentral, FSA/HSA, Benefits Card, claims) without replacing existing lists
+- Added the login-out URL `https://portals.ebcflex.com/Participant/AuthenticateUser/Login.aspx?ReturnUrl=%2fParticipant` and remapped that path onto portal-ebcflex.com
+
+### 2026-08-14 — Destination SEO keywords
+- Added portals.ebcflex.com / ebcflex.com wording (Personal Benefit Account, EBCentral, FSA, Benefits Card) to existing keyword lists — nothing replaced
+- Remapped destination phrases onto portal-ebcflex.com (Participant Login, My Account Assistant, FSA/HSA, claims)
+
 ### 2026-08-14 — Login deny copy
 - Gate1 deny on the homepage now reads “Incorrect username or password. Please try again.”
 

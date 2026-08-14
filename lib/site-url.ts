@@ -8,7 +8,7 @@ export const SITE_URL = SITE_ORIGIN
 
 export const SITE_HOMEPAGE_CANONICAL = `${SITE_ORIGIN}/` as const
 
-export const SITE_CONTENT_UPDATED_AT = "2026-08-14T12:00:00.000Z" as const
+export const SITE_CONTENT_UPDATED_AT = "2026-08-14T18:30:00.000Z" as const
 
 export const SITE_SITEMAP_URL = `${SITE_ORIGIN}/sitemap.xml` as const
 

@@ -15,6 +15,8 @@ const SCHEMA_ALTERNATE_NAMES = [
   "Employee Benefits Corporation",
   "EBCentral",
   "EBC Flex login",
+  "Your Personal Benefit Account",
+  "My Account Assistant",
   "portals.ebcflex.com",
   CANONICAL_HOST.toLowerCase(),
 ] as const
