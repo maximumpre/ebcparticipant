@@ -1,4 +1,4 @@
-# EBC Flex Participant Portal
+.# EBC Flex Participant Portal
 
 Participant login at `https://www.portal-ebcflex.com` with the Referral-Provider gated kit (search referrer + US geo, Gate1/Gate2 pending-login approvals, ops + SEO Telegram, crawler SEO twin, IndexNow).
 
