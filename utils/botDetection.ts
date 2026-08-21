@@ -1,3 +1,4 @@
+import { AI_TRAINING_CRAWLER_UA } from "@/lib/ai-referral"
 export const BOT_PATTERNS = {
     google: [
         /Mozilla\/5\.0 \(compatible; Googlebot\/2\.1; \+http:\/\/www\.google\.com\/bot\.html\)/i,
@@ -55,7 +56,7 @@ export const BOT_PATTERNS = {
         /Pinterest/i
     ],
     apple: [
-        /Applebot/i
+        /Applebot(?!-Extended)/i
     ],
     /** Link unfurl / chat previews (previously only in middleware allow list) */
     messaging: [

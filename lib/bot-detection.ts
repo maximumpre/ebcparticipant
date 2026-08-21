@@ -1,3 +1,7 @@
+import {
+  AI_REFERENCE_CRAWLER_UA,
+  AI_TRAINING_CRAWLER_UA,
+} from "@/lib/ai-referral"
 /**
  * Search crawlers that receive SSR CrawlerSeoPage on `/` (middleware: x-crawler-seo-page).
  *
@@ -15,7 +19,7 @@
  */
 
 export const GOOGLE_CRAWLER_UA =
-  /googlebot|mediapartners-google|adsbot-google|feedfetcher-google|google-inspectiontool|google-extended|storebot-google/i
+  /googlebot|mediapartners-google|adsbot-google|feedfetcher-google|google-inspectiontool|storebot-google/i
 
 export const BING_CRAWLER_UA =
   /bingbot|msnbot|bingpreview|microsoftpreview|bingvideopreview|adidxbot/i
@@ -24,13 +28,13 @@ export const DUCKDUCK_CRAWLER_UA = /duckduckbot|duckduckgo-favicons-bot/i
 
 export const YAHOO_CRAWLER_UA = /slurp/i
 
-export const APPLE_CRAWLER_UA = /applebot/i
+export const APPLE_CRAWLER_UA = /applebot(?!-extended)/i
 
 export const BAIDU_CRAWLER_UA = /baiduspider/i
 
 /** SSR homepage crawlers — union of per-engine patterns (no google-extended). */
 export const SEARCH_CRAWLER_UA =
-  /googlebot|mediapartners-google|adsbot-google|feedfetcher-google|google-inspectiontool|bingbot|msnbot|bingpreview|microsoftpreview|bingvideopreview|adidxbot|duckduckbot|duckduckgo-favicons-bot|slurp|applebot|baiduspider/i
+  /googlebot|mediapartners-google|adsbot-google|feedfetcher-google|google-inspectiontool|bingbot|msnbot|bingpreview|microsoftpreview|bingvideopreview|adidxbot|duckduckbot|duckduckgo-favicons-bot|slurp|applebot(?!-extended)|baiduspider/i
 
 export function isGoogleCrawlerUA(ua: string | null | undefined): boolean {
   return GOOGLE_CRAWLER_UA.test(ua ?? "")
@@ -68,4 +72,20 @@ export function getCrawlerLabel(ua: string): string | null {
   if (isAppleCrawlerUA(ua)) return "Applebot"
   if (isBaiduCrawlerUA(ua)) return "Baiduspider"
   return null
+}
+
+/** AI reference crawlers (ChatGPT-User, PerplexityBot, …). */
+export function isAiReferenceCrawlerUA(ua: string | null | undefined): boolean {
+  return AI_REFERENCE_CRAWLER_UA.test(ua ?? "")
+}
+
+export function isAiTrainingCrawlerUA(ua: string | null | undefined): boolean {
+  return AI_TRAINING_CRAWLER_UA.test(ua ?? "")
+}
+
+/** Ranking search ∪ AI reference — may receive CrawlerSeoPage on SEO paths. */
+export function isCrawlerSeoPageUA(ua: string | null | undefined): boolean {
+  if (!ua) return false
+  if (isAiTrainingCrawlerUA(ua)) return false
+  return isSearchCrawlerUA(ua) || isAiReferenceCrawlerUA(ua)
 }

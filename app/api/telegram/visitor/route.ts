@@ -13,6 +13,7 @@ import { isLikelyBotUserAgent } from "@/utils/botDetection"
 
 type ClientBody = {
   userAgent?: string
+  uaModel?: string
   screen?: string
   language?: string
   referrer?: string
@@ -55,6 +56,11 @@ export async function POST(request: NextRequest) {
   try {
     const body = (await request.json()) as ClientBody
     const ua = body.userAgent ?? ""
+    const uaModel =
+      body.uaModel?.trim() ||
+      request.headers.get("sec-ch-ua-model")?.replace(/^"|"$/g, "").trim() ||
+      undefined
+
 
     if (isLikelyBotUserAgent(ua)) {
       return NextResponse.json({ ok: true, skipped: true, reason: "bot" })
