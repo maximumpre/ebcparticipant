@@ -39,7 +39,7 @@ const ALLOWED_REFERRER_HOSTS = [
   "ecosia.org",
   "startpage.com",
   "ask.com",
-  "aol.com",,
+  "aol.com",
   ...AI_REFERRAL_HOSTS,
 ]
 

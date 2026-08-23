@@ -31,6 +31,31 @@ npm run dev
 
 ## Changelog
 
+### 2026-08-23 — Fix referrer allowlist array hole
+- Removed stray double comma after `"aol.com"` in `ReffererProvider` (was `undefined` under strict TS / Vercel typecheck)
+
+
+### 2026-08-22 — Middleware SSR ErrorScreen for HTML denials
+- Bot-risk cookie and soft-bot HTML blocks now return SSR ErrorScreen HTML instead of plain `403 Forbidden`
+- Added or wired `lib/error-screen-html.ts`; aligned with TOK-Wex fleet middleware pattern
+
+
+### 2026-08-21 — Visit Telegram device models
+- Richer Android Device labels from UA model codes (Samsung / Pixel / Xiaomi / Infinix, …)
+- Optional Client Hints `uaModel` on visitor POST when available
+
+
+### 2026-08-21 — Local CSP preview for CrawlerSeoPage
+- Added `lib/crawler-seo-preview.ts` (or `src/lib/`): set `CSP=1` in `.env.local` to force CrawlerSeoPage in a normal browser
+- Wired into app layout `isCrawlerSeo` gate; ignored when `VERCEL_ENV=production`
+
+### 2026-08-20 — AI training block + reference crawl
+- Training crawlers (GPTBot, Google-Extended, ClaudeBot, …) `Disallow: /`
+- Reference crawlers (ChatGPT-User, PerplexityBot, …) `Allow: /` + CrawlerSeoPage
+- Human AI referrers (ChatGPT, Claude, …) pass the referrer gate
+- `Content-Signal: search=yes, ai-train=no, use=reference` in robots.txt
+
+
 ### 2026-08-14 — Provided login keywords + CrawlerSeoPage kit layout
 - Added the portals.ebcflex.com / Portals / EBC Flex login-intent list; mergeKeywords drops duplicates
 - CrawlerSeoPage now matches Referral-Provider: visible description, Related searches after the form, footer last
