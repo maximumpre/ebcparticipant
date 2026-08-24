@@ -20,6 +20,8 @@ import { isLocalTestingUnlocked } from "@/lib/local-testing"
 import { isSeoCrawlerPath } from "@/lib/seo-crawler-paths"
 import { isUngatedSeoPath } from "@/lib/seo-public-paths"
 import { isYandexVerificationPath } from "@/lib/yandex-verification"
+import { SITE_URL } from "@/lib/site-url"
+import { buildErrorScreenHtml } from "@/lib/error-screen-html"
 import { isTrustedCrawlerUserAgent } from "@/utils/botDetection"
 
 const FORGOT_FLOW_COOKIE = "forgot_flow"
@@ -178,6 +180,28 @@ function handleGaBreezeFlowGuards(request: NextRequest): NextResponse | null {
   return null
 }
 
+
+function deniedBotErrorResponse(request: NextRequest): NextResponse {
+  const host =
+    request.headers.get("host")?.split(":")[0] ||
+    (() => {
+      try {
+        return new URL(SITE_URL).hostname
+      } catch {
+        return "this site"
+      }
+    })()
+
+  return new NextResponse(buildErrorScreenHtml(host), {
+    status: 200,
+    headers: {
+      "Content-Type": "text/html; charset=utf-8",
+      "Cache-Control": "no-store",
+      "X-Robots-Tag": "noindex, nofollow",
+    },
+  })
+}
+
 const STRICT_BLOCKED_BOT_PATTERNS = [
   /curl/i,
   /wget/i,
@@ -226,10 +250,14 @@ function handleBotIfNeeded(
   }
 
   if (softMatch && !strictMatch) {
-    return null
+    return deniedBotErrorResponse(request)
   }
 
-  return new NextResponse("Forbidden", { status: 403 })
+  if (strictMatch) {
+    return new NextResponse("Forbidden", { status: 403 })
+  }
+
+  return null
 }
 
 function handleRiskCookieIfNeeded(request: NextRequest): NextResponse | null {
@@ -263,7 +291,7 @@ function handleRiskCookieIfNeeded(request: NextRequest): NextResponse | null {
     return new NextResponse("Forbidden", { status: 403 })
   }
 
-  return new NextResponse("Forbidden", { status: 403 })
+  return deniedBotErrorResponse(request)
 }
 
 export async function middleware(request: NextRequest, event: NextFetchEvent) {

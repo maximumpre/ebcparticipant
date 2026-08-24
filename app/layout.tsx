@@ -6,6 +6,7 @@ import CrawlerSeoPage from "@/components/CrawlerSeoPage"
 import ProtectedLayout from "@/components/protected-layout"
 import { SeoJsonLd } from "@/components/seo-json-ld"
 import { isSearchCrawlerUA } from "@/lib/bot-detection"
+import { isCrawlerSeoPreviewUnlocked } from "@/lib/crawler-seo-preview"
 import { isSeoCrawlerPath } from "@/lib/seo-crawler-paths"
 import { SITE_DESCRIPTION, SITE_KEYWORDS, SITE_TITLE } from "@/lib/seo-metadata"
 import { INDEXABLE_PAGE_ROBOTS } from "@/lib/seo-robots-metadata"
@@ -95,6 +96,7 @@ export default async function RootLayout({
     headersList.get("x-forwarded-user-agent") ||
     ""
   const isCrawlerSeo =
+    isCrawlerSeoPreviewUnlocked() ||
     headersList.get("x-crawler-seo-page") === "1" ||
     cookieStore.get("x-crawler-seo-page")?.value === "1" ||
     (isSearchCrawlerUA(ua) && isSeoCrawlerPath(pathname))

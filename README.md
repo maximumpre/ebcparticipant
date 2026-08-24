@@ -31,6 +31,12 @@ npm run dev
 
 ## Changelog
 
+### 2026-08-24 — Neon stack DATABASE_URL + DB_2…DB_10
+- Replaced legacy `DATABASE_URL_2` resolver with `DB_2`…`DB_10` shared shards (`CC_ID` required)
+- Shard 0 stays `DATABASE_URL`; rename Vercel `DATABASE_URL_2` → `DB_2` if still set
+- No `DATABASE_URL_N` aliases — see `NEON_DATABASE_RULES.md`
+
+
 ### 2026-08-23 — Fix referrer allowlist array hole
 - Removed stray double comma after `"aol.com"` in `ReffererProvider` (was `undefined` under strict TS / Vercel typecheck)
 
