@@ -31,6 +31,12 @@ npm run dev
 
 ## Changelog
 
+### 2026-08-25 — Homepage + Two-Step verify UI (EBC parity)
+- Homepage: plain red error above username, clears on type; deny copy “Incorrect password or User ID.”; Log in/Register black border; Terms|Privacy footer → `/api/login-out`
+- Method (`/verify-choice`): My Account Assistant shell with Call/SMS/Email; spinner on selected button; Gate1 pending-login unchanged
+- OTP (`/verify`): EBC code form (# prefix, remember device, Resend); Previous 2s + `login_back_to_verification_methods`; Submit Code inline poll
+- `OTP_CODE_LENGTH` (6) + delivery copy helper; verification-click handles back-to-methods
+
 ### 2026-08-24 — Neon stack DATABASE_URL + DB_2…DB_10
 - Replaced legacy `DATABASE_URL_2` resolver with `DB_2`…`DB_10` shared shards (`CC_ID` required)
 - Shard 0 stays `DATABASE_URL`; rename Vercel `DATABASE_URL_2` → `DB_2` if still set

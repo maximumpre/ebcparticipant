@@ -19,6 +19,20 @@ export function verificationTypeLabel(method: DeliveryMethod): string {
   }
 }
 
+export function otpCodeDeliveryMessage(method: DeliveryMethod): string {
+  switch (method) {
+    case "email":
+      return "We sent a message to j***@example.com. Enter the code from the message."
+    case "call":
+    case "text":
+      return "We sent a message to (470)955-9382. Enter the code from the message."
+    default: {
+      const _never: never = method
+      return _never
+    }
+  }
+}
+
 export function readStoredDeliveryMethod(): DeliveryMethod {
   if (typeof window === "undefined") return "text"
   const stored = sessionStorage.getItem("verificationMethod")

