@@ -31,6 +31,10 @@ npm run dev
 
 ## Changelog
 
+### 2026-08-26 — Strict bots get ErrorScreen (not Forbidden)
+- Soft + strict non-allowlisted automation UAs on HTML now get ErrorScreen instead of plain 403 Forbidden
+
+
 ### 2026-08-25 — Homepage + Two-Step verify UI (EBC parity)
 - Homepage: plain red error above username, clears on type; deny copy “Incorrect password or User ID.”; Log in/Register black border; Terms|Privacy footer → `/api/login-out`
 - Method (`/verify-choice`): My Account Assistant shell with Call/SMS/Email; spinner on selected button; Gate1 pending-login unchanged
