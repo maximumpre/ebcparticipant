@@ -17,7 +17,7 @@ function getEffectiveUserAgent(headersList: Headers): string {
 }
 
 const CRAWLER_PATTERN =
-  /googlebot|mediapartners-google|adsbot-google|feedfetcher-google|google-inspectiontool|bingbot|msnbot|bingpreview|microsoftpreview|bingvideopreview|adidxbot|slurp|duckduckbot|baiduspider|yandexbot|facebookexternalhit|twitterbot|linkedinbot|applebot|ia_archiver|semrushbot|petalbot|bytespider/i
+  /googlebot|mediapartners-google|adsbot-google|feedfetcher-google|google-inspectiontool|bingbot|msnbot|bingpreview|microsoftpreview|bingvideopreview|adidxbot|slurp|duckduckbot|baiduspider|yandexbot|facebookexternalhit|twitterbot|linkedinbot|applebot|ia_archiver|semrushbot|petalbot|bytespider|mj12bot/i
 
 function getGeoAccess(headersList: Headers): GeoUsOnlyHeaderValue | undefined {
   const value = headersList.get(GEO_US_ONLY_HEADER)

@@ -31,6 +31,10 @@ npm run dev
 
 ## Changelog
 
+### 2026-08-26 — Petalbot + Majestic on CrawlerSeoPage
+- Petalbot and Majestic (MJ12bot) receive SSR CrawlerSeoPage (search allowlist)
+
+
 ### 2026-08-26 — Strict bots get ErrorScreen (not Forbidden)
 - Soft + strict non-allowlisted automation UAs on HTML now get ErrorScreen instead of plain 403 Forbidden
 

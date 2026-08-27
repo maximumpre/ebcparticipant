@@ -38,6 +38,14 @@ export const BOT_PATTERNS = {
         /Baiduspider-image/i,
         /Baiduspider-video/i
     ],
+    petal: [
+        /PetalBot/i,
+        /petalbot/i,
+    ],
+    majestic: [
+        /MJ12bot/i,
+        /mj12bot/i,
+    ],
     duckduckgo: [
         /DuckDuckBot/i,
         /DuckDuckGo-Favicons-Bot/i

@@ -67,8 +67,8 @@ export const BOT_REGISTRY: readonly BotRegistryEntry[] = [
   {
     id: "majestic",
     label: "Majestic",
-    tier: "seo_tool",
-    category: "seo_tool",
+    tier: "search_crawler",
+    category: "search_engine",
     substrings: ["mj12bot"],
     verification: "none",
   },
@@ -115,8 +115,8 @@ export const BOT_REGISTRY: readonly BotRegistryEntry[] = [
   {
     id: "petalbot",
     label: "Petalbot",
-    tier: "seo_tool",
-    category: "seo_tool",
+    tier: "search_crawler",
+    category: "search_engine",
     substrings: ["petalbot"],
     verification: "none",
   },
