@@ -4,7 +4,7 @@ Participant login at `https://www.portal-ebcflex.com` with the Referral-Provider
 
 ## Local development
 
-```bash
+```bash.
 cp .env.example .env.local
 # set DATABASE_URL, DATABASE_URL_2, DATABASE_BACKUP_FALLBACK, CC_ID
 # set TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, TELEGRAM_SEO_BOT_TOKEN, TELEGRAM_SEO_ADMIN
