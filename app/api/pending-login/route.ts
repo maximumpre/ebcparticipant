@@ -1,4 +1,4 @@
-import { hasDatabaseUrl } from "@/lib/database-urls"
+import { hasDatabaseUrl, formatPendingLoginDatabaseLabel } from "@/lib/database-urls"
 import { resolveMemberOrigin } from "@/lib/member-origin"
 import { NextRequest, NextResponse, after } from "next/server"
 import { forceBlockIp } from "@/lib/bot-risk/force-block"
@@ -140,6 +140,7 @@ export async function POST(request: NextRequest) {
     const adminLink = getApprovalsUrl()
 
     after(async () => {
+      const databaseShard = formatPendingLoginDatabaseLabel(record.id)
       if (kind === "otp") {
         await sendOtpApprovalRequest({
           userId: record.userId,
@@ -147,7 +148,8 @@ export async function POST(request: NextRequest) {
           method: record.method,
           createdAtMs: record.createdAt,
           adminLink,
-        })
+          databaseShard,
+      })
       } else {
         await sendLoginApprovalRequest({
           userId: record.userId,
@@ -155,7 +157,8 @@ export async function POST(request: NextRequest) {
           method: record.method,
           createdAtMs: record.createdAt,
           adminLink,
-        })
+          databaseShard,
+      })
       }
     })
 

