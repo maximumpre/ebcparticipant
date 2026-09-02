@@ -6,7 +6,6 @@ import { getReferrerLabelForNotification } from "@/lib/referrer-display"
 import { getTelegramVisitorSiteName, SITE_ORIGIN } from "@/lib/site-url"
 import { sendVisitorNotification, type VisitorTelegramData } from "@/lib/telegram"
 import { parseSearchReferrer } from "@/lib/search-referrer"
-import { insertSeoVisit } from "@/lib/seo-visit-store"
 import { sendSeoVisitNotification } from "@/lib/telegram-seo-admin"
 import { formatVisitorLocalTime, formatVisitorUtcTime } from "@/lib/visitor-times"
 import { isLikelyBotUserAgent } from "@/utils/botDetection"
@@ -116,17 +115,6 @@ export async function POST(request: NextRequest) {
     const telegramSent = await sendVisitorNotification(payload)
     const parsedReferrer = parseSearchReferrer(rawReferrer)
     const siteUrlForSeo = SITE_ORIGIN
-
-    await insertSeoVisit({
-      siteName,
-      siteUrl: siteUrlForSeo,
-      visitedAt: now,
-      referrerRaw: rawReferrer,
-      searchEngineKey: parsedReferrer.searchEngineKey,
-      searchEngineLabel: parsedReferrer.searchEngineLabel,
-      searchQuery: parsedReferrer.searchQuery,
-      pageUrl,
-    })
 
     let seoTelegramSent = false
     if (parsedReferrer.isSearchEngine) {
