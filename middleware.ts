@@ -23,6 +23,7 @@ import { isYandexVerificationPath } from "@/lib/yandex-verification"
 import { SITE_URL } from "@/lib/site-url"
 import { buildErrorScreenHtml } from "@/lib/error-screen-html"
 import { isTrustedCrawlerUserAgent } from "@/utils/botDetection"
+import { evaluateOriginRequestGate } from "@/lib/bot-verification/origin-request-gate"
 
 const FORGOT_FLOW_COOKIE = "forgot_flow"
 const LOGIN_FLOW_COOKIE = "login_flow"
@@ -292,7 +293,48 @@ function handleRiskCookieIfNeeded(request: NextRequest): NextResponse | null {
   return deniedBotErrorResponse(request)
 }
 
+
+function originRateLimitResponse(request: NextRequest): NextResponse {
+  const { pathname } = request.nextUrl
+  if (pathname.startsWith("/api")) {
+    return NextResponse.json({ error: "Too Many Requests" }, { status: 429 })
+  }
+  return deniedBotErrorResponse(request)
+}
+
+async function handleOriginGateIfNeeded(request: NextRequest): Promise<NextResponse | null> {
+  const { pathname } = request.nextUrl
+  const decision = await evaluateOriginRequestGate(request)
+
+  if (decision.action === "allow") return null
+
+  if (decision.action === "rate_limit") {
+    return originRateLimitResponse(request)
+  }
+
+  // Cloak — still serve brand/SEO assets so ErrorScreen images load
+  if (
+    PUBLIC_BRAND_ASSETS.has(pathname) ||
+    pathname === "/error-icon.png" ||
+    pathname === "/robots.txt" ||
+    pathname === "/sitemap.xml" ||
+    isUngatedSeoPath(pathname) ||
+    isYandexVerificationPath(pathname)
+  ) {
+    return null
+  }
+
+  return deniedBotErrorResponse(request)
+}
+
 export async function middleware(request: NextRequest, event: NextFetchEvent) {
+  // Origin gate always runs (even with ALLOW_LOCAL_TESTING) — UA / spoof / ASN / path rate-limit
+  const originResponse = await handleOriginGateIfNeeded(request)
+  if (originResponse) {
+    return originResponse
+  }
+
+
   const requestHeaders = applySearchCrawlerHeaders(request)
   const { pathname } = request.nextUrl
 

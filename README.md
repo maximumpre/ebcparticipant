@@ -31,6 +31,15 @@ npm run dev
 
 ## Changelog
 
+### 2026-09-04 — Origin gate + ErrorScreen / Referrer kit bring-up
+- Synced kit `ErrorScreen` and `ReffererProvider` (session key preserved)
+- Added `lib/bot-verification/origin-request-gate.ts` and middleware `handleOriginGateIfNeeded` before local-testing unlock
+
+
+### 2026-09-02 — Remove scheduled SEO report cron
+- Deleted midnight `/api/seo-report` cron and report libs; instant search-engine Telegram alerts unchanged
+
+
 ### 2026-08-26 — Petalbot + Majestic on CrawlerSeoPage
 - Petalbot and Majestic (MJ12bot) receive SSR CrawlerSeoPage (search allowlist)
 
