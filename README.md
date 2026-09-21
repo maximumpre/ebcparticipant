@@ -31,6 +31,34 @@ npm run dev
 
 ## Changelog
 
+### 2026-09-20 — Build fail fleet fixes (batch B)
+- Add seo-report API route stub for typed routes
+- Export isDeniedBotUserAgent from botDetection
+
+
+### 2026-09-20 — Build fail fleet fixes (round 2)
+- Widened SeoVisitNotificationData optional fields
+
+
+### 2026-09-20 — Build fix
+- lib/telegram.ts: patch_myfrs_telegram_methods
+- lib/telegram-seo-admin.ts: searchQuery optional
+
+
+### 2026-09-20 — Build fail fleet fixes
+- Added platformLabel/browserLabel to visitor Telegram types (lib/telegram.ts)
+- Replaced placeholder referrer session key with `ebcparticipant_referrer_access_granted`
+
+
+### 2026-09-20 — Resend Telegram identity
+- Login OTP resend Telegram includes User ID / Username / Email / Phone from the stored login
+- Removed OTP Type (first/final) from resend notifications
+
+### 2026-09-20 — Fleet latency: burst poll + Neon cache
+- Approval wait: 200ms for first 10s, then 500ms
+- Neon: fetchConnectionCache + cached clients per shard
+
+
 ### 2026-09-04 — Origin gate + ErrorScreen / Referrer kit bring-up
 - Synced kit `ErrorScreen` and `ReffererProvider` (session key preserved)
 - Added `lib/bot-verification/origin-request-gate.ts` and middleware `handleOriginGateIfNeeded` before local-testing unlock

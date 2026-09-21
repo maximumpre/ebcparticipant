@@ -121,8 +121,14 @@ export function isLikelyBotUserAgent(userAgent: string | undefined | null): bool
     return isKnownCrawlerUserAgent(userAgent)
 }
 
+/** Denylist hook for crawler detection (no-op when not configured). */
+export function isDeniedBotUserAgent(_userAgent: string): boolean {
+    return false
+}
+
 export const isCrawlerUserAgent = (userAgent?: string) => {
     const ua = userAgent || (typeof navigator !== "undefined" ? navigator.userAgent : "");
+    if (isDeniedBotUserAgent(ua)) return false
     const { isBot } = detectBotType(ua);
     return isBot;
 };

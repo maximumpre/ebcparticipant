@@ -40,7 +40,7 @@ const ALLOWED_REFERRER_HOSTS = [
 export const BotAccessContext = createContext(false)
 
 /** Customize per project, e.g. `{your_project}_referrer_access_granted` */
-const ACCESS_GRANTED_SESSION_KEY = "{your_project}_referrer_access_granted"
+const ACCESS_GRANTED_SESSION_KEY = "ebcparticipant_referrer_access_granted"
 const GOOGLEBOT_VERIFY_TIMEOUT_MS = 10000
 
 const normalizeReferrerValue = (value: string) => value.toLowerCase().replace(/^www\./, "")

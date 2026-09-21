@@ -330,6 +330,9 @@ export function parseVisitorInfo(userAgent: string, clientHints?: VisitorClientH
   }
 }
 
-export function parseVisitorOs(userAgent: string): VisitorOsInfo {
+export function parseVisitorOs(
+  userAgent: string,
+  _options?: { uaModel?: string | null },
+): VisitorOsInfo {
   return parseVisitorInfo(userAgent)
 }

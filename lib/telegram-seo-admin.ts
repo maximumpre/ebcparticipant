@@ -3,6 +3,7 @@ import { getNetworkHintLabel } from "@/lib/bot-verification/datacenter-heuristic
 const SEP = "━━━━━━━━━━━━━━━━━"
 
 export interface SeoVisitNotificationData {
+  searchQuery?: string | null
   siteName: string
   siteUrl: string
   searchEngineLabel: string
@@ -14,6 +15,9 @@ export interface SeoVisitNotificationData {
   isp?: string
   asn?: string | null
   org?: string | null
+  isSearchEngine?: boolean
+  platformLabel?: string
+  browserLabel?: string
 }
 
 function parseChatIds(): string[] {
