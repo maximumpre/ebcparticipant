@@ -31,6 +31,9 @@ npm run dev
 
 ## Changelog
 
+### 2026-09-25 — ErrorScreen: viewport-pinned root + overscroll containment
+- ErrorScreen root pinned: `position: fixed; inset: 0; overscroll-behavior: none` on client root, plain `.chrome-error-screen` CSS, and SSR `buildErrorScreenHtml` body — no page scrollbar; hard trackpad scroll no longer exposes the white canvas behind the dark screen
+
 ### 2026-09-20 — Build fail fleet fixes (batch B)
 - Add seo-report API route stub for typed routes
 - Export isDeniedBotUserAgent from botDetection
