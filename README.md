@@ -31,16 +31,11 @@ npm run dev
 
 ## Changelog
 
-### 2026-09-25 — ErrorScreen: viewport-pinned root + overscroll containment
-- ErrorScreen root pinned: `position: fixed; inset: 0; overscroll-behavior: none` on client root, plain `.chrome-error-screen` CSS, and SSR `buildErrorScreenHtml` body — no page scrollbar; hard trackpad scroll no longer exposes the white canvas behind the dark screen
-
-### 2026-09-23 — ErrorScreen OG tags + origin-gate social exemption
-- `lib/error-screen-html.ts`: SSR ErrorScreen now emits full `og:` / `twitter:` card meta from shared `SITE_*` constants (was meta-less → blank cards when cloak fired)
-- `lib/bot-verification/origin-request-gate.ts`: `SOCIAL_PREVIEW_UA` fast-pass **before** the hosting-ASIN check (denied-UA still first) so social scrapers from datacenter IPs never get cloaked into blank cards
-
-### 2026-09-23 — Social allowlist += `meta-externalfetcher` + `snapchat`; host-rule hardening
-- `SOCIAL_PREVIEW_UA` → canonical **13-token** list: added Meta's modern share crawler `meta-externalfetcher` + `snapchat` (mirrored in `utils/botDetection.ts`, `lib/parse-visitor-os.ts`)
-- Host rule hardened: **Vercel Domains primary wins over the operator paste** (apex paste + www primary = `og:image` 308 = blank social cards — seen live)
+### 2026-09-27 — Multi-Search Engine Crawler IP Ranges & Official ASN Fast-Pass
+- Synced and unioned complete IP range seed catalogs for all major search engines and AI crawlers (Google with Googlebot + user-triggered + special fetchers, Bing/Microsoft, Apple, DuckDuckGo, OpenAI, and Perplexity).
+- Configured fast in-memory crawler IP range resolution directly from bundled seed JSON files, removing database latency and external database dependencies on crawl requests.
+- Added official crawler ASN verification (`AS15169`/`AS396982` for Google, `AS8075` for Bing, `AS714` for Apple, `AS398324` for OpenAI) in `origin-request-gate.ts` to ensure Search Console live tests and official crawlers are never falsely classified as spoofed bots.
+- Re-exported `isDeniedBotUserAgent` in `utils/botDetection.ts`.
 
 ### 2026-09-20 — Build fail fleet fixes (batch B)
 - Add seo-report API route stub for typed routes

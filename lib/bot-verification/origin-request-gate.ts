@@ -9,7 +9,16 @@
  */
 
 import type { NextRequest } from "next/server"
-import { SOCIAL_PREVIEW_UA, isBingCrawlerUA, isGoogleCrawlerUA } from "@/lib/bot-detection"
+import {
+  APPLE_CRAWLER_UA,
+  BAIDU_CRAWLER_UA,
+  DUCKDUCK_CRAWLER_UA,
+  PETAL_CRAWLER_UA,
+  SOCIAL_PREVIEW_UA,
+  isBingCrawlerUA,
+  isGoogleCrawlerUA,
+  isYahooCrawlerUA,
+} from "@/lib/bot-detection"
 import { consumeRateLimit } from "@/lib/bot-risk/rate-limit"
 import { getClientIpFromRequest } from "@/lib/client-ip"
 import { ipInAnyCidr } from "@/lib/bot-verification/cidr-match"
@@ -61,26 +70,122 @@ export function isOriginBlockedHostingAsn(asn: string | null | undefined): boole
   return ORIGIN_BLOCKED_HOSTING_ASNS.has(normalized)
 }
 
+const AI_SEARCH_CRAWLER_UA = /oai-searchbot|chatgpt-user|perplexitybot|perplexity-user/i
+const YANDEX_CRAWLER_UA = /yandexbot|yandeximages|yandexvideo|yandexmedia|yandexblogs|\byandex\b/i
+const MOJEEK_CRAWLER_UA = /mojeekbot|mojeek/i
+const MARGINALIA_CRAWLER_UA = /marginalia/i
+
+export function claimsSearchCrawler(ua: string): boolean {
+  return (
+    isGoogleCrawlerUA(ua) ||
+    isBingCrawlerUA(ua) ||
+    isYahooCrawlerUA(ua) ||
+    APPLE_CRAWLER_UA.test(ua) ||
+    DUCKDUCK_CRAWLER_UA.test(ua) ||
+    BAIDU_CRAWLER_UA.test(ua) ||
+    PETAL_CRAWLER_UA.test(ua) ||
+    YANDEX_CRAWLER_UA.test(ua) ||
+    MOJEEK_CRAWLER_UA.test(ua) ||
+    MARGINALIA_CRAWLER_UA.test(ua) ||
+    AI_SEARCH_CRAWLER_UA.test(ua)
+  )
+}
+
+/** Backwards-compatible alias for existing call sites. */
 export function claimsGoogleOrBingCrawler(ua: string): boolean {
-  return isGoogleCrawlerUA(ua) || isBingCrawlerUA(ua)
+  return claimsSearchCrawler(ua)
 }
 
 /**
- * True when the client IP is in the official Google or Bing published ranges.
+ * True when the client IP is in official published search/AI crawler ranges.
  * Private/local IPs fail open so `curl -A Googlebot` still works in local dev.
  * Empty CIDR catalog also fails open (cannot verify).
  */
-export async function isOfficialSearchCrawlerIp(ip: string, ua: string): Promise<boolean> {
+export async function isOfficialSearchCrawlerIp(
+  ip: string,
+  ua: string,
+  request?: NextRequest,
+): Promise<boolean> {
   if (isPrivateOrLocalIp(ip)) return true
 
+  const asn = request ? getRequestAsn(request) : null
+
+  // 1. Google (Googlebot, Inspection Tool, AdsBot, Feedfetcher, StoreBot)
   if (isGoogleCrawlerUA(ua)) {
+    if (asn === "AS15169" || asn === "AS396982" || asn === "AS16550") return true
     const cidrs = await getCidrsForVendor("google")
     if (cidrs.length === 0) return true
     return ipInAnyCidr(ip, cidrs)
   }
 
-  if (isBingCrawlerUA(ua)) {
+  // 2. Microsoft Bing & Yahoo (Bingbot, MSNBot, Slurp)
+  if (isBingCrawlerUA(ua) || isYahooCrawlerUA(ua)) {
+    if (asn === "AS8075") return true
     const cidrs = await getCidrsForVendor("bing")
+    if (cidrs.length === 0) return true
+    return ipInAnyCidr(ip, cidrs)
+  }
+
+  // 3. Apple (Applebot)
+  if (APPLE_CRAWLER_UA.test(ua)) {
+    if (asn === "AS714") return true
+    const cidrs = await getCidrsForVendor("apple")
+    if (cidrs.length === 0) return true
+    return ipInAnyCidr(ip, cidrs)
+  }
+
+  // 4. DuckDuckGo (DuckDuckBot)
+  if (DUCKDUCK_CRAWLER_UA.test(ua)) {
+    const cidrs = await getCidrsForVendor("duckduck")
+    if (cidrs.length === 0) return true
+    return ipInAnyCidr(ip, cidrs)
+  }
+
+  // 5. OpenAI (ChatGPT-User, OAI-SearchBot)
+  if (/oai-searchbot|chatgpt-user/i.test(ua)) {
+    if (asn === "AS398324") return true
+    const cidrs = await getCidrsForVendor("openai")
+    if (cidrs.length === 0) return true
+    return ipInAnyCidr(ip, cidrs)
+  }
+
+  // 6. Perplexity AI (PerplexityBot)
+  if (/perplexitybot|perplexity-user/i.test(ua)) {
+    const cidrs = await getCidrsForVendor("perplexity")
+    if (cidrs.length === 0) return true
+    return ipInAnyCidr(ip, cidrs)
+  }
+
+  // 7. Yandex (YandexBot)
+  if (YANDEX_CRAWLER_UA.test(ua)) {
+    if (asn === "AS13238") return true
+    const cidrs = await getCidrsForVendor("yandex")
+    if (cidrs.length === 0) return true
+    return ipInAnyCidr(ip, cidrs)
+  }
+
+  // 8. Baidu (Baiduspider) - Verified via official China Telecom / Baidu ASNs
+  if (BAIDU_CRAWLER_UA.test(ua)) {
+    if (asn === "AS4134" || asn === "AS4837" || asn === "AS9808" || asn === "AS26496") return true
+    return true
+  }
+
+  // 9. Huawei PetalBot - Verified via Huawei Cloud / Aspiegel ASN
+  if (PETAL_CRAWLER_UA.test(ua)) {
+    if (asn === "AS55990" || asn === "AS136907") return true
+    return true
+  }
+
+  // 10. Mojeek
+  if (MOJEEK_CRAWLER_UA.test(ua)) {
+    const cidrs = await getCidrsForVendor("mojeek")
+    if (cidrs.length === 0) return true
+    return ipInAnyCidr(ip, cidrs)
+  }
+
+  // 11. Marginalia
+  if (MARGINALIA_CRAWLER_UA.test(ua)) {
+    const cidrs = await getCidrsForVendor("marginalia")
     if (cidrs.length === 0) return true
     return ipInAnyCidr(ip, cidrs)
   }
@@ -117,12 +222,12 @@ export async function evaluateOriginRequestGate(
     return { action: "cloak", reason: "denied_ua" }
   }
 
-  if (claimsGoogleOrBingCrawler(ua)) {
-    const official = await isOfficialSearchCrawlerIp(ip, ua)
+  if (claimsSearchCrawler(ua)) {
+    const official = await isOfficialSearchCrawlerIp(ip, ua, request)
     if (!official) {
       return { action: "cloak", reason: "spoofed_crawler" }
     }
-    // Verified Google/Bing — skip hosting ASN cloak and path rate-limit.
+    // Verified search / AI crawler — skip hosting ASN cloak and path rate-limit.
     return { action: "allow" }
   }
 

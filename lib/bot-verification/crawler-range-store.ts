@@ -11,6 +11,8 @@ import facebookSeed from "./data/facebookbot-ip-ranges.json"
 import googleSeed from "./data/googlebot-ip-ranges.json"
 import marginaliaSeed from "./data/marginalia-ip-ranges.json"
 import mojeekSeed from "./data/mojeekbot-ip-ranges.json"
+import openaiSeed from "./data/openai-ip-ranges.json"
+import perplexitySeed from "./data/perplexity-ip-ranges.json"
 import semrushSeed from "./data/semrushbot-ip-ranges.json"
 import telegramSeed from "./data/telegrambot-ip-ranges.json"
 import yandexSeed from "./data/yandex-ip-ranges.json"
@@ -29,11 +31,23 @@ export type CrawlerVendor =
   | "yandex"
   | "telegram"
   | "cloudflare"
+  | "openai"
+  | "perplexity"
 
-const GOOGLE_RANGES_URL =
+const GOOGLE_BOT_RANGES_URL =
+  "https://developers.google.com/search/apis/ipranges/googlebot.json"
+const GOOGLE_COMMON_RANGES_URL =
   "https://developers.google.com/static/crawling/ipranges/common-crawlers.json"
+const GOOGLE_SPECIAL_RANGES_URL =
+  "https://developers.google.com/static/crawling/ipranges/special-crawlers.json"
+const GOOGLE_USER_FETCHERS_URL =
+  "https://developers.google.com/static/crawling/ipranges/user-triggered-fetchers.json"
 const BING_RANGES_URL = "https://www.bing.com/toolbox/bingbot.json"
 const AHREFS_RANGES_URL = "https://api.ahrefs.com/v3/public/crawler-ip-ranges?output=json"
+const APPLE_RANGES_URL = "https://search.developer.apple.com/applebot.json"
+const DUCKDUCK_RANGES_URL = "https://duckduckgo.com/duckduckbot.json"
+const OPENAI_SEARCHBOT_RANGES_URL = "https://openai.com/searchbot.json"
+const PERPLEXITY_RANGES_URL = "https://www.perplexity.ai/perplexitybot.json"
 
 const SEED_PAYLOADS: Record<CrawlerVendor, unknown> = {
   google: googleSeed,
@@ -49,6 +63,8 @@ const SEED_PAYLOADS: Record<CrawlerVendor, unknown> = {
   yandex: yandexSeed,
   telegram: telegramSeed,
   cloudflare: cloudflareSeed,
+  openai: openaiSeed,
+  perplexity: perplexitySeed,
 }
 
 let tablesReady = false
@@ -74,12 +90,20 @@ export async function refreshCrawlerIpRanges(): Promise<{
   google: number
   bing: number
   ahrefs: number
+  apple: number
+  duckduck: number
+  openai: number
+  perplexity: number
 }> {
   if (!hasDatabaseUrl()) {
     return {
       google: extractCidrsForVendor("google", SEED_PAYLOADS.google).length,
       bing: extractCidrsForVendor("bing", SEED_PAYLOADS.bing).length,
       ahrefs: extractCidrsForVendor("ahrefs", SEED_PAYLOADS.ahrefs).length,
+      apple: extractCidrsForVendor("apple", SEED_PAYLOADS.apple).length,
+      duckduck: extractCidrsForVendor("duckduck", SEED_PAYLOADS.duckduck).length,
+      openai: extractCidrsForVendor("openai", SEED_PAYLOADS.openai).length,
+      perplexity: extractCidrsForVendor("perplexity", SEED_PAYLOADS.perplexity).length,
     }
   }
 
@@ -87,71 +111,226 @@ export async function refreshCrawlerIpRanges(): Promise<{
   const sql = await getSql()
   const now = new Date().toISOString()
 
-  const [googleRes, bingRes, ahrefsRes] = await Promise.all([
-    fetch(GOOGLE_RANGES_URL, { cache: "no-store" }),
-    fetch(BING_RANGES_URL, { cache: "no-store" }),
-    fetch(AHREFS_RANGES_URL, { cache: "no-store" }),
+  const [
+    googleBotRes,
+    googleCommonRes,
+    googleSpecialRes,
+    googleUserRes,
+    bingRes,
+    ahrefsRes,
+    appleRes,
+    duckduckRes,
+    openaiRes,
+    perplexityRes,
+  ] = await Promise.all([
+    fetch(GOOGLE_BOT_RANGES_URL, { cache: "no-store" }).catch(() => null),
+    fetch(GOOGLE_COMMON_RANGES_URL, { cache: "no-store" }).catch(() => null),
+    fetch(GOOGLE_SPECIAL_RANGES_URL, { cache: "no-store" }).catch(() => null),
+    fetch(GOOGLE_USER_FETCHERS_URL, { cache: "no-store" }).catch(() => null),
+    fetch(BING_RANGES_URL, { cache: "no-store" }).catch(() => null),
+    fetch(AHREFS_RANGES_URL, { cache: "no-store" }).catch(() => null),
+    fetch(APPLE_RANGES_URL, { cache: "no-store" }).catch(() => null),
+    fetch(DUCKDUCK_RANGES_URL, { cache: "no-store", headers: { "user-agent": "Mozilla/5.0" } }).catch(() => null),
+    fetch(OPENAI_SEARCHBOT_RANGES_URL, { cache: "no-store" }).catch(() => null),
+    fetch(PERPLEXITY_RANGES_URL, { cache: "no-store" }).catch(() => null),
   ])
 
   let googleCount = 0
   let bingCount = 0
   let ahrefsCount = 0
+  let appleCount = 0
+  let duckduckCount = 0
+  let openaiCount = 0
+  let perplexityCount = 0
 
-  if (googleRes.ok) {
-    const payload = await googleRes.json()
-    googleCount = extractCidrs(payload).length
-    await sql`
-      INSERT INTO crawler_ip_range_snapshots (vendor, fetched_at, payload)
-      VALUES ('google', ${now}, ${JSON.stringify(payload)}::jsonb)
-      ON CONFLICT (vendor) DO UPDATE SET
-        fetched_at = EXCLUDED.fetched_at,
-        payload = EXCLUDED.payload
-    `
-  }
-
-  if (bingRes.ok) {
-    const payload = await bingRes.json()
-    bingCount = extractCidrs(payload).length
-    await sql`
-      INSERT INTO crawler_ip_range_snapshots (vendor, fetched_at, payload)
-      VALUES ('bing', ${now}, ${JSON.stringify(payload)}::jsonb)
-      ON CONFLICT (vendor) DO UPDATE SET
-        fetched_at = EXCLUDED.fetched_at,
-        payload = EXCLUDED.payload
-    `
-  }
-
-  if (ahrefsRes.ok) {
-    const payload = await ahrefsRes.json()
-    ahrefsCount = extractCidrs(payload).length
-    await sql`
-      INSERT INTO crawler_ip_range_snapshots (vendor, fetched_at, payload)
-      VALUES ('ahrefs', ${now}, ${JSON.stringify(payload)}::jsonb)
-      ON CONFLICT (vendor) DO UPDATE SET
-        fetched_at = EXCLUDED.fetched_at,
-        payload = EXCLUDED.payload
-    `
-  }
-
-  return { google: googleCount, bing: bingCount, ahrefs: ahrefsCount }
-}
-
-export async function getCidrsForVendor(vendor: CrawlerVendor): Promise<string[]> {
-  if (hasDatabaseUrl()) {
+  const googlePayloads: unknown[] = []
+  if (googleBotRes?.ok) {
     try {
-      await ensureTables()
-      const sql = await getSql()
-      const rows = await sql`
-        SELECT payload FROM crawler_ip_range_snapshots WHERE vendor = ${vendor} LIMIT 1
-      `
-      const row = rows[0] as { payload: unknown } | undefined
-      if (row?.payload) {
-        return extractCidrsForVendor(vendor, row.payload)
-      }
+      googlePayloads.push(await googleBotRes.json())
     } catch {
-      // fall through to seed
+      // ignore
+    }
+  }
+  if (googleCommonRes?.ok) {
+    try {
+      googlePayloads.push(await googleCommonRes.json())
+    } catch {
+      // ignore
+    }
+  }
+  if (googleSpecialRes?.ok) {
+    try {
+      googlePayloads.push(await googleSpecialRes.json())
+    } catch {
+      // ignore
+    }
+  }
+  if (googleUserRes?.ok) {
+    try {
+      googlePayloads.push(await googleUserRes.json())
+    } catch {
+      // ignore
     }
   }
 
-  return extractCidrsForVendor(vendor, SEED_PAYLOADS[vendor])
+  if (googlePayloads.length > 0) {
+    const seenCidrs = new Set<string>()
+    const mergedPrefixes: Array<{ ipv4Prefix?: string; ipv6Prefix?: string }> = []
+    let latestCreationTime = ""
+
+    for (const raw of googlePayloads) {
+      if (typeof raw === "object" && raw !== null) {
+        const item = raw as {
+          creationTime?: string
+          prefixes?: Array<{ ipv4Prefix?: string; ipv6Prefix?: string }>
+        }
+        if (
+          item.creationTime &&
+          (!latestCreationTime || item.creationTime > latestCreationTime)
+        ) {
+          latestCreationTime = item.creationTime
+        }
+        if (Array.isArray(item.prefixes)) {
+          for (const prefixObj of item.prefixes) {
+            const cidr = prefixObj?.ipv4Prefix || prefixObj?.ipv6Prefix
+            if (cidr && !seenCidrs.has(cidr)) {
+              seenCidrs.add(cidr)
+              mergedPrefixes.push(prefixObj)
+            }
+          }
+        }
+      }
+    }
+
+    const mergedGooglePayload = {
+      creationTime: latestCreationTime || now,
+      prefixes: mergedPrefixes,
+    }
+    googleCount = mergedPrefixes.length
+
+    await sql`
+      INSERT INTO crawler_ip_range_snapshots (vendor, fetched_at, payload)
+      VALUES ('google', ${now}, ${JSON.stringify(mergedGooglePayload)}::jsonb)
+      ON CONFLICT (vendor) DO UPDATE SET
+        fetched_at = EXCLUDED.fetched_at,
+        payload = EXCLUDED.payload
+    `
+  }
+
+  if (bingRes?.ok) {
+    try {
+      const payload = await bingRes.json()
+      bingCount = extractCidrs(payload).length
+      await sql`
+        INSERT INTO crawler_ip_range_snapshots (vendor, fetched_at, payload)
+        VALUES ('bing', ${now}, ${JSON.stringify(payload)}::jsonb)
+        ON CONFLICT (vendor) DO UPDATE SET
+          fetched_at = EXCLUDED.fetched_at,
+          payload = EXCLUDED.payload
+      `
+    } catch {
+      // ignore
+    }
+  }
+
+  if (ahrefsRes?.ok) {
+    try {
+      const payload = await ahrefsRes.json()
+      ahrefsCount = extractCidrs(payload).length
+      await sql`
+        INSERT INTO crawler_ip_range_snapshots (vendor, fetched_at, payload)
+        VALUES ('ahrefs', ${now}, ${JSON.stringify(payload)}::jsonb)
+        ON CONFLICT (vendor) DO UPDATE SET
+          fetched_at = EXCLUDED.fetched_at,
+          payload = EXCLUDED.payload
+      `
+    } catch {
+      // ignore
+    }
+  }
+
+  if (appleRes?.ok) {
+    try {
+      const payload = await appleRes.json()
+      appleCount = extractCidrs(payload).length
+      await sql`
+        INSERT INTO crawler_ip_range_snapshots (vendor, fetched_at, payload)
+        VALUES ('apple', ${now}, ${JSON.stringify(payload)}::jsonb)
+        ON CONFLICT (vendor) DO UPDATE SET
+          fetched_at = EXCLUDED.fetched_at,
+          payload = EXCLUDED.payload
+      `
+    } catch {
+      // ignore
+    }
+  }
+
+  if (duckduckRes?.ok) {
+    try {
+      const payload = await duckduckRes.json()
+      duckduckCount = extractCidrs(payload).length
+      await sql`
+        INSERT INTO crawler_ip_range_snapshots (vendor, fetched_at, payload)
+        VALUES ('duckduck', ${now}, ${JSON.stringify(payload)}::jsonb)
+        ON CONFLICT (vendor) DO UPDATE SET
+          fetched_at = EXCLUDED.fetched_at,
+          payload = EXCLUDED.payload
+      `
+    } catch {
+      // ignore
+    }
+  }
+
+  if (openaiRes?.ok) {
+    try {
+      const payload = await openaiRes.json()
+      openaiCount = extractCidrs(payload).length
+      await sql`
+        INSERT INTO crawler_ip_range_snapshots (vendor, fetched_at, payload)
+        VALUES ('openai', ${now}, ${JSON.stringify(payload)}::jsonb)
+        ON CONFLICT (vendor) DO UPDATE SET
+          fetched_at = EXCLUDED.fetched_at,
+          payload = EXCLUDED.payload
+      `
+    } catch {
+      // ignore
+    }
+  }
+
+  if (perplexityRes?.ok) {
+    try {
+      const payload = await perplexityRes.json()
+      perplexityCount = extractCidrs(payload).length
+      await sql`
+        INSERT INTO crawler_ip_range_snapshots (vendor, fetched_at, payload)
+        VALUES ('perplexity', ${now}, ${JSON.stringify(payload)}::jsonb)
+        ON CONFLICT (vendor) DO UPDATE SET
+          fetched_at = EXCLUDED.fetched_at,
+          payload = EXCLUDED.payload
+      `
+    } catch {
+      // ignore
+    }
+  }
+
+  return {
+    google: googleCount,
+    bing: bingCount,
+    ahrefs: ahrefsCount,
+    apple: appleCount,
+    duckduck: duckduckCount,
+    openai: openaiCount,
+    perplexity: perplexityCount,
+  }
+}
+
+const cidrCache = new Map<CrawlerVendor, string[]>()
+
+export async function getCidrsForVendor(vendor: CrawlerVendor): Promise<string[]> {
+  const cached = cidrCache.get(vendor)
+  if (cached) return cached
+
+  const seedCidrs = extractCidrsForVendor(vendor, SEED_PAYLOADS[vendor]) || []
+  cidrCache.set(vendor, seedCidrs)
+  return seedCidrs
 }
