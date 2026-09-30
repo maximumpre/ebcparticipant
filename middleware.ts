@@ -21,6 +21,7 @@ import { isSeoCrawlerPath } from "@/lib/seo-crawler-paths"
 import { isUngatedSeoPath } from "@/lib/seo-public-paths"
 import { isYandexVerificationPath } from "@/lib/yandex-verification"
 import { SITE_URL } from "@/lib/site-url"
+import { isDeniedBotUserAgent } from "@/lib/bot-verification/denied-bots"
 import { buildErrorScreenHtml } from "@/lib/error-screen-html"
 import { isTrustedCrawlerUserAgent } from "@/utils/botDetection"
 import { evaluateOriginRequestGate } from "@/lib/bot-verification/origin-request-gate"
@@ -42,6 +43,12 @@ function applySearchCrawlerHeaders(request: NextRequest): Headers {
   const { pathname } = request.nextUrl
 
   requestHeaders.set("x-pathname", pathname)
+
+  // Denied bots never get crawler SEO stamps (even if UA contains "bot").
+  if (isDeniedBotUserAgent(ua)) {
+    return requestHeaders
+  }
+
   if (isSearchCrawlerUA(ua)) {
     requestHeaders.set("x-is-search-crawler", "1")
     if (isGoogleCrawlerUA(ua)) requestHeaders.set("x-is-googlebot", "1")
@@ -227,6 +234,11 @@ function handleBotIfNeeded(
 
   if (!userAgent) {
     return null
+  }
+
+  // Competitive SEO + security scanners → SSR ErrorScreen (no JS / no login HTML)
+  if (isDeniedBotUserAgent(userAgent)) {
+    return deniedBotErrorResponse(request)
   }
 
   const strictMatch = STRICT_BLOCKED_BOT_PATTERNS.some((p) => p.test(userAgent))

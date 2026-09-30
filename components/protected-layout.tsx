@@ -16,8 +16,10 @@ function getEffectiveUserAgent(headersList: Headers): string {
   )
 }
 
+// Aligned with lib/bot-detection isCrawlerSeoPageUA (ranking ∪ social ∪ discovery ∪ AI reference).
+// AI training tokens (GPTBot, CCBot, commoncrawl, meta-externalagent, Amazonbot, …) are NOT trusted bots.
 const CRAWLER_PATTERN =
-  /googlebot|mediapartners-google|adsbot-google|feedfetcher-google|google-inspectiontool|bingbot|msnbot|bingpreview|microsoftpreview|bingvideopreview|adidxbot|slurp|duckduckbot|baiduspider|yandexbot|facebookexternalhit|twitterbot|linkedinbot|applebot|ia_archiver|semrushbot|petalbot|bytespider|mj12bot/i
+  /googlebot|mediapartners-google|adsbot-google|feedfetcher-google|google-inspectiontool|storebot-google|bingbot|msnbot|bingpreview|microsoftpreview|bingvideopreview|adidxbot|slurp|duckduckbot|duckassistbot|baiduspider|petalbot|mj12bot|yandexbot|yandex|mojeekbot|mojeek|marginalia|chatgpt-user|oai-searchbot|claude-searchbot|claude-user|claude-web|perplexitybot|perplexity-user|meta-webindexer|amzn-searchbot|amzn-user|youbot|facebookexternalhit|facebot|facebookbot|twitterbot|linkedinbot|applebot(?!-extended)|ia_archiver|slackbot|discordbot|telegrambot|whatsapp|skypeuripreview|pinterest|meta-externalfetcher|snapchat/i
 
 function getGeoAccess(headersList: Headers): GeoUsOnlyHeaderValue | undefined {
   const value = headersList.get(GEO_US_ONLY_HEADER)

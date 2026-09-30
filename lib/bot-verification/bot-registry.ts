@@ -240,7 +240,7 @@ export const BOT_REGISTRY: readonly BotRegistryEntry[] = [
   },
   {
     id: "commoncrawl",
-    label: "Common Crawl",
+    label: "Common Crawl (AI training — blocked)",
     tier: "search_crawler",
     category: "discovery",
     substrings: ["ccbot", "commoncrawl"],

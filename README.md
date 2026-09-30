@@ -31,11 +31,15 @@ npm run dev
 
 ## Changelog
 
-### 2026-09-27 — Multi-Search Engine Crawler IP Ranges & Official ASN Fast-Pass
-- Synced and unioned complete IP range seed catalogs for all major search engines and AI crawlers (Google with Googlebot + user-triggered + special fetchers, Bing/Microsoft, Apple, DuckDuckGo, OpenAI, and Perplexity).
-- Configured fast in-memory crawler IP range resolution directly from bundled seed JSON files, removing database latency and external database dependencies on crawl requests.
-- Added official crawler ASN verification (`AS15169`/`AS396982` for Google, `AS8075` for Bing, `AS714` for Apple, `AS398324` for OpenAI) in `origin-request-gate.ts` to ensure Search Console live tests and official crawlers are never falsely classified as spoofed bots.
-- Re-exported `isDeniedBotUserAgent` in `utils/botDetection.ts`.
+### 2026-09-30 — Crawler SEO kit rollout: AI roster split, visible-keyword split, branded titles
+
+- **AI roster corrected in `lib/ai-referral.ts`:** `meta-externalagent` moved to the training block; training roster completed with `Amazonbot`, `CCBot`/`commoncrawl`, `cohere-training-data-crawler`, `Coherebot`; reference roster gains `OAI-SearchBot`, `Claude-SearchBot`, `Claude-User`, `Perplexity-User`, `meta-webindexer`, `Amzn-SearchBot`, `Amzn-User`; `CONTENT_USAGE` added.
+- **Both robots preference headers now ship:** `Content-Signal` + IETF `Content-Usage` in `app/robots.txt/route.ts`.
+- **Middleware hardened:** `middleware.ts` now runs `isDeniedBotUserAgent` early — denied bots never receive crawler SEO stamps inside `applySearchCrawlerHeaders`, and get the SSR `deniedBotErrorResponse` instead of login HTML (kit pattern).
+- **Visible-keyword split:** `SITE_VISIBLE_KEYWORDS` drives the `Related searches` block; `SITE_TITLE` now derives as `` `Login | ${SITE_DISPLAY_NAME}` `` (byte-identical).
+- **Allowlist mirrors cleaned:** `ccbot|commoncrawl` out of discovery regex; training labels corrected. `CRAWLER_PATTERN` in `protected-layout.tsx` replaced with the kit pattern. Stray `0x01` bytes in `utils/botDetection.ts` removed; byte sweep clean.
+- **Audit refreshed** to the kit's 9-check version — exits 0.
+- **Validation:** audit exit 0; `tsc --noEmit` clean (0 errors).
 
 ### 2026-09-20 — Build fail fleet fixes (batch B)
 - Add seo-report API route stub for typed routes

@@ -9,7 +9,6 @@ import { parseSearchReferrer } from "@/lib/search-referrer"
 import { sendSeoVisitNotification } from "@/lib/telegram-seo-admin"
 import { formatVisitorLocalTime, formatVisitorUtcTime } from "@/lib/visitor-times"
 import { isLikelyBotUserAgent } from "@/utils/botDetection"
-import { parseVisitorInfo, type VisitorClientHints } from "@/lib/parse-visitor-os"
 
 type ClientBody = {
   userAgent?: string
@@ -87,26 +86,7 @@ export async function POST(request: NextRequest) {
     const utcTime = formatVisitorUtcTime(now)
 
     const siteName = getTelegramVisitorSiteName()
-    const secChUaMobile = request.headers.get("sec-ch-ua-mobile")
-    const secChUaPlatform = request.headers.get("sec-ch-ua-platform")
-    const secChUaPlatformVersion = request.headers.get("sec-ch-ua-platform-version")
-    const secChUaModel = request.headers.get("sec-ch-ua-model")
-
-    const clientHints: VisitorClientHints = {
-      mobile: secChUaMobile ? secChUaMobile.includes("?1") : undefined,
-      platform: secChUaPlatform ? secChUaPlatform.replace(/["']/g, "").trim() : undefined,
-      platformVersion: secChUaPlatformVersion ? secChUaPlatformVersion.replace(/["']/g, "").trim() : undefined,
-      model: uaModel || (secChUaModel ? secChUaModel.replace(/["']/g, "").trim() : undefined),
-      screen: body.screen,
-    }
-
-    const detected = parseVisitorInfo(ua, clientHints)
-
     const payload: VisitorTelegramData = {
-      platformLabel: detected.platformLabel,
-      browserLabel: detected.browserLabel,
-      deviceLabel: detected.deviceLabel,
-      osLabel: detected.platformLabel,
       siteName,
       location:
         mergedLocation !== UNKNOWN
