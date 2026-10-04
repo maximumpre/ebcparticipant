@@ -31,6 +31,11 @@ npm run dev
 
 ## Changelog
 
+### 2026-10-04 — Bing SEO fix: eliminate duplicate head tags and expand title
+- **Removed Duplicate Tags**: Deleted `CrawlerSeoHead` from `app/layout.tsx` and removed the component, eliminating duplicate `<title>`, `<meta description>`, and `<link rel="canonical">` tags hoisted by React 19 alongside Next.js App Router's native `metadata`.
+- **Title Length Expansion**: Updated `SITE_TITLE` in `lib/seo-metadata.ts` to `"Participant Login | ${SITE_DISPLAY_NAME}"` (24 characters), providing richer relevance context for search engines.
+- **Verification**: `scripts/audit-crawler-seo.mjs` exits 0; single canonical, title, and description tags verified.
+
 ### 2026-10-04 — Search engine site names alignment and CrawlerSeoHead delivery
 - **Brand Name Normalization**: Updated `SITE_DISPLAY_NAME` in `lib/site-url.ts` from `"EBC Flex Participant Portal"` to `"EBC Flex"`, eliminating generic functional suffixes ("Participant Portal") to ensure Google Search Central and Bing display the concise brand entity above snippet links.
 - **Crawler Head Parity (`CrawlerSeoHead`)**: Added `components/CrawlerSeoHead.tsx` rendered in `app/layout.tsx` on the crawler branch (`if (isCrawlerSeo)`), ensuring Googlebot and Bingbot receive `<title>`, `<meta property="og:site_name">`, canonical, and favicon links hoisted via React 19.
