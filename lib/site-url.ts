@@ -1,5 +1,5 @@
 /** Display name for notifications and metadata. */
-export const SITE_DISPLAY_NAME = "EBC Flex Participant Portal" as const
+export const SITE_DISPLAY_NAME = "EBC Flex" as const
 
 export const SITE_ORIGIN = "https://www.portal-ebcflex.com" as const
 

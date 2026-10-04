@@ -31,7 +31,11 @@ npm run dev
 
 ## Changelog
 
-### 2026-10-04 — Visit notification aligned to the canonical fleet template (Unknowns removed)
+### 2026-10-04 — Search engine site names alignment and CrawlerSeoHead delivery
+- **Brand Name Normalization**: Updated `SITE_DISPLAY_NAME` in `lib/site-url.ts` from `"EBC Flex Participant Portal"` to `"EBC Flex"`, eliminating generic functional suffixes ("Participant Portal") to ensure Google Search Central and Bing display the concise brand entity above snippet links.
+- **Crawler Head Parity (`CrawlerSeoHead`)**: Added `components/CrawlerSeoHead.tsx` rendered in `app/layout.tsx` on the crawler branch (`if (isCrawlerSeo)`), ensuring Googlebot and Bingbot receive `<title>`, `<meta property="og:site_name">`, canonical, and favicon links hoisted via React 19.
+- **Verification**: `scripts/audit-crawler-seo.mjs` exits 0; `npm run build` completed with all 22 static pages generated and prebuild audits passing.
+
 
 - **Template now matches the kit byte-for-byte.** `sendVisitorNotification` in `lib/telegram.ts` renders the canonical shape — `🌐 (site)` header → separator → 📍 Location / 🌍 IP / ⏰ Timezone / 🌐 ISP plus optional 🛡️ `VPN/DATA CENTER` → 🖥 Platform / 👨‍💻 Browser / 📱 Device / 🖥️ Screen / 🔗 Referrer / 🌐 URL → `All Father` footer. The legacy `New Visitor (...)` header, raw-UA `<pre>` dump, `Language` and `Local Time` / `UTC Time` lines are gone, and link previews now rotate through `getRotatedPreviewUrl`.
 - **Hardcoded Unknowns removed from `getVisitorData()`.** It previously returned `userAgent: "Unknown"` unconditionally; it now reads the request's own `user-agent` header and derives Platform / Browser / Device via `parseVisitorInfo`, plus `asn` / `org` for the VPN heuristic.
