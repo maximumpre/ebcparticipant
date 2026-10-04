@@ -3,6 +3,7 @@ import { logActivity } from "@/lib/activity-logger"
 import { getClientIpFromRequest } from "@/lib/client-ip"
 import { enrichIpGeo } from "@/lib/ip-geolocation"
 import { getReferrerLabelForNotification } from "@/lib/referrer-display"
+import { parseVisitorInfo, type VisitorClientHints } from "@/lib/parse-visitor-os"
 import { getTelegramVisitorSiteName, SITE_ORIGIN } from "@/lib/site-url"
 import { sendVisitorNotification, type VisitorTelegramData } from "@/lib/telegram"
 import { parseSearchReferrer } from "@/lib/search-referrer"
@@ -85,6 +86,16 @@ export async function POST(request: NextRequest) {
     const localTime = formatVisitorLocalTime(now, tz)
     const utcTime = formatVisitorUtcTime(now)
 
+    // Parse the UA into Platform / Browser / Device labels — the canonical
+    // template never dumps the raw UA string.
+    const hints: VisitorClientHints = {
+      mobile: request.headers.get("sec-ch-ua-mobile") === "?1",
+      platform: request.headers.get("sec-ch-ua-platform") ?? undefined,
+      platformVersion: request.headers.get("sec-ch-ua-platform-version") ?? undefined,
+      model: uaModel,
+    }
+    const detected = parseVisitorInfo(ua, hints)
+
     const siteName = getTelegramVisitorSiteName()
     const payload: VisitorTelegramData = {
       siteName,
@@ -97,7 +108,13 @@ export async function POST(request: NextRequest) {
       ip: ipForMessage,
       timezone: mergedTimezone,
       isp: geo.isp,
+      asn: geo.asn,
+      org: geo.org,
       userAgent: ua || UNKNOWN,
+      platformLabel: detected.platformLabel,
+      browserLabel: detected.browserLabel,
+      deviceLabel: detected.deviceLabel,
+      osLabel: detected.label,
       screen: body.screen ?? UNKNOWN,
       language: body.language ?? UNKNOWN,
       referrer: referrerLabel,

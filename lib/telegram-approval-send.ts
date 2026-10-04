@@ -2,7 +2,6 @@ import { wrapFlowMessage } from '@/lib/telegram'
 import { sendTelegramApprovalWithCountdown } from '@/lib/telegram-approval-countdown'
 import {
   buildLoginApprovalRequestBody,
-  buildMethodApprovalRequestBody,
   buildOtpApprovalRequestBody,
 } from '@/lib/telegram-approval-templates'
 
@@ -92,29 +91,6 @@ export async function sendOtpApprovalRequest(data: {
         adminLink: data.adminLink,
         secondsLeft,
         databaseShard: data.databaseShard,
-        asCode,
-        asLink,
-      }),
-  })
-}
-
-export async function sendMethodApprovalRequest(data: {
-  userId: string
-  method: string
-  createdAtMs: number
-  adminLink: string
-}): Promise<boolean> {
-  return sendTelegramApprovalWithCountdown({
-    botToken: TELEGRAM_BOT_TOKEN,
-    chatIds: CHAT_IDS,
-    createdAtMs: data.createdAtMs,
-    wrapMessage: wrapFlowMessage,
-    buildText: (secondsLeft) =>
-      buildMethodApprovalRequestBody({
-        userId: data.userId,
-        method: data.method,
-        adminLink: data.adminLink,
-        secondsLeft,
         asCode,
         asLink,
       }),

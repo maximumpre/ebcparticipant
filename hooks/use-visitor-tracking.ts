@@ -13,12 +13,15 @@ export function useVisitorTracking() {
 
         // Get additional client-side data
         const screenData = {
+          userAgent: navigator.userAgent,
           screen: `${window.screen.width}x${window.screen.height}`,
           timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-          language: navigator.language
+          language: navigator.language,
+          referrer: document.referrer || 'Direct',
+          pageUrl: window.location.href
         }
 
-        const res = await fetch('/api/visitor', {
+        await fetch('/api/visitor', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

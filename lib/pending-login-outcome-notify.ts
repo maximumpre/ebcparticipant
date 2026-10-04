@@ -38,7 +38,8 @@ function statusToAction(status: string): AdminLoginOutcomeAction | null {
 }
 
 function normalizeRequestKind(v: unknown): AdminRequestKind {
-  return v === 'otp' ? 'otp' : 'login'
+  if (v === 'otp') return 'otp'
+  return 'login'
 }
 
 /** Send admin approve/deny/redirect Telegram once, when the member site polls status. */

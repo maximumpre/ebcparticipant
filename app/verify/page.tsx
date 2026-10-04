@@ -27,7 +27,7 @@ import {
 } from "@/lib/verification-method"
 
 function parseMethod(raw: string | null): DeliveryMethod {
-  if (raw === "email" || raw === "text" || raw === "call") return raw
+  if (raw === "email" || raw === "text") return raw
   return readStoredDeliveryMethod()
 }
 

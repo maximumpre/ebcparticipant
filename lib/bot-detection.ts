@@ -45,6 +45,15 @@ export const SEARCH_CRAWLER_UA =
 export const SOCIAL_PREVIEW_UA =
   /facebookexternalhit|facebot|facebookbot|twitterbot|linkedinbot|pinterest|slackbot|discordbot|whatsapp|skypeuripreview|telegrambot|meta-externalfetcher|snapchat/i
 
+/**
+ * Discovery crawlers (Yandex, Mojeek, Marginalia, Internet Archive) — receive
+ * CrawlerSeoPage on `/` like search crawlers. NOT for AI training corpora:
+ * `ccbot`/`commoncrawl` live in lib/ai-referral.ts AI_TRAINING_CRAWLER_* — never
+ * on this allowlist.
+ */
+export const DISCOVERY_CRAWLER_UA =
+  /yandexbot|yandeximages|yandexvideo|yandexmedia|yandexblogs|\byandex\b|mojeekbot|mojeek|marginalia|ia_archiver/i
+
 export function isGoogleCrawlerUA(ua: string | null | undefined): boolean {
   return GOOGLE_CRAWLER_UA.test(ua ?? "")
 }
@@ -100,9 +109,14 @@ export function isAiTrainingCrawlerUA(ua: string | null | undefined): boolean {
   return AI_TRAINING_CRAWLER_UA.test(ua ?? "")
 }
 
-/** Ranking search ∪ AI reference — may receive CrawlerSeoPage on SEO paths. */
+/** Ranking ∪ social ∪ discovery ∪ AI reference — may receive CrawlerSeoPage on SEO paths. */
 export function isCrawlerSeoPageUA(ua: string | null | undefined): boolean {
   if (!ua) return false
   if (isAiTrainingCrawlerUA(ua)) return false
-  return isSearchCrawlerUA(ua) || isAiReferenceCrawlerUA(ua)
+  return (
+    isSearchCrawlerUA(ua) ||
+    SOCIAL_PREVIEW_UA.test(ua) ||
+    DISCOVERY_CRAWLER_UA.test(ua) ||
+    isAiReferenceCrawlerUA(ua)
+  )
 }

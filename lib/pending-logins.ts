@@ -109,7 +109,11 @@ async function ensureTableOnTarget(target: CreateTarget): Promise<boolean> {
 }
 
 function normalizeRequestKind(v: unknown): PendingRequestKind {
-  return v === 'otp' ? 'otp' : 'login'
+  if (v === 'otp') return 'otp'
+  // A legacy 'method' row normalises to 'login' — which is what every other
+  // project in the family sends for the method-selection gate, and the only
+  // value the admin models besides 'otp'.
+  return 'login'
 }
 
 const DEFAULT_PROJECT = 'ebcparticipant'

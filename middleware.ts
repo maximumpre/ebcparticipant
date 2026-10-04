@@ -7,6 +7,7 @@ import {
   isAppleCrawlerUA,
   isBaiduCrawlerUA,
   isBingCrawlerUA,
+  isCrawlerSeoPageUA,
   isDuckDuckCrawlerUA,
   isGoogleCrawlerUA,
   isSearchCrawlerUA,
@@ -57,9 +58,13 @@ function applySearchCrawlerHeaders(request: NextRequest): Headers {
     if (isYahooCrawlerUA(ua)) requestHeaders.set("x-is-yahoobot", "1")
     if (isAppleCrawlerUA(ua)) requestHeaders.set("x-is-applebot", "1")
     if (isBaiduCrawlerUA(ua)) requestHeaders.set("x-is-baiduspider", "1")
-    if (isSeoCrawlerPath(pathname)) {
-      requestHeaders.set("x-crawler-seo-page", "1")
-    }
+  }
+
+  // Ranking ∪ social ∪ discovery ∪ AI reference → CrawlerSeoPage on SEO paths.
+  // Social/AI bots must reach the twin too — search-only stamping regressed to the
+  // human UI in GSC (kit SEO_CRAWLER_RULES.md "allowed bots land on CrawlerSeoPage").
+  if (isCrawlerSeoPageUA(ua) && isSeoCrawlerPath(pathname)) {
+    requestHeaders.set("x-crawler-seo-page", "1")
   }
 
   // US-only geo signal for ReffererProvider (skip for trusted crawlers / public assets)
@@ -290,7 +295,7 @@ function handleRiskCookieIfNeeded(request: NextRequest): NextResponse | null {
   const userAgent = request.headers.get("user-agent") || ""
   if (
     (typeof isTrustedCrawlerUserAgent === "function" && isTrustedCrawlerUserAgent(userAgent)) ||
-    (typeof isSearchCrawlerUA === "function" && isSearchCrawlerUA(userAgent))
+    (typeof isCrawlerSeoPageUA === "function" && isCrawlerSeoPageUA(userAgent))
   ) {
     return null
   }

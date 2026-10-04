@@ -362,6 +362,67 @@ export const PROVIDED_KEYWORDS = [
   "Implementation Satisfaction Rate",
 ] as const
 
+// Step 5 additive keyword gap fill — research-backed additions from IRS Rev. Proc. 2025-19/2025-32,
+// ebcflex.com page copy (PlanLimits, submittingclaims, midyeartakeovers, wrapplans), and
+// EBCentral app-store listings. APPEND-ONLY: every existing keyword above is preserved verbatim;
+// buildSiteKeywords() merges this array last so nothing can shadow it.
+const STEP5_KEYWORDS = [
+  // Cluster A — annual IRS compliance / limit queries (highest seasonal demand; EBC already
+  // publishes a "Plan Limits" destination at ebcflex.com/PlanLimits to receive them)
+  "2026 hsa contribution limits",
+  "2026 fsa contribution limit",
+  "2026 fsa carryover limit",
+  "2026 dependent care fsa limit",
+  "2026 commuter benefit limit",
+  "hsa catch up contribution 2026",
+  "ebc flex plan limits",
+
+  // Cluster B — participant task queries (bottom-funnel, map 1:1 to portal features;
+  // EBC /submittingclaims promises two-business-day digital claim processing)
+  "check fsa balance ebc flex",
+  "ebc flex upload receipt",
+  "check claim status ebc flex",
+  "activate ebc benefits card",
+  "ebc flex eligible expenses",
+  "ebc flex claim processing time",
+  "ebc mobile app",
+  "ebc flex two step verification",
+
+  // Cluster C — employer / broker queries (live differentiated EBC pages with no keyword coverage)
+  "ebc benefits administrator",
+  "ebc mid-year takeover",
+  "ebc wrap plan document",
+  "ebc form 5500 filing",
+  "ebc nondiscrimination testing",
+  "ebc aca reporting",
+  "ebc premium only plan",
+  "ebc lifestyle spending account",
+  "ebc cobra administration",
+  "third party administrator comparison",
+  "change fsa administrator mid year",
+
+  // Cluster D — brand / entity / regional variants (Google Play ships "EBC Mobile";
+  // Apple lists developer "Employee Benefits Corporation"; Middleton WI address on /contactus)
+  "ebc flex app",
+  "employee benefits corporation ebcentral",
+  "ebc benefits debit card",
+  "ebc flex member services phone",
+  "ebc flex my account",
+  "ebc benefits administration corporation",
+  "employee benefits corporation wisconsin",
+  "ebc middleton wi",
+
+  // Cluster E — long-tail / question queries (EBC Insights already publishes these explainers,
+  // so these are cheap wins against Investopedia/GoodRx-class incumbents)
+  "how does an fsa work",
+  "what is a limited purpose fsa",
+  "hsa vs fsa",
+  "can i use fsa for dental",
+  "what happens to unused fsa money",
+  "hsa investment options",
+  "fsa grace period vs carryover",
+] as const
+
 export function buildSiteKeywords(): string[] {
   return mergeKeywords(
     HOST_KEYWORDS,
@@ -372,6 +433,7 @@ export function buildSiteKeywords(): string[] {
     FINAL_URL_HARVEST_KEYWORDS,
     LOGOUT_URL_KEYWORDS,
     PROVIDED_KEYWORDS,
+    STEP5_KEYWORDS,
   )
 }
 

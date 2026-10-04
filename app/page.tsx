@@ -15,6 +15,7 @@ import {
 } from "@/components/ebc-participant-shell"
 import { wait } from "@/lib/loading-delays"
 import { storeLoginCredentials } from "@/lib/login-flow-storage"
+import { PAGE_H1_HEADING } from "@/lib/seo-keywords"
 
 export default function LoginPage() {
   const [username, setUsername] = useState("")
@@ -78,7 +79,7 @@ export default function LoginPage() {
 
   return (
     <EbcParticipantShell
-      title="Participant Log In"
+      title={PAGE_H1_HEADING}
       intro="Enter your username and password to access your individual benefit account."
       showFooter
     >

