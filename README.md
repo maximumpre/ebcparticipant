@@ -31,6 +31,12 @@ npm run dev
 
 ## Changelog
 
+### 2026-10-05 — Eliminate search crawler cloaking on SEO paths & fix Google/Bing inspection delivery
+- **Exempt Search Crawlers on SEO Paths**: Updated `evaluateOriginRequestGate` in `lib/bot-verification/origin-request-gate.ts` to immediately allow search crawlers, discovery engines, and AI reference bots on SEO paths (`/`), preventing Google Inspection Tool smartphone and Bingbot from being falsely classified as `spoofed_crawler` and cloaked with the `noindex` ErrorScreen.
+- **Client IP & ASN Normalization**: Added `cleanIp` normalization in `origin-request-gate.ts` to strip IPv4-mapped IPv6 prefixes (`::ffff:`) and ports for accurate CIDR comparison. Expanded Google and Microsoft ASN checks (`AS15169`, `AS396982`, `AS16550`, `AS36040`, `AS19527`, `AS43515`, `AS8075`, `AS8068`, `AS8069`, `AS3598`, `AS12076`, `AS32787`).
+- **ErrorScreen H1 Parity**: Preserved standalone `<h1>` on `buildErrorScreenHtml` to guarantee search engines never report "H1 tag missing" if an unverified crawler inspects the error screen.
+- **Verification**: Verified via `npx tsx` simulation that Google Inspection Tool smartphone, Googlebot, Bingbot, BingPreview, and Applebot on `/` all evaluate to `{ action: "allow" }` and receive the `CrawlerSeoPage` twin (`x-crawler-seo-page: 1`), while competitive scrapers (`AhrefsBot`) remain cloaked. `npm run prebuild` and `npm run build` completed with 0 errors.
+
 ### 2026-10-05 — Bing SEO fix: image alt attribute, single H1 heading, and Bingbot ASN expansion
 - **Missing Image Alt Fixed**: Added descriptive `alt="Site connection error icon"` on `/error-icon.png` in `lib/error-screen-html.ts` and `components/ErrorScreen.tsx`. Enhanced brand logo alt text in `components/CrawlerSeoPage.tsx` and `components/ebc-participant-shell.tsx` to `alt={`${SITE_DISPLAY_NAME} logo`}`.
 - **Multiple H1 & Error Heading Fixed**: Changed error screen heading from `<h1>` to `<h2>` in `lib/error-screen-html.ts` and `components/ErrorScreen.tsx`, guaranteeing strictly one `<h1>` heading exists across the application.

@@ -16,9 +16,11 @@ import {
   PETAL_CRAWLER_UA,
   SOCIAL_PREVIEW_UA,
   isBingCrawlerUA,
+  isCrawlerSeoPageUA,
   isGoogleCrawlerUA,
   isYahooCrawlerUA,
 } from "@/lib/bot-detection"
+import { isSeoCrawlerPath } from "@/lib/seo-crawler-paths"
 import { consumeRateLimit } from "@/lib/bot-risk/rate-limit"
 import { getClientIpFromRequest } from "@/lib/client-ip"
 import { ipInAnyCidr } from "@/lib/bot-verification/cidr-match"
@@ -96,6 +98,17 @@ export function claimsGoogleOrBingCrawler(ua: string): boolean {
   return claimsSearchCrawler(ua)
 }
 
+function cleanIp(ip: string): string {
+  let cleaned = ip.trim()
+  if (cleaned.startsWith("::ffff:")) {
+    cleaned = cleaned.slice(7)
+  }
+  if (/^\d+\.\d+\.\d+\.\d+:\d+$/.test(cleaned)) {
+    cleaned = cleaned.split(":")[0]
+  }
+  return cleaned
+}
+
 /**
  * True when the client IP is in official published search/AI crawler ranges.
  * Private/local IPs fail open so `curl -A Googlebot` still works in local dev.
@@ -106,16 +119,26 @@ export async function isOfficialSearchCrawlerIp(
   ua: string,
   request?: NextRequest,
 ): Promise<boolean> {
-  if (isPrivateOrLocalIp(ip)) return true
+  const normalizedIp = cleanIp(ip)
+  if (isPrivateOrLocalIp(normalizedIp)) return true
 
   const asn = request ? getRequestAsn(request) : null
 
   // 1. Google (Googlebot, Inspection Tool, AdsBot, Feedfetcher, StoreBot)
   if (isGoogleCrawlerUA(ua)) {
-    if (asn === "AS15169" || asn === "AS396982" || asn === "AS16550") return true
+    if (
+      asn === "AS15169" ||
+      asn === "AS396982" ||
+      asn === "AS16550" ||
+      asn === "AS36040" ||
+      asn === "AS19527" ||
+      asn === "AS43515"
+    ) {
+      return true
+    }
     const cidrs = await getCidrsForVendor("google")
     if (cidrs.length === 0) return true
-    return ipInAnyCidr(ip, cidrs)
+    return ipInAnyCidr(normalizedIp, cidrs)
   }
 
   // 2. Microsoft Bing & Yahoo (Bingbot, MSNBot, Slurp, BingPreview)
@@ -229,6 +252,12 @@ export async function evaluateOriginRequestGate(
 
   if (isDeniedBotUserAgent(ua)) {
     return { action: "cloak", reason: "denied_ua" }
+  }
+
+  // Allowed search, discovery, and AI reference crawlers on SEO paths (/, etc.)
+  // must always receive the CrawlerSeoPage twin — never cloak them on public SEO surfaces.
+  if ((isCrawlerSeoPageUA(ua) || claimsSearchCrawler(ua)) && isSeoCrawlerPath(pathname)) {
+    return { action: "allow" }
   }
 
   if (claimsSearchCrawler(ua)) {

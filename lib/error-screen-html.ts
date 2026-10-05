@@ -46,7 +46,7 @@ export function buildErrorScreenHtml(hostname: string): string {
   body{min-height:100vh;background:#202124;color:#9AA0A6;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;padding:6rem 1rem;position:fixed;inset:0;overflow-y:auto;overscroll-behavior:none}
   .wrap{max-width:42rem;margin:0 auto}
   img{display:block;margin-bottom:2rem;width:72px;height:72px;image-rendering:pixelated}
-  h2{font-size:1.5rem;font-weight:600;color:#9AA0A6}
+  h1{font-size:1.5rem;font-weight:600;color:#9AA0A6}
   p{margin-top:1rem;font-size:15px}
   ul{margin-top:.5rem;padding-left:2rem;font-size:15px}
   li{margin:.5rem 0}
@@ -57,7 +57,7 @@ export function buildErrorScreenHtml(hostname: string): string {
 <body>
   <div class="wrap">
     <img src="/error-icon.png" alt="Site connection error icon" width="72" height="72"/>
-    <h2>This site can't be reached</h2>
+    <h1>This site can't be reached</h1>
     <p><b>${safeHost}</b> took too long to respond.</p>
     <p>Try:</p>
     <ul>
