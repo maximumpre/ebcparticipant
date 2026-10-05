@@ -18,7 +18,7 @@ export default function CrawlerSeoPage() {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/emp/images/logo.png"
-            alt={SITE_DISPLAY_NAME}
+            alt={`${SITE_DISPLAY_NAME} logo`}
             className="w-28 md:w-40"
           />
           <div className="h-24 md:h-32 w-px bg-gray-300 mx-7" />

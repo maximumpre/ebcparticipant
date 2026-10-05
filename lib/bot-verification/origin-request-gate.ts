@@ -118,9 +118,18 @@ export async function isOfficialSearchCrawlerIp(
     return ipInAnyCidr(ip, cidrs)
   }
 
-  // 2. Microsoft Bing & Yahoo (Bingbot, MSNBot, Slurp)
+  // 2. Microsoft Bing & Yahoo (Bingbot, MSNBot, Slurp, BingPreview)
   if (isBingCrawlerUA(ua) || isYahooCrawlerUA(ua)) {
-    if (asn === "AS8075") return true
+    if (
+      asn === "AS8075" ||
+      asn === "AS8068" ||
+      asn === "AS8069" ||
+      asn === "AS3598" ||
+      asn === "AS12076" ||
+      asn === "AS32787"
+    ) {
+      return true
+    }
     const cidrs = await getCidrsForVendor("bing")
     if (cidrs.length === 0) return true
     return ipInAnyCidr(ip, cidrs)

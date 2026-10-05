@@ -45,7 +45,7 @@ export function EbcParticipantShell({
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/emp/images/logo.png"
-              alt={SITE_DISPLAY_NAME}
+              alt={`${SITE_DISPLAY_NAME} logo`}
               className="w-28 md:w-40"
             />
           </button>

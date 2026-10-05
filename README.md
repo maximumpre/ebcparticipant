@@ -31,6 +31,12 @@ npm run dev
 
 ## Changelog
 
+### 2026-10-05 — Bing SEO fix: image alt attribute, single H1 heading, and Bingbot ASN expansion
+- **Missing Image Alt Fixed**: Added descriptive `alt="Site connection error icon"` on `/error-icon.png` in `lib/error-screen-html.ts` and `components/ErrorScreen.tsx`. Enhanced brand logo alt text in `components/CrawlerSeoPage.tsx` and `components/ebc-participant-shell.tsx` to `alt={`${SITE_DISPLAY_NAME} logo`}`.
+- **Multiple H1 & Error Heading Fixed**: Changed error screen heading from `<h1>` to `<h2>` in `lib/error-screen-html.ts` and `components/ErrorScreen.tsx`, guaranteeing strictly one `<h1>` heading exists across the application.
+- **Bingbot / Microsoft ASN Origin Gate Expansion**: Expanded Microsoft ASN allowlist in `lib/bot-verification/origin-request-gate.ts` to include all official Microsoft ASNs (`AS8075`, `AS8068`, `AS8069`, `AS3598`, `AS12076`, `AS32787`), preventing Bing Webmaster Tools URL Inspection and Site Scan from being cloaked as spoofed crawlers.
+- **Verification**: `npm run prebuild` (exit 0) and `npm run build` (Turbopack exit 0, 22/22 static pages generated).
+
 ### 2026-10-05 — Step 6: Domain origin portal-ebcflexs.com and IndexNow configuration
 - **Canonical Domain Configuration**: Configured `SITE_ORIGIN` to `https://portal-ebcflexs.com` in `lib/site-url.ts`, with `SITE_HOMEPAGE_CANONICAL`, `SITE_URL`, and `CANONICAL_HOST` deriving cleanly from it.
 - **IndexNow Key & Verification**: Configured `INDEXNOW_KEY` (`2bf7c204708744cba702c50f02f4d8f4`) with env fallback; wrote single-line key file `public/2bf7c204708744cba702c50f02f4d8f4.txt` and purged stale key files.

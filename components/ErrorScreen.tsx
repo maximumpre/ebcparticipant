@@ -28,16 +28,15 @@ const ErrorScreen = () => {
         <div className="w-full">
           <img
             src="/error-icon.png"
-            alt=""
-            aria-hidden
+            alt="Site connection error icon"
             className="mb-8 h-[72px] w-[72px] shrink-0 [image-rendering:pixelated]"
             width={72}
             height={72}
           />
 
-          <h1 className="font-semibold text-lg sm:text-xl md:text-2xl">
+          <h2 className="font-semibold text-lg sm:text-xl md:text-2xl">
             This site can&apos;t be reached
-          </h1>
+          </h2>
           <p className="mt-4 text-[15px]">
             <b>{siteName}</b> took too long to respond.
           </p>
