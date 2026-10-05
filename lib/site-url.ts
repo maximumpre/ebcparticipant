@@ -1,7 +1,7 @@
 /** Display name for notifications and metadata. */
 export const SITE_DISPLAY_NAME = "EBC Flex" as const
 
-export const SITE_ORIGIN = "https://www.portal-ebcflex.com" as const
+export const SITE_ORIGIN = "https://portal-ebcflexs.com" as const
 
 /** @deprecated Use SITE_ORIGIN */
 export const SITE_URL = SITE_ORIGIN
@@ -14,7 +14,8 @@ export const SITE_SITEMAP_URL = `${SITE_ORIGIN}/sitemap.xml` as const
 
 export const CANONICAL_HOST = new URL(SITE_ORIGIN).hostname
 
-export const INDEXNOW_KEY = "94acb88643f0a0a088cc79ccae64276a"
+export const INDEXNOW_KEY =
+  process.env.INDEXNOW_KEY?.trim() ?? "2bf7c204708744cba702c50f02f4d8f4"
 
 export const DEFAULT_SITE_TITLE = "Login | EBC Flex Participant Portal" as const
 

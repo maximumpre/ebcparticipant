@@ -31,6 +31,11 @@ npm run dev
 
 ## Changelog
 
+### 2026-10-05 — Step 6: Domain origin portal-ebcflexs.com and IndexNow configuration
+- **Canonical Domain Configuration**: Configured `SITE_ORIGIN` to `https://portal-ebcflexs.com` in `lib/site-url.ts`, with `SITE_HOMEPAGE_CANONICAL`, `SITE_URL`, and `CANONICAL_HOST` deriving cleanly from it.
+- **IndexNow Key & Verification**: Configured `INDEXNOW_KEY` (`2bf7c204708744cba702c50f02f4d8f4`) with env fallback; wrote single-line key file `public/2bf7c204708744cba702c50f02f4d8f4.txt` and purged stale key files.
+- **Verification**: Verified `check-canonical-domain.mjs` (passed), `check-indexnow-key.mjs` (passed), `npm run prebuild` (exit 0), and production `npm run build` (exit 0).
+
 ### 2026-10-04 — Format Telegram approval link as clickable text with auto-prefixed https
 - **Clickable Approval Link Formatting**: Enhanced `asLink` in `lib/telegram-approval-send.ts`, `lib/telegram-approval.ts`, and `lib/telegram.ts` to format approval and admin portal URLs as rich HTML links (`<a href="...">Approve or deny</a>`), guarding against bare domain fallbacks.
 - **Protocol Normalization**: Added `ensureAbsoluteHttpUrl` across Telegram helpers and updated `getApprovalsUrl` in `lib/project-config.ts` and `normalizeAdminPortalUrl` in `lib/telegram.ts` / `lib/telegram-approval.ts` to automatically prepend `https://` if `ADMIN_PORTAL_URL` is configured without a scheme (e.g. `tobi.odinschamber.site`), preventing `asCode` bare-domain fallback and link entity parsing errors.
