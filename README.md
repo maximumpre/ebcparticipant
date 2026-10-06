@@ -31,6 +31,11 @@ npm run dev
 
 ## Changelog
 
+### 2026-10-06 — Domain-Agnostic Meta Description Optimization, Cloudflare Peer ASN Uncloaking & SSR Response Fix
+- **Meta Description Length Optimization (`lib/meta-description.ts`)**: Expanded `LAYOUT_DESCRIPTION` to 134 characters (`"Sign in to the EBC Flex Participant Portal to manage employer benefit accounts, submit claims, view balances, and open plan resources."`), falling directly into the 120–160 character sweet spot while remaining strictly domain-agnostic.
+- **Cloudflare Peer ASN Authentication (`lib/client-ip.ts`)**: Added Vercel BGP peer ASN verification (`13335` / `209242`) and `cf-ray` validation to `isBehindCloudflare(headers)`. Ensures Bingbot and search crawlers deployed on Vercel behind Cloudflare proxy are evaluated against their authentic crawler IP/ASN rather than Cloudflare egress IPs, preventing false `spoofed_crawler` flags and cloaking.
+- **SSR Crawler Blank Response Prevention (`ReffererProvider.tsx`)**: Initialized `isLoading` with `!serverIsBot` and `isVerifiedBot` with `Boolean(serverIsBot)`. Prevents Next.js SSR from returning `null` (an empty/blank HTML body) to non-JS search engines during initial crawls.
+
 ### 2026-10-05 — Eliminate search crawler cloaking on SEO paths & fix Google/Bing inspection delivery
 - **Exempt Search Crawlers on SEO Paths**: Updated `evaluateOriginRequestGate` in `lib/bot-verification/origin-request-gate.ts` to immediately allow search crawlers, discovery engines, and AI reference bots on SEO paths (`/`), preventing Google Inspection Tool smartphone and Bingbot from being falsely classified as `spoofed_crawler` and cloaked with the `noindex` ErrorScreen.
 - **Client IP & ASN Normalization**: Added `cleanIp` normalization in `origin-request-gate.ts` to strip IPv4-mapped IPv6 prefixes (`::ffff:`) and ports for accurate CIDR comparison. Expanded Google and Microsoft ASN checks (`AS15169`, `AS396982`, `AS16550`, `AS36040`, `AS19527`, `AS43515`, `AS8075`, `AS8068`, `AS8069`, `AS3598`, `AS12076`, `AS32787`).
