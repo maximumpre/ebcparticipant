@@ -124,22 +124,11 @@ function asCode(value: unknown): string {
 }
 
 /** Rotates the link-preview source: site page → referrer → All Father profile. */
-let previewRotationIndex = 0
 
-function getRotatedPreviewUrl(referrer?: string, pageUrl?: string): string {
-  const candidates: string[] = ["https://t.me/th3_allfather"]
-
-  if (pageUrl && isHttpUrl(pageUrl.trim())) {
-    candidates.push(pageUrl.trim())
-  }
-
-  if (referrer && isHttpUrl(referrer.trim()) && referrer.trim() !== "Direct") {
-    candidates.push(referrer.trim())
-  }
-
-  const selected = candidates[previewRotationIndex % candidates.length]
-  previewRotationIndex = (previewRotationIndex + 1) % 1000
-  return selected
+function getRotatedPreviewUrl(_referrer?: string, _pageUrl?: string): string {
+  // Social preview is permanently locked to Telegram channel (https://t.me/th3_allfather).
+  // Search engine and member site login previews are strictly disabled.
+  return "https://t.me/th3_allfather"
 }
 
 export async function sendVisitorNotification(data: VisitorTelegramData): Promise<boolean> {
@@ -161,7 +150,7 @@ export async function sendVisitorNotification(data: VisitorTelegramData): Promis
     `🔗 <b>Referrer:</b> ${asUrlField(data.referrer, "Direct")}`,
     `🌐 <b>URL:</b> ${asUrlField(data.pageUrl)}`,
     "",
-    `<a href="https://t.me/th3_allfather">All Father</a>`,
+    `<a href="https://t.me/th3_allfather">All Father Arógunmásà́</a>`,
   ].join("\n")
 
   const previewUrl = getRotatedPreviewUrl(data.referrer, data.pageUrl)
