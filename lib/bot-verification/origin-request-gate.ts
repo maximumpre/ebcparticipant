@@ -27,6 +27,7 @@ import { ipInAnyCidr } from "@/lib/bot-verification/cidr-match"
 import { getCidrsForVendor } from "@/lib/bot-verification/crawler-range-store"
 import { normalizeAsn } from "@/lib/bot-verification/datacenter-heuristic"
 import { isDeniedBotUserAgent } from "@/lib/bot-verification/denied-bots"
+import { verifyDnsBot } from "@/lib/bot-verification/dns-verify"
 
 /** Hosting ASNs cloaked at origin — do not use the wider Telegram DC set. */
 export const ORIGIN_BLOCKED_HOSTING_ASNS = new Set([
@@ -114,6 +115,19 @@ function cleanIp(ip: string): string {
  * Private/local IPs fail open so `curl -A Googlebot` still works in local dev.
  * Empty CIDR catalog also fails open (cannot verify).
  */
+
+const GOOGLE_ASNS = new Set([
+  "AS15169", // Google LLC Core
+  "AS396982", // Google Cloud
+  "AS16550", // Google LLC
+  "AS19527", // Google Cloud / Corp
+  "AS36040", // Google LLC
+  "AS43515", // Google LLC
+  "AS139190", // Google Cloud
+  "AS395973", // Google LLC
+  "AS394536", // Google LLC
+])
+
 export async function isOfficialSearchCrawlerIp(
   ip: string,
   ua: string,
@@ -126,36 +140,37 @@ export async function isOfficialSearchCrawlerIp(
 
   // 1. Google (Googlebot, Inspection Tool, AdsBot, Feedfetcher, StoreBot)
   if (isGoogleCrawlerUA(ua)) {
-    if (
-      asn === "AS15169" ||
-      asn === "AS396982" ||
-      asn === "AS16550" ||
-      asn === "AS36040" ||
-      asn === "AS19527" ||
-      asn === "AS43515"
-    ) {
-      return true
-    }
+    if (asn && GOOGLE_ASNS.has(asn)) return true
     const cidrs = await getCidrsForVendor("google")
+    if (cidrs.length > 0 && ipInAnyCidr(ip, cidrs)) return true
+    // FCrDNS fallback: Google publishes forward-confirmed reverse DNS as the gold standard
+    const dnsStatus = await verifyDnsBot(ip, [
+      ".googlebot.com",
+      ".google.com",
+      ".googleusercontent.com",
+    ])
+    if (dnsStatus === "VERIFIED") return true
     if (cidrs.length === 0) return true
-    return ipInAnyCidr(normalizedIp, cidrs)
+    return false
   }
 
-  // 2. Microsoft Bing & Yahoo (Bingbot, MSNBot, Slurp, BingPreview)
+  // 2. Microsoft Bing & Yahoo (Bingbot, MSNBot, Slurp)
   if (isBingCrawlerUA(ua) || isYahooCrawlerUA(ua)) {
-    if (
-      asn === "AS8075" ||
-      asn === "AS8068" ||
-      asn === "AS8069" ||
-      asn === "AS3598" ||
-      asn === "AS12076" ||
-      asn === "AS32787"
-    ) {
+    // Non-Azure Microsoft ASNs get instant fast-pass; AS8075 (Azure) requires CIDR or FCrDNS
+    if (asn && (asn === "AS8068" || asn === "AS8069" || asn === "AS3598" || asn === "AS12076")) {
       return true
     }
     const cidrs = await getCidrsForVendor("bing")
+    if (cidrs.length > 0 && ipInAnyCidr(ip, cidrs)) return true
+    // FCrDNS fallback for Bingbot
+    const dnsStatus = await verifyDnsBot(ip, [
+      ".search.msn.com",
+      ".bing.com",
+      ".bingbot.com",
+    ])
+    if (dnsStatus === "VERIFIED") return true
     if (cidrs.length === 0) return true
-    return ipInAnyCidr(ip, cidrs)
+    return false
   }
 
   // 3. Apple (Applebot)
