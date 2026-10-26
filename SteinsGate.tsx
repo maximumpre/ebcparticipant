@@ -1,5 +1,6 @@
 "use client"
 
+import { GATE_RESTART_SESSION_KEY } from "@/lib/restart-gate"
 import { createContext, useContext, type ReactNode, useEffect, useState } from "react"
 import { usePathname } from "next/navigation"
 
@@ -303,6 +304,21 @@ export const SteinsGate = ({
           return
         }
 
+
+        // Logo / home restartFromGate(): clears session, sets GATE_RESTART, hard-reloads `/`.
+        // Same-origin Referer cannot re-grant — consume restart flag and restore access so
+        // the landing remounts (visit Telegram fires from notifier, never from the gate).
+        try {
+          if (window.sessionStorage.getItem(GATE_RESTART_SESSION_KEY) === "1") {
+            window.sessionStorage.removeItem(GATE_RESTART_SESSION_KEY)
+            window.sessionStorage.setItem(ACCESS_GRANTED_SESSION_KEY, "1")
+            setLandingAccessCookie(true)
+            setGateStatus("granted")
+            return
+          }
+        } catch {
+          // ignore sessionStorage failures
+        }
         // No session + no search referrer: keep storage clean (direct visit / revoke local testing)
         if (!allowLocalTesting && !isAllowedReferrer) {
           try {
