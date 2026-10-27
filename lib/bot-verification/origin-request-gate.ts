@@ -59,11 +59,8 @@ export function isPrivateOrLocalIp(ip: string): boolean {
 
 /** Prefer platform headers; fail open when ASN is unknown (no outbound geo lookup). */
 export function getRequestAsn(request: NextRequest): string | null {
-  const raw =
-    request.headers.get("x-vercel-ip-as-number") ||
-    request.headers.get("x-asn") ||
-    request.headers.get("cf-ipasnum") ||
-    ""
+  // Only platform-verified ASN headers — never client-spoofable x-asn / cf-ipasnum.
+  const raw = request.headers.get("x-vercel-ip-as-number") || ""
   return normalizeAsn(raw)
 }
 

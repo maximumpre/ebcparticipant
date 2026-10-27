@@ -72,7 +72,7 @@ export function GET(): Response {
     ...AI_REFERENCE_CRAWLER_AGENTS.map((ua) => allowGroup(ua)),
     ...AI_TRAINING_CRAWLER_AGENTS.map((ua) => blockGroup(ua)),
     `Sitemap: ${SITE_SITEMAP_URL}`,
-    `Host: ${SITE_ORIGIN}`,
+    `Host: ${SITE_ORIGIN.replace(/^https?:\/\//, "")}`,
     "",
   ].join("\n")
 

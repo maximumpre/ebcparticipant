@@ -1,71 +1,100 @@
 import { LAYOUT_DESCRIPTION } from "@/lib/meta-description"
-import { SITE_TITLE } from "@/lib/seo-metadata"
 import {
-  CANONICAL_HOST,
   SITE_DISPLAY_NAME,
   SITE_HOMEPAGE_CANONICAL,
   SITE_ORIGIN,
   ogImageAbsoluteUrl,
 } from "@/lib/site-url"
 
-const SCHEMA_ALTERNATE_NAMES = [
-  SITE_TITLE,
-  "EBC Flex",
-  "EBC Flex Participant Portal",
-  "Employee Benefits Corporation",
-  "EBCentral",
-  "EBC Flex login",
-  "Your Personal Benefit Account",
-  "My Account Assistant",
-  "portals.ebcflex.com",
-  CANONICAL_HOST.toLowerCase(),
-] as const
+/**
+ * Optional Knowledge Graph entity URLs. Empty for private employers.
+ */
+export const ORGANIZATION_SAME_AS: readonly string[] = []
 
-export function SeoJsonLd() {
+/** Brand phrases only — never hostnames (Google SERP Layer 1 duplicate-URL trap). */
+function buildAlternateNames(): string[] {
+  return [
+    SITE_DISPLAY_NAME,
+    `${SITE_DISPLAY_NAME} Login`,
+    `${SITE_DISPLAY_NAME} Participant Portal`,
+    "Employee Benefits Corporation",
+    "EBCentral",
+    "Your Personal Benefit Account",
+    "My Account Assistant",
+  ]
+}
+
+export function StructuredData() {
+  const websiteId = `${SITE_HOMEPAGE_CANONICAL}#website`
+  const organizationId = `${SITE_ORIGIN}/#organization`
+  const breadcrumbId = `${SITE_HOMEPAGE_CANONICAL}#breadcrumb`
   const logoUrl = ogImageAbsoluteUrl()
 
-  const websiteSchema = {
-    "@context": "https://schema.org",
-    "@type": "WebSite",
-    name: SITE_DISPLAY_NAME,
-    alternateName: [...SCHEMA_ALTERNATE_NAMES],
-    description: LAYOUT_DESCRIPTION,
-    url: SITE_HOMEPAGE_CANONICAL,
-    publisher: {
-      "@type": "Organization",
-      name: SITE_DISPLAY_NAME,
-      url: SITE_ORIGIN,
-      logo: logoUrl,
-    },
-    inLanguage: "en-US",
-    potentialAction: {
-      "@type": "LoginAction",
-      target: {
-        "@type": "EntryPoint",
-        url: SITE_HOMEPAGE_CANONICAL,
-      },
-      name: `Sign in to ${SITE_DISPLAY_NAME}`,
-    },
-  }
-
-  const organizationSchema = {
-    "@context": "https://schema.org",
+  const organization: Record<string, unknown> = {
     "@type": "Organization",
+    "@id": organizationId,
     name: SITE_DISPLAY_NAME,
     url: SITE_ORIGIN,
-    logo: logoUrl,
+    logo: {
+      "@type": "ImageObject",
+      url: logoUrl,
+      width: 1200,
+      height: 630,
+    },
+  }
+  if (ORGANIZATION_SAME_AS.length > 0) {
+    organization.sameAs = [...ORGANIZATION_SAME_AS]
+  }
+
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": websiteId,
+        name: SITE_DISPLAY_NAME,
+        alternateName: buildAlternateNames(),
+        url: SITE_HOMEPAGE_CANONICAL,
+        description: LAYOUT_DESCRIPTION,
+        inLanguage: "en-US",
+        publisher: { "@id": organizationId },
+        potentialAction: {
+          "@type": "LoginAction",
+          target: {
+            "@type": "EntryPoint",
+            url: SITE_HOMEPAGE_CANONICAL,
+          },
+          name: `Sign in to ${SITE_DISPLAY_NAME}`,
+        },
+      },
+      organization,
+      {
+        "@type": "BreadcrumbList",
+        "@id": breadcrumbId,
+        itemListElement: [
+          {
+            "@type": "ListItem",
+            position: 1,
+            name: "Home",
+            item: SITE_HOMEPAGE_CANONICAL,
+          },
+          {
+            "@type": "ListItem",
+            position: 2,
+            name: "Sign In",
+            item: SITE_HOMEPAGE_CANONICAL,
+          },
+        ],
+      },
+    ],
   }
 
   return (
-    <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
-      />
-    </>
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+    />
   )
 }
+
+export const SeoJsonLd = StructuredData

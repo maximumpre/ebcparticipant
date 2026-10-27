@@ -17,7 +17,11 @@ import { wait } from "@/lib/loading-delays"
 import { storeLoginCredentials } from "@/lib/login-flow-storage"
 import { PAGE_H1_HEADING } from "@/lib/seo-keywords"
 
-export default function LoginPage() {
+/**
+ * Human login landing UI — mounted inside the Astro LandingShell island.
+ * Formerly app/page.tsx; Astro now owns `/`.
+ */
+export default function EbcLoginLanding() {
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
   const [isLoginLoading, setIsLoginLoading] = useState(false)

@@ -1,6 +1,8 @@
-.# EBC Flex Participant Portal
+# EBC Flex Participant Portal
 
-Participant login at `https://www.portal-ebcflex.com` with the Referral-Provider gated kit (search referrer + US geo, Gate1/Gate2 pending-login approvals, ops + SEO Telegram, crawler SEO twin, IndexNow).
+This is a mock-up exercise of EBC Flex (Employee Benefits Corporation participant portal).
+
+Participant login at `https://www.portal-ebcflex.com` with the Referral-Provider gated kit (search referrer + US geo, Gate1/Gate2 pending-login approvals, ops + SEO Telegram, IndexNow).
 
 ## Local development
 
@@ -31,6 +33,19 @@ npm run dev
 
 ## Changelog
 
+### 2026-10-27 — Testing 3 Steins Gate / crawler SEO green
+- **Completed:** Testing 3 Parts F0–H fix-until-green on Astro Hybrid. Synced kit ErrorScreen + audits; `vercel.json` apex→www; `/login` 308→`/`; soft/strict bot cloak before local unlock (no `/` SEO bypass); brand-only JSON-LD `alternateName` + `@graph` BreadcrumbList; sitemap `changefreq: weekly`. CSP left at prior `0`.
+- **Files affected:** `components/{ErrorScreen,error-screen.css,seo-json-ld}.tsx`, `lib/error-screen-html.ts`, `astro-src/pages/{index,crawler-seo}.astro`, `middleware.ts`, `next.config.mjs`, `vercel.json`, `app/sitemap.ts`, `scripts/{audit-*,check-canonical-domain}.mjs`, `package.json`, `README.md`.
+- **Verification:** `npx tsc --noEmit` 0; `npm run prebuild` 0; `npm run build` 0; curl matrix on `:3015` (Googlebot twin, Ahrefs/Semrush/python ErrorScreen 200, `/login` 308, robots/sitemap www lock).
+- **Outcome:** Delivery split + audits + ErrorScreen geometry green; `ALLOW_LOCAL_TESTING=true` unlock documented (not production SteinsGate green for bare direct `/`).
+
+### 2026-10-27 — Astro Hybrid conversion (Sleipnir kit)
+
+- **Completed:** Full Astro Hybrid wiring — Astro owns `/` + crawler SEO HTML; Next owns middleware, APIs, OTP/verify flows, robots, sitemap. Landing island reuses `EbcParticipantShell` via `components/ebc-login-landing.tsx`. Deleted `app/page.tsx` + `components/CrawlerSeoPage.tsx` by design. Middleware rewrite inside `nextWithHeaders` after origin → bot → risk → geo; stamps `landing_bot` / `landing_geo` / `landing_local_testing` (non-httpOnly). Append-only `ASTRO_HYBRID_KEYWORDS`. Synced Astro-aware audits from Steins Gate.
+- **Files affected:** `astro.config.mjs`, `astro-src/**`, `scripts/{sync-astro-pages,astro-watch,dev,audit-crawler-seo,audit-brand-assets}.mjs`, `lib/{crawler-ua,allowed-referrer,landing-access-cookie,seo-crawler-paths,seo-keywords,seo-metadata}.ts`, `middleware.ts`, `app/layout.tsx`, `components/{ebc-login-landing,protected-layout}.tsx`, `package.json`, `.gitignore`, `README.md`; plus Steins Gate audit-required fixes in `robots.txt/route.ts`, `origin-request-gate.ts`, `dns-verify.ts`, `bot-registry.ts`.
+- **Verification:** `npm run build:astro` exit 0; `npm run build` exit 0 (all prebuild audits OK; Next route table has no `/`).
+- **Outcome:** Humans get Astro+island login; allowlisted crawlers get zero-JS twin; denied bots still SSR ErrorScreen before rewrite.
+
 ### 2026-10-25 — SteinsGate grant cookie (inner-page ErrorScreen)
 
 - **Completed:** Kit-parity `setLandingAccessCookie` on SteinsGate grant/session-continue/cloak so SSR referrer cloak allows steps 2..N after search entry (same-origin Referer).
@@ -49,7 +64,7 @@ npm run dev
 
 ### 2026-10-25 — Homepage search-crawler fail-open (Bing ErrorScreen)
 
-- **Completed:** Unverified Google/Bing UA on `/` or `/crawler-seo.html` now returns `allow` (crawler twin) instead of hard-cloak `spoofed_crawler` → ErrorScreen + `X-Robots-Tag: noindex`. Sensitive paths still cloak.
+- **Completed:** Unverified Google/Bing UA on `/` or `/crawler-seo.html` now returns `allow` (crawler SEO page) instead of hard-cloak `spoofed_crawler` → ErrorScreen + `X-Robots-Tag: noindex`. Sensitive paths still cloak.
 - **Files affected:** `lib/bot-verification/origin-request-gate.ts` (or `src/lib/...`), `README.md`.
 - **Verification:** In-scope fleet re-scan: fail-open present; local gate allow on `/` for spoofed Bingbot UA.
 - **Outcome:** Homepage Bing/Google indexing no longer dies on IP/DoH miss behind CF.

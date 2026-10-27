@@ -423,6 +423,23 @@ const STEP5_KEYWORDS = [
   "fsa grace period vs carryover",
 ] as const
 
+/**
+ * Astro Hybrid twin harvest — append-only. Phrases surfaced by the zero-JS
+ * crawler-seo.astro FAQ / overview copy. Existing lists above stay untouched.
+ */
+const ASTRO_HYBRID_KEYWORDS = [
+  "EBC Flex participant self-service gateway",
+  "individual benefit account dashboard",
+  "EBCentral mobile app participant",
+  "participant flexible spending account login",
+  "dependent care election portal",
+  "employer vs participant login EBC Flex",
+  "Your Personal Benefit Account sign in",
+  "EBC Flex claims receipt upload",
+  "participant portal FAQ EBC Flex",
+  "secure participant account recovery EBC",
+] as const
+
 export function buildSiteKeywords(): string[] {
   return mergeKeywords(
     HOST_KEYWORDS,
@@ -434,6 +451,7 @@ export function buildSiteKeywords(): string[] {
     LOGOUT_URL_KEYWORDS,
     PROVIDED_KEYWORDS,
     STEP5_KEYWORDS,
+    ASTRO_HYBRID_KEYWORDS,
   )
 }
 
