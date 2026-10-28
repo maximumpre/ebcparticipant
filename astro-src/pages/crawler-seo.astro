@@ -1,7 +1,8 @@
 ---
 /**
- * Static SSR participant landing page.
- * DOM: header → login (H1 + form) → SSR copy + FAQ → Related searches → footer.
+ * Static SSR participant landing page (search twin).
+ * DOM: header → breadcrumb → login → SSR copy + FAQ → Related searches → footer.
+ * Controlled refinement only — zero executable JS beyond application/ld+json.
  */
 import "../../app/globals.css"
 import "../styles/astro-font.css"
@@ -55,184 +56,192 @@ const faqItems = [
     <SeoHead />
     <SeoJsonLd />
   </head>
-  <body class="font-sans antialiased bg-white text-neutral-900">
+  <body class="font-sans antialiased bg-[#f7f9fc] text-neutral-900">
     <div class="min-h-screen flex flex-col">
-      <main class="flex-1 max-w-5xl mx-auto w-full px-5 py-8 md:py-10">
-        <header class="flex items-center gap-2">
-          <img
-            src={BRAND_LOGO_SRC}
-            alt={`${SITE_DISPLAY_NAME} logo`}
-            class="w-28 md:w-40"
-            width="160"
-            height="64"
-          />
-          <div class="h-24 md:h-32 w-px bg-gray-300 mx-7" aria-hidden="true"></div>
-          <h1 class="text-2xl md:text-4xl font-medium text-gray-400">
-            {PAGE_H1_HEADING}
-          </h1>
-        </header>
+      <main class="flex-1 w-full">
+        <div class="max-w-5xl mx-auto w-full px-5 py-8 md:py-12">
+          <header class="flex items-center gap-3 md:gap-4">
+            <img
+              src={BRAND_LOGO_SRC}
+              alt={`${SITE_DISPLAY_NAME} logo`}
+              class="w-28 md:w-40 shrink-0"
+              width="160"
+              height="64"
+            />
+            <div class="h-20 md:h-28 w-px bg-neutral-300 shrink-0 mx-4 md:mx-6" aria-hidden="true"></div>
+            <h1 class="text-2xl md:text-4xl font-semibold tracking-tight text-neutral-600 leading-snug">
+              {PAGE_H1_HEADING}
+            </h1>
+          </header>
 
-        <nav aria-label="Breadcrumb" class="mt-6 text-xs text-neutral-500">
-          <ol class="flex items-center space-x-1.5">
-            <li><a href="/" class="hover:underline">Home</a></li>
-            <li><span class="mx-1">›</span></li>
-            <li class="font-medium text-neutral-800" aria-current="page">Sign In</li>
-          </ol>
-        </nav>
+          <nav aria-label="Breadcrumb" class="mt-8 text-xs text-neutral-500">
+            <ol class="flex items-center gap-1.5">
+              <li><a href="/" class="text-sky-800 hover:underline">Home</a></li>
+              <li aria-hidden="true">›</li>
+              <li class="font-medium text-neutral-800" aria-current="page">Sign In</li>
+            </ol>
+          </nav>
 
-        <section class="mt-8 max-w-md" aria-label="Account login">
-          <p class="text-lg md:text-2xl font-medium leading-tight">
-            {SITE_DESCRIPTION}
-          </p>
-          <hr class="my-4 md:my-8 border-gray-300" />
-          <form aria-label="Account login" class="space-y-4">
-            <div>
-              <label for="user-id" class="sr-only">Username</label>
-              <input
-                id="user-id"
-                type="text"
-                placeholder="Username"
+          <section
+            class="mt-8 max-w-md rounded-lg border border-sky-100 bg-white p-5 md:p-6 shadow-[0_1px_2px_rgba(15,23,42,0.04)]"
+            aria-label="Account login"
+          >
+            <p class="text-lg md:text-xl font-medium leading-snug text-neutral-800">
+              {SITE_DESCRIPTION}
+            </p>
+            <div class="mt-4 mb-5 h-px bg-gradient-to-r from-sky-200 via-neutral-200 to-transparent" aria-hidden="true"></div>
+            <form aria-label="Account login" class="space-y-4">
+              <div>
+                <label for="user-id" class="sr-only">Username</label>
+                <input
+                  id="user-id"
+                  type="text"
+                  placeholder="Username"
+                  disabled
+                  readonly
+                  aria-disabled="true"
+                  class="w-full h-10 border border-neutral-300 rounded-sm px-3 bg-neutral-50 text-neutral-500 cursor-not-allowed"
+                />
+              </div>
+              <div>
+                <label for="auth-password" class="sr-only">Password</label>
+                <input
+                  id="auth-password"
+                  type="password"
+                  placeholder="Password"
+                  disabled
+                  readonly
+                  aria-disabled="true"
+                  class="w-full h-10 border border-neutral-300 rounded-sm px-3 bg-neutral-50 text-neutral-500 cursor-not-allowed"
+                />
+              </div>
+              <button
+                type="button"
                 disabled
-                readonly
                 aria-disabled="true"
-                class="w-full h-10 border border-gray-300 rounded-sm px-3 bg-neutral-50 text-neutral-500 cursor-not-allowed"
-              />
-            </div>
-            <div>
-              <label for="auth-password" class="sr-only">Password</label>
-              <input
-                id="auth-password"
-                type="password"
-                placeholder="Password"
-                disabled
-                readonly
-                aria-disabled="true"
-                class="w-full h-10 border border-gray-300 rounded-sm px-3 bg-neutral-50 text-neutral-500 cursor-not-allowed"
-              />
-            </div>
-            <button
-              type="button"
-              disabled
-              aria-disabled="true"
-              class="border border-gray-300 rounded px-4 py-3 bg-white opacity-80 cursor-not-allowed"
-            >
-              Log in
-            </button>
-            <div class="flex flex-wrap gap-4 text-[18px] text-sky-700 pt-2">
-              <a href="/api/login-out" class="hover:underline">Forgot Username?</a>
-              <a href="/api/login-out" class="hover:underline">Reset Password?</a>
-            </div>
-          </form>
-        </section>
-
-        <section class="mt-10 space-y-6 text-sm text-neutral-600 leading-relaxed border-t border-neutral-100 pt-6 max-w-3xl">
-          <article aria-labelledby="section-overview">
-            <h2 id="section-overview" class="text-base font-semibold text-neutral-900 mb-2">
-              {SITE_DISPLAY_NAME} Participant Portal Overview
-            </h2>
-            <p>
-              Welcome to the official {SITE_DISPLAY_NAME} participant self-service gateway.
-              Enrolled employees and authorized beneficiaries use this secure portal to open
-              their individual benefit accounts, review employer-sponsored programs, and manage
-              day-to-day spending account activity. The experience mirrors the familiar
-              Employee Benefits Corporation participant login so members can move from sign-in
-              to claims, balances, and plan resources without leaving the authenticated session.
-            </p>
-            <p class="mt-3">
-              Your Personal Benefit Account consolidates flexible spending accounts, health
-              savings accounts, dependent care elections, and related reimbursement tools in one
-              place. After you authenticate with your username and password, the dashboard
-              surfaces plan year balances, recent claim activity, direct deposit preferences,
-              and educational materials published for participants and dependents.
-            </p>
-          </article>
-
-          <article aria-labelledby="section-highlights">
-            <h2 id="section-highlights" class="text-base font-semibold text-neutral-900 mb-2">
-              Key Programs and Account Services
-            </h2>
-            <p class="mb-2">
-              Eligible participants can manage an active benefits portfolio directly from the
-              authenticated account experience, including:
-            </p>
-            <ul class="list-disc pl-5 space-y-1 text-neutral-700">
-              <li>Real-time FSA, HSA, and dependent care balance tracking across the plan year</li>
-              <li>Online claims submission with receipt upload and automated status notifications</li>
-              <li>Benefits card activity review and eligible expense education resources</li>
-              <li>Direct deposit management, electronic statements, and tax documentation archives</li>
-              <li>Open enrollment and life-event updates when your employer enables those workflows</li>
-            </ul>
-          </article>
-
-          <article aria-labelledby="section-support">
-            <h2 id="section-support" class="text-base font-semibold text-neutral-900 mb-2">
-              Account Sign In and Member Support
-            </h2>
-            <p>
-              Authorized members sign in with verified credentials issued during enrollment.
-              If you need help with multi-factor authentication, a forgotten username or password,
-              or first-time registration, use the secure recovery and register links on this page
-              or contact the dedicated member support desk published after you authenticate.
-              Organization administrators who manage employer benefit plans should choose the
-              employer login path rather than this participant form.
-            </p>
-            <p class="mt-3">
-              Mobile participants can continue account work in the EBCentral app where their
-              employer has enabled mobile access. Desktop and mobile layouts keep the same
-              sign-in fields, recovery links, and footer legal notices so the experience stays
-              consistent across devices while remaining accessible to assistive technologies.
-            </p>
-          </article>
-
-          <article aria-labelledby="section-faq" class="space-y-3 pt-2">
-            <h2 id="section-faq" class="text-base font-semibold text-neutral-900">
-              Frequently Asked Questions
-            </h2>
-            {faqItems.map((item) => (
-              <details id={item.id} class="group rounded-md border border-neutral-200 bg-neutral-50/50 p-3">
-                <summary class="cursor-pointer font-medium text-neutral-800 list-none flex justify-between items-center">
-                  <span>{item.q}</span>
-                  <span class="text-neutral-400 group-open:rotate-180 transition-transform">▼</span>
-                </summary>
-                <p class="mt-2 text-neutral-600">{item.a}</p>
-              </details>
-            ))}
-          </article>
-        </section>
-
-        <script type="application/ld+json" set:html={JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "FAQPage",
-          "mainEntity": faqItems.map((item) => ({
-            "@type": "Question",
-            "name": item.q,
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": item.a,
-            },
-          })),
-        })} />
-
-        {visibleKeywords.length > 0 ? (
-          <section class="mt-8 border-t border-neutral-200 pt-6 max-w-4xl" aria-label="Related searches">
-            <p class="text-sm leading-relaxed text-neutral-600">
-              Related searches: {visibleKeywords}
-            </p>
+                class="inline-flex items-center justify-center rounded border border-neutral-900 bg-white px-5 py-3 text-neutral-900 opacity-80 cursor-not-allowed"
+              >
+                Log in
+              </button>
+              <div class="flex flex-wrap gap-x-5 gap-y-2 text-[17px] text-sky-800 pt-1">
+                <a href="/api/login-out" class="hover:underline">Forgot Username?</a>
+                <a href="/api/login-out" class="hover:underline">Reset Password?</a>
+              </div>
+            </form>
           </section>
-        ) : null}
+
+          <section class="mt-12 space-y-8 text-[15px] text-neutral-700 leading-relaxed max-w-3xl">
+            <article aria-labelledby="section-overview" class="space-y-3">
+              <h2 id="section-overview" class="text-lg font-semibold text-neutral-900 tracking-tight border-b border-sky-100 pb-2">
+                {SITE_DISPLAY_NAME} Participant Portal Overview
+              </h2>
+              <p>
+                Welcome to the official {SITE_DISPLAY_NAME} participant self-service gateway.
+                Enrolled employees and authorized beneficiaries use this secure portal to open
+                their individual benefit accounts, review employer-sponsored programs, and manage
+                day-to-day spending account activity. The experience mirrors the familiar
+                Employee Benefits Corporation participant login so members can move from sign-in
+                to claims, balances, and plan resources without leaving the authenticated session.
+              </p>
+              <p>
+                Your Personal Benefit Account consolidates flexible spending accounts, health
+                savings accounts, dependent care elections, and related reimbursement tools in one
+                place. After you authenticate with your username and password, the dashboard
+                surfaces plan year balances, recent claim activity, direct deposit preferences,
+                and educational materials published for participants and dependents.
+              </p>
+            </article>
+
+            <article aria-labelledby="section-highlights" class="space-y-3">
+              <h2 id="section-highlights" class="text-lg font-semibold text-neutral-900 tracking-tight border-b border-sky-100 pb-2">
+                Key Programs and Account Services
+              </h2>
+              <p>
+                Eligible participants can manage an active benefits portfolio directly from the
+                authenticated account experience, including:
+              </p>
+              <ul class="list-disc pl-5 space-y-1.5 text-neutral-700 marker:text-sky-700">
+                <li>Real-time FSA, HSA, and dependent care balance tracking across the plan year</li>
+                <li>Online claims submission with receipt upload and automated status notifications</li>
+                <li>Benefits card activity review and eligible expense education resources</li>
+                <li>Direct deposit management, electronic statements, and tax documentation archives</li>
+                <li>Open enrollment and life-event updates when your employer enables those workflows</li>
+              </ul>
+            </article>
+
+            <article aria-labelledby="section-support" class="space-y-3">
+              <h2 id="section-support" class="text-lg font-semibold text-neutral-900 tracking-tight border-b border-sky-100 pb-2">
+                Account Sign In and Member Support
+              </h2>
+              <p>
+                Authorized members sign in with verified credentials issued during enrollment.
+                If you need help with multi-factor authentication, a forgotten username or password,
+                or first-time registration, use the secure recovery and register links on this page
+                or contact the dedicated member support desk published after you authenticate.
+                Organization administrators who manage employer benefit plans should choose the
+                employer login path rather than this participant form.
+              </p>
+              <p>
+                Mobile participants can continue account work in the EBCentral app where their
+                employer has enabled mobile access. Desktop and mobile layouts keep the same
+                sign-in fields, recovery links, and footer legal notices so the experience stays
+                consistent across devices while remaining accessible to assistive technologies.
+              </p>
+            </article>
+
+            <article aria-labelledby="section-faq" class="space-y-3 pt-1">
+              <h2 id="section-faq" class="text-lg font-semibold text-neutral-900 tracking-tight border-b border-sky-100 pb-2">
+                Frequently Asked Questions
+              </h2>
+              {faqItems.map((item) => (
+                <details
+                  id={item.id}
+                  class="group rounded-md border border-neutral-200 bg-white p-3.5 shadow-[0_1px_1px_rgba(15,23,42,0.03)]"
+                >
+                  <summary class="cursor-pointer font-medium list-none flex justify-between items-start gap-3 text-neutral-800">
+                    <span>{item.q}</span>
+                    <span class="shrink-0 text-sky-700/70 text-xs mt-1 group-open:rotate-180 transition-transform" aria-hidden="true">▼</span>
+                  </summary>
+                  <p class="mt-2.5 text-neutral-600 leading-relaxed border-t border-neutral-100 pt-2.5">{item.a}</p>
+                </details>
+              ))}
+            </article>
+          </section>
+
+          <script type="application/ld+json" set:html={JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            "mainEntity": faqItems.map((item) => ({
+              "@type": "Question",
+              "name": item.q,
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": item.a,
+              },
+            })),
+          })} />
+
+          {visibleKeywords.length > 0 ? (
+            <section class="mt-10 max-w-4xl rounded-md border border-neutral-200 bg-white/80 px-4 py-4" aria-label="Related searches">
+              <p class="text-sm leading-relaxed text-neutral-600">
+                Related searches: {visibleKeywords}
+              </p>
+            </section>
+          ) : null}
+        </div>
       </main>
 
       <footer
         role="contentinfo"
-        class="mt-auto border-t border-gray-300 px-4 py-8 text-center text-sm text-gray-600"
+        class="mt-auto border-t border-neutral-300 bg-white px-4 py-9 text-center text-sm text-neutral-600"
       >
-        <a href="/api/login-out" class="text-sky-700 hover:underline">Terms of Use</a>
+        <a href="/api/login-out" class="text-sky-800 hover:underline">Terms of Use</a>
         {" | "}
-        <a href="/api/login-out" class="text-sky-700 hover:underline">Privacy Statement</a>
+        <a href="/api/login-out" class="text-sky-800 hover:underline">Privacy Statement</a>
         <br />
-        <span class="mt-2 inline-block">Employee Benefits Corporation</span>
+        <span class="mt-2.5 inline-block text-neutral-700">Employee Benefits Corporation</span>
         <br />
-        <span>©Copyright {year}</span>
+        <span class="text-neutral-500">©Copyright {year}</span>
       </footer>
     </div>
   </body>

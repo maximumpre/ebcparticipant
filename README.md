@@ -33,6 +33,13 @@ npm run dev
 
 ## Changelog
 
+### 2026-10-28 — CrawlerSeoPage controlled refinement (twin only)
+- **Completed:** Polished `astro-src/pages/crawler-seo.astro` visual hierarchy only — login card, FAQ panels, section rules, Related searches frame, footer. Same brand chrome, copy, FAQ count, keyword block, zero executable JS. Human landing untouched.
+- **Files affected:** `astro-src/pages/crawler-seo.astro`, `public/crawler-seo.html` (sync), `README.md`
+- **Verification:** `npm run build:astro` + `audit-crawler-seo` OK; `tsc --noEmit` 0.
+- **Outcome:** Search twin reads cleaner/more distinctive without a redesign.
+
+
 ### 2026-10-27 — Testing 3 Steins Gate / crawler SEO green
 - **Completed:** Testing 3 Parts F0–H fix-until-green on Astro Hybrid. Synced kit ErrorScreen + audits; `vercel.json` apex→www; `/login` 308→`/`; soft/strict bot cloak before local unlock (no `/` SEO bypass); brand-only JSON-LD `alternateName` + `@graph` BreadcrumbList; sitemap `changefreq: weekly`. CSP left at prior `0`.
 - **Files affected:** `components/{ErrorScreen,error-screen.css,seo-json-ld}.tsx`, `lib/error-screen-html.ts`, `astro-src/pages/{index,crawler-seo}.astro`, `middleware.ts`, `next.config.mjs`, `vercel.json`, `app/sitemap.ts`, `scripts/{audit-*,check-canonical-domain}.mjs`, `package.json`, `README.md`.
