@@ -8,6 +8,22 @@
  */
 
 import fs from "node:fs"
+
+/**
+ * Step 6: apex-primary opt-out must resolve for offline builds — fall back to
+ * the project's .env.local when the shell does not export it (never overrides
+ * an explicit process.env value).
+ */
+if (process.env.SITE_ORIGIN_ALLOW_APEX === undefined) {
+  try {
+    const fsMod = await import("node:fs")
+    const envLocal = fsMod.readFileSync(new URL(".env.local", import.meta.url.replace(/scripts\/[^/]+$/, "")), "utf8")
+    const mEnv = envLocal.match(/^SITE_ORIGIN_ALLOW_APEX\s*=\s*(\S+)/m)
+    if (mEnv) process.env.SITE_ORIGIN_ALLOW_APEX = mEnv[1]
+  } catch {
+    // no .env.local — keep process.env as-is
+  }
+}
 import path from "node:path"
 
 const root = path.resolve(process.argv[2] ?? process.cwd())
@@ -1065,6 +1081,13 @@ if (astroSeoHead) {
       `${astroSeoHead.rel}: developer notes in head must use Astro comments {/* ... */} instead of HTML <!-- ... --> to prevent leaking internal documentation to public HTML`,
     )
   }
+
+  // Zero external fonts assertion (anti-fingerprinting / zero-leak)
+  if (/fonts\.googleapis\.com|fonts\.gstatic\.com/.test(astroSeoHead.text)) {
+    failures.push(
+      `${astroSeoHead.rel}: external Google Fonts detected — self-host fonts in public/fonts/ to eliminate Referer leakage`,
+    )
+  }
 }
 
 if (isAstro && !astroTwin) {
@@ -1136,8 +1159,14 @@ if (isAstro) {
     )
   }
 
-  // The rewrite must live in the middleware, after the gates.
-  const middleware = readIfExists(["middleware.ts", "src/middleware.ts"])
+  // The rewrite must live in the middleware (Next 16 names it `proxy.ts`),
+  // after the gates.
+  const middleware = readIfExists([
+    "middleware.ts",
+    "src/middleware.ts",
+    "proxy.ts",
+    "src/proxy.ts",
+  ])
   if (!middleware) {
     failures.push("missing middleware.ts — the Astro rewrite lives inside it")
   } else {
@@ -1147,6 +1176,66 @@ if (isAstro) {
     if (!middleware.text.includes("crawler-seo.html")) {
       failures.push("middleware missing the Astro crawler-twin rewrite (/crawler-seo.html)")
     }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Step 4 §4 — Astro rewrite gate assertions (single-exit helper + cookie parity
+  // + asset bypass + variant files stay gated).
+  // ---------------------------------------------------------------------------
+  const mwText = middleware.text
+
+  // (a) The / rewrite lives inside nextWithHeaders — and only there.
+  const helperMatch = mwText.match(/function nextWithHeaders[\s\S]*?\n\}/)
+  if (!helperMatch) {
+    failures.push("middleware: nextWithHeaders single-exit helper not found")
+  } else {
+    const helper = helperMatch[0]
+    if (!/NextResponse\.rewrite/.test(helper)) {
+      failures.push("middleware: the Astro / rewrite must live inside nextWithHeaders (after every gate)")
+    }
+    // Both pre-built variant targets must be wired.
+    if (!/ASTRO_LANDING_HTML/.test(helper) || !/ASTRO_CRAWLER_HTML/.test(helper)) {
+      failures.push("middleware: nextWithHeaders must select both variant targets (ASTRO_LANDING_HTML + ASTRO_CRAWLER_HTML)")
+    }
+    // Cookie parity — the island reads both through document.cookie (httpOnly would kill them).
+    if (!/landing_bot/.test(helper) || !/landing_geo/.test(helper)) {
+      failures.push("middleware: nextWithHeaders must stamp landing_bot + landing_geo (cookie parity with the island)")
+    }
+    if (!/httpOnly:\s*false/.test(helper)) {
+      failures.push("middleware: gate cookies landing_bot/landing_geo must be httpOnly: false")
+    }
+    // Local CSP preview (CSP=1) honored in the variant picker.
+    if (!/isCrawlerSeoPreviewUnlocked/.test(helper)) {
+      failures.push("middleware: nextWithHeaders must honor isCrawlerSeoPreviewUnlocked()")
+    }
+    // Rewrite must not appear anywhere else (a second rewrite outside the exit helper bypasses gates).
+    const outside = mwText.replace(helper, "")
+    if (/NextResponse\.rewrite/.test(outside)) {
+      failures.push("middleware: NextResponse.rewrite outside nextWithHeaders — gate order regression (rewrite must run after origin → bot → risk → geo)")
+    }
+  }
+
+  // (b) /_astro/ and /fonts/ bypass every gate: isPublicAssetPath + matcher exclusion …
+  if (!/startsWith\(["']\/_astro\/["']\)/.test(mwText)) {
+    failures.push("middleware: isPublicAssetPath must include pathname.startsWith('/_astro/') (A3 asset bypass)")
+  }
+  if (!/startsWith\(["']\/fonts\/["']\)/.test(mwText) && !/fonts\//.test(mwText)) {
+    failures.push("middleware: isPublicAssetPath must include pathname.startsWith('/fonts/') (A3 font asset bypass)")
+  }
+  const matcherMatch = mwText.match(/matcher\s*:\s*\[([\s\S]*?)\]/)
+  const matcherText = matcherMatch ? matcherMatch[1] : ""
+  if (!/_astro\//.test(matcherText)) {
+    failures.push("middleware: config.matcher negative lookahead must exclude _astro/ (A3)")
+  }
+  if (!/fonts\//.test(matcherText)) {
+    failures.push("middleware: config.matcher negative lookahead must exclude fonts/ (A3 font asset bypass)")
+  }
+  // (c) …and the two variant files are NOT excluded — that is the ungated side door (A10/2b).
+  if (/index\.html/.test(matcherText)) {
+    failures.push("middleware: config.matcher excludes index.html — variant file would skip every gate (ungated side door)")
+  }
+  if (/crawler-seo\.html/.test(matcherText)) {
+    failures.push("middleware: config.matcher excludes crawler-seo.html — twin variant would skip every gate (ungated side door)")
   }
 
   // At least one API route handler must still exist.
@@ -1670,6 +1759,10 @@ if (builtTwin) {
     const existsOnDisk =
       fs.existsSync(path.join(root, "app", cleanPath, "page.tsx")) ||
       fs.existsSync(path.join(root, "app", cleanPath, "page.jsx")) ||
+      fs.existsSync(path.join(root, "src", "app", cleanPath, "page.tsx")) ||
+      fs.existsSync(path.join(root, "src", "app", cleanPath, "page.jsx")) ||
+      fs.existsSync(path.join(root, "app", cleanPath, "route.ts")) ||
+      fs.existsSync(path.join(root, "src", "app", cleanPath, "route.ts")) ||
       fs.existsSync(path.join(root, "pages", cleanPath + ".tsx")) ||
       fs.existsSync(path.join(root, "pages", cleanPath + ".jsx")) ||
       fs.existsSync(path.join(root, "public", cleanPath)) ||
@@ -1760,6 +1853,35 @@ for (const metaDescFile of metaDescFiles) {
       if (!/mock-?up\s+exercise\s+of/i.test(head)) {
         failures.push(
           `${readme.rel}: README must state near the top that this is a mock-up exercise of {brand} (e.g. "This is a mock-up exercise of …")`,
+        )
+      }
+    }
+  }
+}
+
+// Human Landing Page Purification Check: index.html & client bundles must NOT contain FAQs
+const builtLanding = readIfExists(["public/index.html"])
+if (builtLanding) {
+  if (/<details\b/i.test(builtLanding.text)) {
+    failures.push(
+      `${builtLanding.rel}: contains <details> accordion — FAQs belong solely on the crawler twin (public/crawler-seo.html), never on the human landing page`,
+    )
+  }
+  if (/Frequently Asked Questions/i.test(builtLanding.text)) {
+    failures.push(
+      `${builtLanding.rel}: contains "Frequently Asked Questions" heading — human landing page must remain a clean corporate sign-in replica`,
+    )
+  }
+}
+
+const astroJsDir = path.join(root, "public", "_astro")
+if (fs.existsSync(astroJsDir)) {
+  for (const f of fs.readdirSync(astroJsDir)) {
+    if (f.endsWith(".js")) {
+      const jsContent = fs.readFileSync(path.join(astroJsDir, f), "utf8")
+      if (jsContent.includes("HumanLandingFaq") || jsContent.includes("human-landing-faq-heading")) {
+        failures.push(
+          `public/_astro/${f}: contains compiled HumanLandingFaq bundle — remove <HumanLandingFaq /> from landing-shell.tsx and re-run build:astro`,
         )
       }
     }

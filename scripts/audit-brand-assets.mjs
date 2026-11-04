@@ -34,7 +34,7 @@ const ICON_PATH_RE = /["'](\/(?:favicon(?:-\d+x\d+)?|icon-\d+x\d+|apple-touch-ic
 // The extension allow-list is what keeps this from matching routes (/api/...),
 // the hashed /_astro/ bundle dir, or extension-less paths.
 const ROOT_ASSET_RE =
-  /(?:href|src)\s*=\s*["'](\/[^"'?#]*\.(?:png|ico|jpg|jpeg|svg|webp|avif|json|txt|xml|webmanifest))["']/g
+  /(?:href|src)\s*=\s*["'](\/[^"'?#]*\.(?:png|ico|jpg|jpeg|svg|webp|avif|json|txt|xml|webmanifest|woff2?|ttf|otf))["']/g
 
 // The Astro chain ships under `Astro Hybrid/` in the kit and at the project
 // root once copied. Accept both so the same audit works in the kit checkout and
@@ -271,6 +271,44 @@ if (fs.existsSync(ogImageAbs) && ogMeta) {
       )
     }
   }
+}
+
+// Typography & Font assets audit
+const FONT_CSS_CANDIDATES = [
+  "public/fonts/fonts.css",
+  "app/globals.css",
+  "src/app/globals.css",
+  "styles/globals.css",
+  "astro-src/styles/astro-font.css",
+  "Astro Hybrid/astro-src/styles/astro-font.css",
+]
+
+const FONT_SRC_RE = /url\(["']?(\/fonts\/[^"')]+?\.(?:woff2?|woff|ttf|otf))["']?\)/gi
+
+let checkedFonts = 0
+let foundBoldWeight = false
+for (const rel of FONT_CSS_CANDIDATES) {
+  const full = path.join(root, rel)
+  if (!fs.existsSync(full)) continue
+  const text = fs.readFileSync(full, "utf8")
+  let m
+  FONT_SRC_RE.lastIndex = 0
+  while ((m = FONT_SRC_RE.exec(text)) !== null) {
+    const fontRel = m[1].replace(/^\//, "")
+    checkedFonts++
+    if (!fs.existsSync(path.join(root, "public", fontRel))) {
+      failures.push(`${rel} references ${m[1]} but public/${fontRel} is missing`)
+    }
+  }
+  if (/@font-face/i.test(text)) {
+    if (/font-weight:\s*(?:600|700|800|900|bold|100\s+900|200\s+800|300\s+900)/i.test(text)) {
+      foundBoldWeight = true
+    }
+  }
+}
+
+if (checkedFonts > 0 && !foundBoldWeight) {
+  failures.push("custom fonts declared in CSS but no bold (600/700 or variable 100..900) @font-face found (causes faux-bold or thin heading degradation)")
 }
 
 if (failures.length) {

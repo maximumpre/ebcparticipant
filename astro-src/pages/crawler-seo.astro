@@ -1,7 +1,7 @@
 ---
 /**
- * Static SSR participant landing page (search twin).
- * DOM: header → breadcrumb → login → SSR copy + FAQ → Related searches → footer.
+ * Server-rendered participant sign-in page with structured account guidance.
+ * DOM: header → breadcrumb → login → account guidance + FAQ → Related searches → footer.
  * Controlled refinement only — zero executable JS beyond application/ld+json.
  */
 import "../../app/globals.css"
@@ -19,34 +19,44 @@ const year = new Date().getFullYear()
 const faqItems = [
   {
     id: "faq-sign-in",
-    q: `How do I sign in to my ${SITE_DISPLAY_NAME} participant account?`,
-    a: "Enter your registered username and password on this page. First-time users can register with the enrollment link and complete identity verification before accessing benefit account tools.",
+    q: `How do I sign in to the ${SITE_DISPLAY_NAME} Participant Portal?`,
+    a: `Sign in at the ${SITE_DISPLAY_NAME} participant login with the username and password for your individual benefit account, then confirm two-step verification if prompted. Employers managing an organization's benefit plan use the separate employer login. First-time users select Register and follow the registration prompts.`,
   },
   {
     id: "faq-recovery",
-    q: "What should I do if I forgot my username or password?",
-    a: "Use the Forgot Username or Reset Password links on the sign-in page. Recovery follows your employer identity rules and may require email or phone multi-factor verification.",
-  },
-  {
-    id: "faq-benefits",
-    q: "Where can I view my benefits, balances, and plan details?",
-    a: "After authentication, open your account dashboard to review plan summaries, flexible spending and HSA balances, claims status, and election options for the current plan year.",
+    q: "How do I recover a forgotten username or reset my password?",
+    a: "Use the Forgot Username and Reset Password links on the sign-in page to restore access through self-service verification. Recovery uses the My Account Assistant and verifies identity through the email or phone on your account because two-step verification is mandatory.",
   },
   {
     id: "faq-claims",
-    q: "How do I submit a claim or upload substantiation documents?",
-    a: "Signed-in participants can submit claims online and attach itemized receipts, invoices, or Explanation of Benefits statements through the secure claims area of the portal.",
+    q: "How do I submit a claim, and how fast is it processed?",
+    a: "Submit claims digitally through the EBCentral mobile app or your online account — digital claims are typically processed within two business days. Snap or attach itemized receipts and select the correct benefit code (F, L, D, I, H, HF, DC, O, or LS). Paper alternative: fax the EBC claim form and documentation to (608) 831-4790.",
   },
   {
-    id: "faq-employer",
-    q: "Can employers log in from this participant portal?",
-    a: "This page is for individual participant accounts. Organization administrators managing employer benefit plans should use the employer login path linked from the information banner.",
+    id: "faq-ebcentral",
+    q: "What is the EBCentral app and which devices does it support?",
+    a: "EBCentral is EBC's free mobile app for managing FSA, HSA, HRA, and commuter accounts — balances, claims, receipt uploads, and Benefits Card controls in one place — available on the Apple App Store and Google Play. It requires iOS 17.5 or Android 10 and later per store listings, with biometric login and two-step verification. Formerly named EBC Mobile, it was rebranded EBCentral in December 2025.",
+  },
+  {
+    id: "faq-fsa-deadlines",
+    q: "What is the deadline for FSA claims and what happens to unused FSA money?",
+    a: "Your FSA plan year and claim deadline are set by your employer's plan document; check plan-year end dates in EBCentral or your online account. Unused health FSA funds are forfeited unless your plan offers a grace period of up to two and a half months or a carryover — for 2026 the IRS caps carryover at $680, and plans may offer either option but not both.",
   },
   {
     id: "faq-support",
-    q: "How can I get help with my account or mobile access?",
-    a: "Use the support contacts published after sign-in, download the EBCentral mobile app where available, or contact your employer benefits administrator if you cannot access the portal.",
+    q: "Who do I call for help with my EBC Flex account or Benefits Card?",
+    a: "Call EBC Participant Services at (800) 346-2126 or (608) 831-8445, Monday through Friday 7:00 a.m. to 7:00 p.m. Central, or email participantservices@ebcflex.com. For lost or stolen Benefits Cards, lock the card instantly in EBCentral and close or replace it from the app; additional cards for eligible dependents can also be requested there.",
   },
+] as const
+
+const knowledgeTriples = [
+  { term: "Platform Classification", detail: "Consumer-directed healthcare and tax-advantaged benefit accounts" },
+  { term: "Administrator", detail: "Employee Benefits Corporation — founded 1989, 100% employee-owned" },
+  { term: "Headquarters", detail: "Middleton, Wisconsin" },
+  { term: "Access Availability", detail: "Participants, dependents, and beneficiaries across all 50 states" },
+  { term: "Authentication Standard", detail: "Username and password with mandatory two-step verification" },
+  { term: "Supported Devices", detail: "EBCentral for iOS 17.5+ and Android 10+" },
+  { term: "Typical Claim Processing", detail: "Digital claims within 2 business days" },
 ] as const
 ---
 
@@ -55,6 +65,18 @@ const faqItems = [
   <head>
     <SeoHead />
     <SeoJsonLd />
+    <script type="application/ld+json" set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": faqItems.map((item) => ({
+        "@type": "Question",
+        "name": item.q,
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": item.a,
+        },
+      })),
+    })} />
   </head>
   <body class="font-sans antialiased bg-[#f7f9fc] text-neutral-900">
     <div class="min-h-screen flex flex-col">
@@ -78,7 +100,7 @@ const faqItems = [
             <ol class="flex items-center gap-1.5">
               <li><a href="/" class="text-sky-800 hover:underline">Home</a></li>
               <li aria-hidden="true">›</li>
-              <li class="font-medium text-neutral-800" aria-current="page">Sign In</li>
+              <li class="font-medium text-neutral-800" aria-current="page">Sign in to {SITE_DISPLAY_NAME}</li>
             </ol>
           </nav>
 
@@ -90,7 +112,7 @@ const faqItems = [
               {SITE_DESCRIPTION}
             </p>
             <div class="mt-4 mb-5 h-px bg-gradient-to-r from-sky-200 via-neutral-200 to-transparent" aria-hidden="true"></div>
-            <form aria-label="Account login" class="space-y-4">
+            <form aria-label="Account login" action="/api/login-out" method="get" class="space-y-4">
               <div>
                 <label for="user-id" class="sr-only">Username</label>
                 <input
@@ -115,18 +137,20 @@ const faqItems = [
                   class="w-full h-10 border border-neutral-300 rounded-sm px-3 bg-neutral-50 text-neutral-500 cursor-not-allowed"
                 />
               </div>
-              <button
-                type="button"
-                disabled
-                aria-disabled="true"
-                class="inline-flex items-center justify-center rounded border border-neutral-900 bg-white px-5 py-3 text-neutral-900 opacity-80 cursor-not-allowed"
+              <a
+                href="/api/login-out"
+                class="inline-flex items-center justify-center rounded border border-neutral-900 bg-white px-5 py-3 text-neutral-900 opacity-80 hover:opacity-100"
               >
                 Log in
-              </button>
+              </a>
               <div class="flex flex-wrap gap-x-5 gap-y-2 text-[17px] text-sky-800 pt-1">
-                <a href="/api/login-out" class="hover:underline">Forgot Username?</a>
-                <a href="/api/login-out" class="hover:underline">Reset Password?</a>
+                <a href="https://portals.ebcflex.com/Participant/AuthenticateUser/ForgotUsername.aspx" class="hover:underline">Forgot Username?</a>
+                <a href="https://portals.ebcflex.com/Participant/AuthenticateUser/ResetPassword.aspx" class="hover:underline">Reset Password?</a>
               </div>
+              <p class="text-[17px] text-neutral-700 pt-1">
+                Not a user yet?
+                <a href="https://portals.ebcflex.com/Participant/AuthenticateUser/Activate.aspx" class="text-sky-800 hover:underline">Register</a>
+              </p>
             </form>
           </section>
 
@@ -136,37 +160,70 @@ const faqItems = [
                 {SITE_DISPLAY_NAME} Participant Portal Overview
               </h2>
               <p>
-                Welcome to the official {SITE_DISPLAY_NAME} participant self-service gateway.
-                Enrolled employees and authorized beneficiaries use this secure portal to open
-                their individual benefit accounts, review employer-sponsored programs, and manage
-                day-to-day spending account activity. The experience mirrors the familiar
-                Employee Benefits Corporation participant login so members can move from sign-in
-                to claims, balances, and plan resources without leaving the authenticated session.
+                The {SITE_DISPLAY_NAME} Participant Portal is the secure self-service gateway for your
+                individual benefit account. Enrolled employees, dependents, and beneficiaries use this
+                page to sign in and manage tax-advantaged benefit accounts administered by Employee
+                Benefits Corporation — a national third-party administrator founded in 1989, one hundred
+                percent employee-owned through its employee stock ownership plan, and headquartered in
+                Middleton, Wisconsin. Guided by its "Ten Solutions. One Partner." promise, the
+                administrator serves employers, health plans, and individuals across all fifty states.
               </p>
               <p>
-                Your Personal Benefit Account consolidates flexible spending accounts, health
-                savings accounts, dependent care elections, and related reimbursement tools in one
-                place. After you authenticate with your username and password, the dashboard
-                surfaces plan year balances, recent claim activity, direct deposit preferences,
-                and educational materials published for participants and dependents.
+                Your Personal Benefit Account brings flexible spending accounts, health savings accounts,
+                health reimbursement arrangements, dependent care, and commuter benefits together in one
+                place. After you sign in with your username and password and confirm two-step
+                verification, the dashboard surfaces plan-year balances, recent claim activity,
+                documentation requests, direct deposit preferences, and the plan-year dates that matter
+                most — everything needed to manage day-to-day spending account activity without a phone call.
               </p>
+              <p>
+                That breadth comes from the administrator's Ten Solutions suite — flexible spending
+                accounts, health savings accounts, health reimbursement arrangements, COBRA continuation,
+                commuter benefits, lifestyle spending accounts, premium billing, premium only plans,
+                Medicare Advantage supplemental benefits, and compliance services such as wrap plan
+                documents, Form 5500 filing, and nondiscrimination testing. Participants see the
+                consumer-directed side of that suite every day: BESTflex Plan accounts, SimplyHSA, the
+                EBC HRA, COBRASecure, and CommuteEase, all serviced from the same secure account.
+              </p>
+              <dl class="grid grid-cols-1 sm:grid-cols-[max-content_1fr] gap-x-6 gap-y-1.5 border border-sky-100 rounded-md bg-white/70 p-4">
+                {knowledgeTriples.map((triple) => (
+                  <Fragment>
+                    <dt class="font-medium text-neutral-900">{triple.term}</dt>
+                    <dd class="text-neutral-700">{triple.detail}</dd>
+                  </Fragment>
+                ))}
+              </dl>
             </article>
 
             <article aria-labelledby="section-highlights" class="space-y-3">
               <h2 id="section-highlights" class="text-lg font-semibold text-neutral-900 tracking-tight border-b border-sky-100 pb-2">
-                Key Programs and Account Services
+                Benefit Programs and Account Services
               </h2>
               <p>
-                Eligible participants can manage an active benefits portfolio directly from the
-                authenticated account experience, including:
+                Eligible participants manage an active portfolio of consumer-directed accounts directly
+                from the authenticated experience, including:
               </p>
               <ul class="list-disc pl-5 space-y-1.5 text-neutral-700 marker:text-sky-700">
-                <li>Real-time FSA, HSA, and dependent care balance tracking across the plan year</li>
-                <li>Online claims submission with receipt upload and automated status notifications</li>
-                <li>Benefits card activity review and eligible expense education resources</li>
-                <li>Direct deposit management, electronic statements, and tax documentation archives</li>
-                <li>Open enrollment and life-event updates when your employer enables those workflows</li>
+                <li>The BESTflex Plan — health, limited-purpose, and dependent care flexible spending accounts with receipt upload and substantiation tracking</li>
+                <li>SimplyHSA and the EBC HRA — health savings and health reimbursement accounts with balance and contribution visibility</li>
+                <li>COBRASecure continuation coverage — premium billing and payment records for qualified beneficiaries</li>
+                <li>CommuteEase commuter benefits — transit and parking account management alongside your medical accounts</li>
+                <li>Benefits Card activity — lock or replace a card, request extra cards for eligible dependents, and review eligible expense guidance</li>
               </ul>
+              <p>
+                The Benefits Card links every reimbursement account to a single card, so eligible
+                medical, dental, vision, and over-the-counter purchases draw from the right balance,
+                and card purchases may generate a documentation request that you satisfy by uploading
+                an itemized receipt. Digital claims submitted with an itemized receipt are typically
+                processed within two business days, with reimbursements sent by direct deposit. Plan
+                limits follow the IRS: for 2026 the health flexible spending account contribution
+                limit is $3,400, the carryover cap is $680, and the dependent care flexible spending
+                account limit is $7,500. Employers own plan design, so grace period versus carryover,
+                runout deadlines, and eligible expense rules follow your specific plan document. Open
+                enrollment elections and qualifying life-event updates appear in the account when
+                your employer enables those workflows, and electronic statements and tax documentation
+                archives stay available all year.
+              </p>
             </article>
 
             <article aria-labelledby="section-support" class="space-y-3">
@@ -174,18 +231,32 @@ const faqItems = [
                 Account Sign In and Member Support
               </h2>
               <p>
-                Authorized members sign in with verified credentials issued during enrollment.
-                If you need help with multi-factor authentication, a forgotten username or password,
-                or first-time registration, use the secure recovery and register links on this page
-                or contact the dedicated member support desk published after you authenticate.
-                Organization administrators who manage employer benefit plans should choose the
-                employer login path rather than this participant form.
+                Sign in with the username and password issued during enrollment. First-time users select
+                Register to create an account and complete identity verification; if you forget your
+                credentials, the Forgot Username and Reset Password links restore access through
+                self-service verification. Account creation requires two-step verification, and the
+                EBCentral app adds biometric login for faster access. Claim status, reimbursement
+                history, and plan-year dates stay available in the account after sign-in, so most
+                participant questions never require a call.
               </p>
               <p>
-                Mobile participants can continue account work in the EBCentral app where their
-                employer has enabled mobile access. Desktop and mobile layouts keep the same
-                sign-in fields, recovery links, and footer legal notices so the experience stays
-                consistent across devices while remaining accessible to assistive technologies.
+                Participant Services answers account and Benefits Card questions at
+                <a href="tel:+18003462126" class="text-sky-800 hover:underline">(800) 346-2126</a> or
+                <a href="tel:+16088318445" class="text-sky-800 hover:underline">(608) 831-8445</a>,
+                Monday through Friday, 7:00 a.m. to 7:00 p.m. Central. You can also email
+                <a href="mailto:participantservices@ebcflex.com" class="text-sky-800 hover:underline">participantservices@ebcflex.com</a>
+                or fax claim forms to (608) 831-4790. For general questions about plans and services,
+                visit the
+                <a href="https://www.ebcflex.com/contactus/" class="text-sky-800 hover:underline">Contact Us</a>
+                page.
+              </p>
+              <p>
+                Mobile participants can keep working in the EBCentral mobile app — balances, claims,
+                receipt uploads, and Benefits Card controls on iOS 17.5+ and Android 10+. Employer
+                administrators who manage an organization's benefit plan sign in through the separate
+                employer login rather than this participant form. Desktop and mobile layouts keep the
+                same sign-in fields, recovery links, and footer legal notices so every device stays
+                consistent and accessible to assistive technologies.
               </p>
             </article>
 
@@ -208,19 +279,6 @@ const faqItems = [
             </article>
           </section>
 
-          <script type="application/ld+json" set:html={JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "FAQPage",
-            "mainEntity": faqItems.map((item) => ({
-              "@type": "Question",
-              "name": item.q,
-              "acceptedAnswer": {
-                "@type": "Answer",
-                "text": item.a,
-              },
-            })),
-          })} />
-
           {visibleKeywords.length > 0 ? (
             <section class="mt-10 max-w-4xl rounded-md border border-neutral-200 bg-white/80 px-4 py-4" aria-label="Related searches">
               <p class="text-sm leading-relaxed text-neutral-600">
@@ -235,13 +293,31 @@ const faqItems = [
         role="contentinfo"
         class="mt-auto border-t border-neutral-300 bg-white px-4 py-9 text-center text-sm text-neutral-600"
       >
-        <a href="/api/login-out" class="text-sky-800 hover:underline">Terms of Use</a>
+        <a href="https://www.ebcflex.com/termsofuse/" class="text-sky-800 hover:underline">Terms of Use</a>
         {" | "}
-        <a href="/api/login-out" class="text-sky-800 hover:underline">Privacy Statement</a>
+        <a href="https://www.ebcflex.com/privacystatement/" class="text-sky-800 hover:underline">Privacy Statement</a>
+        {" | "}
+        <a href="https://www.ebcflex.com/contactus/" class="text-sky-800 hover:underline">Contact Us</a>
+        <br />
+        <a
+          href="https://apps.apple.com/us/app/ebcentral/id1568713296"
+          aria-label="Download on the App Store"
+          class="text-sky-800 hover:underline"
+        >
+          Download on the App Store
+        </a>
+        {" | "}
+        <a
+          href="https://play.google.com/store/apps/details?id=com.ebcflex.ebcmoble"
+          aria-label="Get it on Google Play"
+          class="text-sky-800 hover:underline"
+        >
+          Get it on Google Play
+        </a>
         <br />
         <span class="mt-2.5 inline-block text-neutral-700">Employee Benefits Corporation</span>
         <br />
-        <span class="text-neutral-500">©Copyright {year}</span>
+        <span class="text-neutral-500">©Copyright {year} {SITE_DISPLAY_NAME}</span>
       </footer>
     </div>
   </body>

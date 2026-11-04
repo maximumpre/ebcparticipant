@@ -17,7 +17,7 @@ import "./globals.css"
 const OG_IMAGE_URL = ogImageAbsoluteUrl()
 
 export const metadata: Metadata = {
-  metadataBase: new URL(SITE_ORIGIN),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || SITE_ORIGIN),
   alternates: {
     canonical: SITE_HOMEPAGE_CANONICAL,
   },

@@ -48,7 +48,7 @@ export function buildErrorScreenHtml(hostname: string): string {
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
   body{--chrome-error-font:"Segoe UI",system-ui,-apple-system,BlinkMacSystemFont,"Roboto","Helvetica Neue",Arial,sans-serif;min-height:100vh;min-height:100dvh;background:#202124;color:#9AA0A6;color-scheme:dark;font-family:var(--chrome-error-font);font-size:15px;-webkit-font-smoothing:antialiased;padding:2rem 0;padding-top:max(2rem,env(safe-area-inset-top,2rem));padding-bottom:max(2rem,env(safe-area-inset-bottom,2rem));position:fixed;inset:0;overflow-y:auto;overscroll-behavior:none}
-  body,body h1,body h2,body p,body li,body ul,body b,body span{font-family:var(--chrome-error-font)!important}
+  body,body h1,body h2,body p,body li,body ul,body b,body span,body button{font-family:var(--chrome-error-font)!important}
   @media (min-width:640px){body{padding:4rem 0}}
   @media (min-width:768px){body{padding:6rem 0}}
   @media (max-height:500px){body{padding:1.25rem 0}}
@@ -67,6 +67,18 @@ export function buildErrorScreenHtml(hostname: string): string {
   @media (min-width:1024px){ul{font-size:15px}}
   li{margin:.5rem 0}
   .err{font-size:12px;margin-top:1.25rem}
+  .actions{display:flex;justify-content:space-between;align-items:center;margin-top:2rem}
+  @media (min-width:640px){.actions{margin-top:3.5rem}}
+  button{appearance:none;border:none;margin:0;font:inherit;font-weight:500;cursor:pointer;border-radius:9999px;padding:0.375rem 1.25rem;font-size:0.875rem;line-height:1.25rem;min-height:36px;white-space:nowrap;user-select:none;touch-action:manipulation}
+  #reload-button{background-color:#8ab4f8;color:#202124}
+  #reload-button:hover{background-color:#93bcf8}
+  #details-button{background:transparent;color:#8ab4f8;border:1px solid #80868b!important}
+  #details-button:hover{background-color:#303339}
+  .panel{margin-top:2rem;width:100%}
+  @media (min-width:640px){.panel{margin-top:2.5rem}}
+  .panel section+section{margin-top:1rem}
+  h2{margin:0;font-size:16px;font-weight:600;color:#9aa0a6}
+  .panel p{margin:0.25rem 0 0;font-weight:300;color:#9aa0a6}
 </style>
 </head>
 <body>
@@ -81,6 +93,24 @@ export function buildErrorScreenHtml(hostname: string): string {
       <li>Running Network Diagnostics</li>
     </ul>
     <p class="err">ERR_CONNECTION_REFUSED</p>
+    <div class="actions">
+      <button id="details-button" type="button" onclick="var p=document.getElementById('details');p.style.display=p.style.display==='block'?'none':'block';this.textContent=p.style.display==='block'?'Hide Details':'Details'">Details</button>
+      <button id="reload-button" type="button" onclick="location.reload()">Reload</button>
+    </div>
+    <div id="details" class="panel" style="display:none">
+      <section>
+        <h2>Check your internet connection</h2>
+        <p>Check any cables and reboot any routers, modems, or other network devices you may be using.</p>
+      </section>
+      <section>
+        <h2>Allow your browser to access the network in your firewall or antivirus settings.</h2>
+        <p>If it is already listed as a program allowed to access the network, try removing it from the list and adding it again.</p>
+      </section>
+      <section>
+        <h2>If you use a proxy server…</h2>
+        <p>Check your proxy settings or contact your network administrator to make sure the proxy server is working. If you don't believe you should be using a proxy server: Go to the Chrome menu &gt; Settings &gt; Show advanced settings… &gt; Change proxy settings… &gt; LAN Settings and deselect "Use a proxy server for your LAN".</p>
+      </section>
+    </div>
   </div>
 </body>
 </html>`

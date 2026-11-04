@@ -137,6 +137,23 @@ if (!sg) {
   ) {
     failures.push("ALLOWED_ANDROID_APP_PACKAGES missing Samsung Internet or Edge mobile packages")
   }
+
+  if (!referrerCorpus.includes("hasSearchClickAttribution") || !referrerCorpus.includes("msclkid")) {
+    failures.push("lib/allowed-referrer.ts missing hasSearchClickAttribution or Bing msclkid/cvid attribution")
+  }
+
+  if (!referrerCorpus.includes('"com.microsoft.copilot"') || !referrerCorpus.includes('"com.microsoft.start"')) {
+    failures.push("ALLOWED_ANDROID_APP_PACKAGES missing Microsoft Copilot or Microsoft Start package")
+  }
+
+  // React rules of hooks: all hooks must run unconditionally before any early return.
+  const ungatedReturnIdx = text.search(/if\s*\(\s*isUngatedSeoPath\b[\s\S]*?\breturn\b/)
+  const mobileHookIdx = text.indexOf("useMobileInteractionGate(")
+  if (mobileHookIdx !== -1 && ungatedReturnIdx !== -1 && ungatedReturnIdx < mobileHookIdx) {
+    failures.push(
+      `${sg.rel}: useMobileInteractionGate must execute above isUngatedSeoPath early-return (React rules of hooks violation)`,
+    )
+  }
 }
 
 const shell = readIfExists([
@@ -149,6 +166,11 @@ if (shell) {
   }
   if (!shell.text.includes("landing_local_testing")) {
     failures.push("landing-shell.tsx missing landing_local_testing cookie check")
+  }
+  if (/HumanLandingFaq/.test(shell.text)) {
+    failures.push(
+      "landing-shell.tsx imports or renders HumanLandingFaq (human landing FAQ leak — FAQs belong solely on crawler-seo.astro)",
+    )
   }
 }
 

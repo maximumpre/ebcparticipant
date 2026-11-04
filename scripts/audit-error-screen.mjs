@@ -352,6 +352,16 @@ for (const s of [client, plainTsx].filter(Boolean)) {
   }
 }
 
+if (ssr) {
+  const normSsr = norm(ssrText)
+  if (!normSsr.includes("details-button") || !normSsr.includes("reload-button")) {
+    failures.push(`${ssr.rel}: SSR error screen missing Chrome action buttons (#details-button, #reload-button)`)
+  }
+  if (!normSsr.includes("#80868b")) {
+    failures.push(`${ssr.rel}: SSR error screen missing Details button border color (#80868b)`)
+  }
+}
+
 /* ---------- 10. authentic plain-text bullets & side-by-side actions ---------- */
 for (const s of [client, plainTsx].filter(Boolean)) {
   const t = stripComments(s.text)

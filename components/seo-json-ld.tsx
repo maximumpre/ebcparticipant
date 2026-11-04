@@ -7,9 +7,14 @@ import {
 } from "@/lib/site-url"
 
 /**
- * Optional Knowledge Graph entity URLs. Empty for private employers.
+ * Knowledge Graph entity URLs — grounded 2026-11-02 (Track B entity research).
+ * Employee Benefits Corporation has NO Wikipedia article and NO Wikidata QID,
+ * so sameAs carries only the live-verified official profiles: LinkedIn + X.
  */
-export const ORGANIZATION_SAME_AS: readonly string[] = []
+export const ORGANIZATION_SAME_AS: readonly string[] = [
+  "https://www.linkedin.com/company/employeebenefitscorporation",
+  "https://x.com/EBCflex",
+]
 
 /** Brand phrases only — never hostnames (Google SERP Layer 1 duplicate-URL trap). */
 function buildAlternateNames(): string[] {
@@ -34,12 +39,20 @@ export function StructuredData() {
     "@type": "Organization",
     "@id": organizationId,
     name: SITE_DISPLAY_NAME,
+    legalName: "Employee Benefits Corporation",
     url: SITE_ORIGIN,
     logo: {
       "@type": "ImageObject",
       url: logoUrl,
       width: 1200,
       height: 630,
+    },
+    contactPoint: {
+      "@type": "ContactPoint",
+      telephone: "+1-800-346-2126",
+      contactType: "customer support",
+      areaServed: "US",
+      availableLanguage: "en",
     },
   }
   if (ORGANIZATION_SAME_AS.length > 0) {
@@ -81,7 +94,7 @@ export function StructuredData() {
           {
             "@type": "ListItem",
             position: 2,
-            name: "Sign In",
+            name: `Sign in to ${SITE_DISPLAY_NAME}`,
             item: SITE_HOMEPAGE_CANONICAL,
           },
         ],

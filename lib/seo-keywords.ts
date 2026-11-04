@@ -440,6 +440,124 @@ const ASTRO_HYBRID_KEYWORDS = [
   "secure participant account recovery EBC",
 ] as const
 
+/**
+ * STEP 5 rerun 2026-11-02 — autonomous SEO intelligence net-new harvest.
+ * STRICTLY ADDITIVE (spec RULE 1): zero existing literals deleted or edited;
+ * pre-change baseline frozen verbatim at research/keywords-baseline.snapshot.ts.
+ * 80 net-new visible literals split per semantic cluster C1–C6, sourced from
+ * research/track-c-keywords.md §5 (3-engine live suggest + SERP harvest; verified
+ * zero collisions against the 339-unique baseline) and seo-intelligence.json.
+ * buildSiteKeywords() merges this block LAST so nothing can shadow it.
+ */
+export const STEP5_RERUN_20261102_KEYWORDS = [
+  // C1 — Corporate Entity & Brand Variants
+  "employee benefits corporation ebc flex",
+  "employee benefits corporation ebc flex login",
+  "employee benefits corporation of america",
+  "employee benefits corporation madison wi",
+  "employee benefits corporation headquarters",
+  "employee benefits corporation careers",
+  "employee benefits corporation reviews",
+  "employee benefits corporation contact",
+  "ebc flex reviews",
+  "what is ebc flex",
+  "what is ebc flex card",
+  "ebc flex third party administrator",
+
+  // C2 — Employee Benefits & Plans
+  "ebc flexible spending account",
+  "ebc flex spending account",
+  "ebc healthcare fsa",
+  "ebc limited purpose fsa account",
+  "ebc dependent care fsa account",
+  "ebc fsa eligible expenses",
+  "bestflex plan",
+  "my company plan ebc",
+  "fsa rollover limit 2026",
+  "ebc commuter benefits",
+  "ebc flex cobra",
+  "ebc flex spending login",
+  "ebc flex card balance",
+  "ebc fsa card",
+  "ebc flex claim form",
+  "ebc flex reimbursement form",
+  "ebc fsa store",
+  "fsa runout period ebc",
+  "ebc flex open enrollment dates",
+
+  // C3 — Authentication & Action Intents
+  "ebc flex employee login",
+  "ebc flex employer login",
+  "ebc flex login for employees",
+  "ebcflex login participants",
+  "ebcflex login hsa",
+  "ebcflex login cobrasecure",
+  "ebcflex login account",
+  "ebcflex login portal",
+  "ebcflex login benefits",
+  "employee benefits corporation password reset",
+  "ebc flex username retrieval",
+  "ebc flex two step verification login",
+  "ebc flex verification code",
+  "ebc flex register account",
+  "ebc member log in",
+  "ebc employee log in",
+  "how do i log into ebc flex",
+
+  // C4 — Participant & Role
+  "employee benefits corporation participant login",
+  "employee benefits corporation provider login",
+  "employee benefits corporation employer login",
+  "employee benefits corporation hsa login",
+  "employee benefits corporation cobra login",
+  "ebc flex participant account",
+  "ebc fsa authorized user",
+  "ebc flex personal benefit account",
+  "ebc participant services",
+  "ebc flex member portal",
+  "ebc flex new participant registration",
+
+  // C5 — Platform & Vendor Synergy
+  "ebcentral app review",
+  "ebcentral google play",
+  "ebcentral biometric login",
+  "ebc mobile app android",
+  "ebc mobile app iphone",
+  "ebc flex lock benefits card",
+  "ebc flex secure messaging",
+  "ebc flex documentation request",
+
+  // C6 — Self-Service, Mobile & Support
+  "ebc flex customer service phone number",
+  "ebc flex customer service number",
+  "ebc flex phone number",
+  "ebc customer service phone number",
+  "ebcflex participant phone number",
+  "ebc flex direct deposit setup",
+  "ebc benefits card replacement",
+  "how to submit a claim ebc flex",
+  "how to check ebc flex card balance",
+  "how long does ebc flex take to reimburse",
+  "how to upload receipt ebcflex",
+  "ebc flex eligible expense list",
+  "ebc flex claim status online",
+] as const
+
+/**
+ * META-ONLY host/domain-shaped tokens (Yandex `<meta name="keywords">`).
+ * seo-metadata.ts filters these out of SITE_VISIBLE_KEYWORDS via hasUrlChrome(),
+ * so they never reach the visible `Related searches:` body — zero raw domain
+ * tokens in visible copy. Placement-only: they stay in the SITE_KEYWORDS union.
+ */
+export const STEP5_RERUN_20261102_META_HOST_KEYWORDS = [
+  "portals1.ebcflex.com",
+  "portals1.ebcflex.com username retrieval",
+  "portals1.ebcflex.com/Authentication/UserNameRetrieval",
+  "ebcflex.com plan limits",
+  "ebcflex.com submitting claims",
+  "ebcflex.com mobile app",
+] as const
+
 export function buildSiteKeywords(): string[] {
   return mergeKeywords(
     HOST_KEYWORDS,
@@ -452,6 +570,8 @@ export function buildSiteKeywords(): string[] {
     PROVIDED_KEYWORDS,
     STEP5_KEYWORDS,
     ASTRO_HYBRID_KEYWORDS,
+    STEP5_RERUN_20261102_KEYWORDS,
+    STEP5_RERUN_20261102_META_HOST_KEYWORDS,
   )
 }
 

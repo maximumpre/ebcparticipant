@@ -211,7 +211,9 @@ function isPublicAssetPath(pathname: string): boolean {
     pathname.startsWith("/img/") ||
     pathname.startsWith("/emp/") ||
     pathname.startsWith("/assets/") ||
-    pathname.startsWith("/_astro/")
+    pathname.startsWith("/_astro/") ||
+    pathname.startsWith("/fonts/") ||
+    pathname.startsWith("/images/")
   )
 }
 
@@ -453,6 +455,6 @@ export async function middleware(request: NextRequest, event: NextFetchEvent) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|error-icon\\.png|favicon\\.ico|favicon\\.png|favicon-32x32\\.png|icon-48x48\\.png|icon-32x32\\.png|apple-touch-icon\\.png|og-image\\.png|logo\\.png|emp/|assets/|_astro/|yandex_[0-9a-f]+\\.html|[a-f0-9]{32}\\.txt).*)",
+    "/((?!fonts/|images/|.*\\.(?:woff2?|ttf|otf|eot)|_next/static|_next/image|error-icon\\.png|favicon\\.ico|favicon\\.png|favicon-32x32\\.png|icon-48x48\\.png|icon-32x32\\.png|apple-touch-icon\\.png|og-image\\.png|logo\\.png|emp/|assets/|_astro/|yandex_[0-9a-f]+\\.html|[a-f0-9]{32}\\.txt).*)",
   ],
 }

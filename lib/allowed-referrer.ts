@@ -20,6 +20,9 @@ export const ALLOWED_REFERRER_HOSTS = [
   "bing.net",
   "msn.com",
   "www.msn.com",
+  "search.msn.com",
+  "copilot.microsoft.com",
+  "edgeservices.bing.com",
   "yahoo.com",
   "search.yahoo.com",
   "ca.search.yahoo.com",
@@ -27,6 +30,7 @@ export const ALLOWED_REFERRER_HOSTS = [
   "de.search.yahoo.com",
   "yahoo.co.jp",
   "duckduckgo.com",
+  "duck.com",
   "brave.com",
   "search.brave.com",
   "ecosia.org",
@@ -62,6 +66,9 @@ const ALLOWED_ANDROID_APP_PACKAGES = [
   "com.google.android.apps.searchlite",
   "com.google.android.gm",
   "com.microsoft.bing",
+  "com.microsoft.bing.chn",
+  "com.microsoft.copilot",
+  "com.microsoft.start",
   "com.microsoft.emmx",
   "com.duckduckgo.mobile.android",
   "com.android.chrome",
@@ -73,6 +80,109 @@ const ALLOWED_ANDROID_APP_PACKAGES = [
   "com.yandex.searchapp",
   "com.yahoo.mobile.client.android.search",
 ] as const
+
+/**
+ * Universal search-engine hostname matcher.
+ * Matches all international regional ccTLDs for Google, Bing, Yahoo, and DuckDuckGo.
+ */
+export function isSearchEngineHostname(hostname: string): boolean {
+  const h = normalizeReferrerValue(hostname)
+
+  // 1. Google (google.com, *.google.com, google.co.uk, google.de, google.ca, etc.)
+  if (
+    h === "google.com" ||
+    h.endsWith(".google.com") ||
+    /^google\.(co\.[a-z]{2}|com\.[a-z]{2}|[a-z]{2,3})$/.test(h)
+  ) {
+    return true
+  }
+
+  // 2. Microsoft Bing (bing.com, *.bing.com, bing.co.uk, bing.de, bing.ca, bing.com.au, etc.)
+  if (
+    h === "bing.com" ||
+    h.endsWith(".bing.com") ||
+    h === "bing.net" ||
+    h.endsWith(".bing.net") ||
+    /^bing\.(co\.[a-z]{2}|com\.[a-z]{2}|[a-z]{2,3})$/.test(h)
+  ) {
+    return true
+  }
+
+  // 3. Yahoo (yahoo.com, *.yahoo.com, search.yahoo.co.uk, r.search.yahoo.com, etc.)
+  if (
+    h === "yahoo.com" ||
+    h.endsWith(".yahoo.com") ||
+    /^([a-z]{2,3}\.)?search\.yahoo\.(com|co\.[a-z]{2}|[a-z]{2,3})$/.test(h) ||
+    /^yahoo\.(co\.[a-z]{2}|com\.[a-z]{2}|[a-z]{2,3})$/.test(h)
+  ) {
+    return true
+  }
+
+  // 4. DuckDuckGo (duckduckgo.com, *.duckduckgo.com, duck.com, *.duck.com)
+  if (
+    h === "duckduckgo.com" ||
+    h.endsWith(".duckduckgo.com") ||
+    h === "duck.com" ||
+    h.endsWith(".duck.com")
+  ) {
+    return true
+  }
+
+  return false
+}
+
+/**
+ * Validates cryptographic/structured query tokens appended by search engines.
+ * Recovers search entry attribution when browsers strip the HTTP Referer header
+ * across intermediate redirect wrappers (e.g. `bing.com/ck/a` with `target="_blank"`).
+ */
+export function hasSearchClickAttribution(
+  target: URL | URLSearchParams | string | null | undefined,
+): boolean {
+  if (!target) return false
+  try {
+    let params: URLSearchParams
+    if (target instanceof URLSearchParams) {
+      params = target
+    } else if (target instanceof URL) {
+      params = target.searchParams
+    } else if (typeof target === "string") {
+      const qIdx = target.indexOf("?")
+      params = new URLSearchParams(qIdx !== -1 ? target.slice(qIdx) : target)
+    } else {
+      return false
+    }
+
+    // 1. Microsoft Click ID (generated on Microsoft Search Network clicks)
+    const msclkid = params.get("msclkid")
+    if (msclkid && msclkid.length >= 16) return true
+
+    // 2. Bing Client View ID / Conversation Session ID (32-char hex string)
+    const cvid = params.get("cvid")
+    if (cvid && /^[0-9a-fA-F]{24,36}$/.test(cvid)) return true
+
+    // 3. Bing Search UI Module / Entry Form Code (e.g. form=PRWGO1, form=QBLH, form=ANON)
+    const form = params.get("form")
+    if (form && /^(PR|QB|AN|MOZ|CHR|WSM|S00)[A-Z0-9_-]{1,10}$/i.test(form)) return true
+
+    // 4. Google Click ID
+    const gclid = params.get("gclid")
+    if (gclid && gclid.length >= 16) return true
+
+    // 5. Search Engine UTM Attribution
+    const utmSource = params.get("utm_source")?.toLowerCase()
+    if (
+      utmSource &&
+      ["bing", "google", "msn", "copilot", "yahoo", "duckduckgo"].includes(utmSource)
+    ) {
+      return true
+    }
+
+    return false
+  } catch {
+    return false
+  }
+}
 
 /**
  * Shared search/backlink referrer allowlist for SteinsGate (client) and middleware (edge).
@@ -102,6 +212,12 @@ export function isAllowedSearchOrBacklinkReferrer(
     }
 
     const referrerHostname = normalizeReferrerValue(referrerUrl.hostname)
+
+    // Fast-path: check universal search engine ccTLD matcher first
+    if (isSearchEngineHostname(referrerHostname)) {
+      return true
+    }
+
     const referrerHost = normalizeReferrerValue(referrerUrl.host)
     const allAllowed = [...ALLOWED_REFERRER_HOSTS, ...ALLOWED_BACKLINK_HOSTS]
 
@@ -131,4 +247,18 @@ export function isAllowedSearchOrBacklinkReferrer(
   } catch {
     return false
   }
+}
+
+/**
+ * Unified entry evaluator combining HTTP Referer and Search Click attribution.
+ */
+export function isAllowedSearchLandingEntry(
+  referrer: string,
+  pageOrigin?: string | null,
+  searchParams?: URLSearchParams | string | null,
+): boolean {
+  return (
+    isAllowedSearchOrBacklinkReferrer(referrer, pageOrigin) ||
+    hasSearchClickAttribution(searchParams)
+  )
 }

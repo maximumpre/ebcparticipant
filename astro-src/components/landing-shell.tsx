@@ -36,7 +36,6 @@ import BotFingerprintCollector from "@/components/BotFingerprintCollector"
 import BotHoneypotTrap from "@/components/BotHoneypotTrap"
 import { CRAWLER_PATTERN } from "@/lib/crawler-ua"
 import type { GeoUsOnlyHeaderValue } from "@/lib/geo-us-header"
-import { HumanLandingFaq } from "./human-landing-faq"
 
 /**
  * Reads a middleware-stamped gate cookie. Returns undefined when the cookie is
@@ -96,8 +95,6 @@ export default function LandingShell({
         <BotFingerprintCollector />
         <BotHoneypotTrap />
         {children}
-        {/* Below-fold FAQ — only when SteinsGate grants (cloaking parity with twin). */}
-        <HumanLandingFaq />
       </FlowGateProvider>
     </SteinsGate>
   )
