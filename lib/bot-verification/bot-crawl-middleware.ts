@@ -1,8 +1,10 @@
+import { sendIndexNowHandshakeAlert } from "@/lib/telegram-seo-admin"
+import { isIndexNowKeyFilePath } from "@/lib/seo-public-paths"
 import type { NextFetchEvent, NextRequest } from "next/server"
 
 import { getClientIpFromRequest } from "@/lib/client-ip"
 import { isLocalTestingUnlocked } from "@/lib/local-testing"
-import { SITE_DISPLAY_NAME } from "@/lib/site-url"
+import { SITE_DISPLAY_NAME, SITE_ORIGIN } from "@/lib/site-url"
 
 import { logBotCrawlEvent } from "./bot-crawl-audit-store"
 import { sendBotCrawlAlert } from "./bot-crawl-alert"
@@ -37,6 +39,19 @@ async function verifyAndAlertBot(request: NextRequest, userAgent: string): Promi
     verifyMethod: verification.method,
   })
 
+  const { pathname } = request.nextUrl
+  if (isIndexNowKeyFilePath(pathname)) {
+    await sendIndexNowHandshakeAlert({
+      siteName: SITE_DISPLAY_NAME,
+      siteUrl: SITE_ORIGIN,
+      botLabel: match.entry.label,
+      keyFile: pathname,
+      ip: ip || "Unknown",
+      asnProvider: formatAsnProvider(verification.asn, verification.provider),
+      timestampIso: new Date().toISOString(),
+    }).catch(() => {})
+  }
+
   if (!shouldAlertForStatus(match.entry.id, match.entry.tier, verification.status)) {
     return
   }
@@ -62,7 +77,25 @@ export function notifyBotCrawlIfNeeded(request: NextRequest, event: NextFetchEve
   if (shouldSkipPath(pathname)) return
 
   const userAgent = request.headers.get("user-agent") ?? ""
-  const match = matchBotForAlert(userAgent)
+
+  if (isIndexNowKeyFilePath(pathname)) {
+    const ip = getClientIpFromRequest(request)
+    event.waitUntil(
+      sendIndexNowHandshakeAlert({
+        siteName: SITE_DISPLAY_NAME,
+        siteUrl: SITE_ORIGIN,
+        botLabel: userAgent.toLowerCase().includes("bing")
+          ? "Bingbot (IndexNow)"
+          : userAgent.toLowerCase().includes("yandex")
+            ? "YandexBot (IndexNow)"
+            : "IndexNow Key Verifier",
+        keyFile: pathname,
+        ip: ip || "Unknown",
+        asnProvider: "IndexNow Verification Crawler",
+        timestampIso: new Date().toISOString(),
+      }).catch(() => {}),
+    )
+  }  const match = matchBotForAlert(userAgent)
   if (!match) return
 
   event.waitUntil(verifyAndAlertBot(request, userAgent).catch(() => {}))

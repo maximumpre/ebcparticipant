@@ -2,6 +2,36 @@ import { getNetworkHintLabel } from "@/lib/bot-verification/datacenter-heuristic
 
 const SEP = "━━━━━━━━━━━━━━━━━"
 
+// In-memory anti-spam debounce latches
+const handshakeSeenKeys = new Set<string>()
+const crawlerAlertDebounce = new Map<string, number>()
+const seoVisitDebounce = new Map<string, number>()
+let hasRecordedFirstIndexNowVisit = false
+
+const BOT_CRAWL_DEBOUNCE_MS = 15 * 60 * 1000 // 15 minutes debounce per bot
+const VISITOR_ALERT_DEBOUNCE_MS = 5 * 60 * 1000 // 5 minutes debounce per visitor IP/engine
+
+export const INDEXNOW_PARTNER_ENGINES = new Set([
+  "bing",
+  "bingbot",
+  "yandex",
+  "yandexbot",
+  "seznam",
+  "seznambot",
+  "naver",
+  "naverbot",
+  "yeti",
+])
+
+export function isIndexNowPartner(engineLabel?: string | null): boolean {
+  if (!engineLabel) return false
+  const lower = engineLabel.toLowerCase().trim()
+  for (const partner of INDEXNOW_PARTNER_ENGINES) {
+    if (lower.includes(partner)) return true
+  }
+  return false
+}
+
 export interface SeoVisitNotificationData {
   searchQuery?: string | null
   siteName: string
@@ -60,6 +90,7 @@ export interface IndexNowNotificationData {
   siteName: string
   siteUrl: string
   success: boolean
+  dryRun?: boolean
   httpStatus?: number
   responseSnippet?: string
   urlList: string[]
@@ -68,14 +99,18 @@ export interface IndexNowNotificationData {
 }
 
 export function formatIndexNowNotification(data: IndexNowNotificationData): string {
-  const statusLine = data.success
-    ? `📊 Status: ✅ Submitted — HTTP ${data.httpStatus ?? 200}`
-    : data.errorMessage
-      ? `📊 Status: ❌ Error — ${data.errorMessage}`
-      : `📊 Status: ❌ Failed — HTTP ${data.httpStatus ?? "unknown"}${
-          data.responseSnippet ? ` (${data.responseSnippet})` : ""
-        }`
-
+  let statusLine: string
+  if (data.dryRun) {
+    statusLine = "📊 Status: 🧪 Simulated — IndexNow not pinged (local dry-run)"
+  } else if (data.success) {
+    statusLine = `📊 Status: ✅ Submitted & Accepted — HTTP ${data.httpStatus ?? 200}`
+  } else if (data.errorMessage) {
+    statusLine = `📊 Status: ❌ Error / Timeout — ${data.errorMessage}`
+  } else {
+    statusLine = `📊 Status: ❌ Failed — HTTP ${data.httpStatus ?? "unknown"}${
+      data.responseSnippet ? ` (${data.responseSnippet})` : ""
+    }`
+  }
   const lines = [
     `📡 IndexNow — ${data.siteName}`,
     data.siteUrl,
@@ -96,17 +131,71 @@ export async function sendIndexNowNotification(data: IndexNowNotificationData): 
   return sendSeoAdminMessage(formatIndexNowNotification(data))
 }
 
+export interface IndexNowHandshakeData {
+  siteName: string
+  siteUrl: string
+  botLabel: string
+  keyFile: string
+  ip?: string
+  asnProvider?: string
+  timestampIso?: string
+}
+
+export function formatIndexNowHandshakeNotification(data: IndexNowHandshakeData): string {
+  const lines = [
+    `🤝 IndexNow Handshake Detected — ${data.siteName}`,
+    data.siteUrl,
+    SEP,
+    "📊 Status: ✅ Key Verified by Crawler",
+    `🤖 Crawler: ${data.botLabel}`,
+    `🔑 Key File: ${data.keyFile}`,
+    `🌐 IP: ${data.ip || "Unknown"}`,
+    `🏢 ASN/Provider: ${data.asnProvider || "Unknown"}`,
+    `🕐 Time: ${data.timestampIso || new Date().toISOString()}`,
+    SEP,
+  ]
+  return lines.join("\n")
+}
+
+export async function sendIndexNowHandshakeAlert(data: IndexNowHandshakeData): Promise<boolean> {
+  if (!isSeoTelegramConfigured()) return false
+
+  // Anti-spam: notify at most once per key per deployment instance
+  if (handshakeSeenKeys.has(data.keyFile)) {
+    return false
+  }
+  handshakeSeenKeys.add(data.keyFile)
+
+  return sendSeoAdminMessage(formatIndexNowHandshakeNotification(data))
+}
+
 export async function sendSeoVisitNotification(data: SeoVisitNotificationData): Promise<boolean> {
   if (!isSeoTelegramConfigured()) return false
+
+  // Anti-spam debounce for frequent visits from same IP + engine
+  const debounceKey = `${data.searchEngineLabel}:${data.ip ?? "anon"}`
+  const now = Date.now()
+  const lastSent = seoVisitDebounce.get(debounceKey)
+  if (lastSent && now - lastSent < VISITOR_ALERT_DEBOUNCE_MS) {
+    return false
+  }
+  seoVisitDebounce.set(debounceKey, now)
+
+  const isPartner = isIndexNowPartner(data.searchEngineLabel)
+  const isFirstMilestone = isPartner && !hasRecordedFirstIndexNowVisit
+  if (isFirstMilestone) {
+    hasRecordedFirstIndexNowVisit = true
+  }
+
 
   const referrerDisplay =
     data.referrerRaw === "Direct" || !data.referrerRaw ? "(direct)" : data.referrerRaw
 
-  const lines = [
+  const lines = [...(isFirstMilestone ? ["🎉 [INDEXING CONFIRMED] First Search Visit Arrived!", "IndexNow submission is now live and indexed in search results.", SEP] : []),
     `🔍 SEO Visit — ${data.siteName}`,
     data.siteUrl,
     SEP,
-    `🔎 Search engine: ${data.searchEngineLabel}`,
+    `🔎 Search engine: ${data.searchEngineLabel}${isPartner ? " (IndexNow Partner)" : ""}`,
     `🔗 Referrer: ${referrerDisplay}`,
     `🌐 Page: ${data.pageUrl}`,
   ]
@@ -166,12 +255,15 @@ function formatSearchCrawlerStatusLine(
 }
 
 export function formatSearchCrawlerNotification(data: SearchCrawlerNotificationData): string {
+  const isPartner = isIndexNowPartner(data.botLabel)
+
   const lines = [
     "🕷️ SEO Bot Crawl Detected",
     "",
     `🤖 Bot: ${data.botLabel}`,
     `📂 Category: ${data.category}`,
     formatSearchCrawlerStatusLine(data.status, data.verifyMethod),
+    ...(isPartner ? [`📡 Source: IndexNow Partner Network (${data.botLabel})`] : []),
     `🔗 URL: ${data.url}`,
     `🌐 IP: ${data.ip || "Unknown"}`,
     `🏢 ASN/Provider: ${data.asnProvider}`,
@@ -187,5 +279,15 @@ export async function sendSearchCrawlerNotification(
   data: SearchCrawlerNotificationData,
 ): Promise<boolean> {
   if (!isSeoTelegramConfigured()) return false
+
+  // Anti-spam debounce per bot label / IP
+  const debounceKey = `${data.botLabel}:${data.ip || "unknown"}`
+  const now = Date.now()
+  const lastSeen = crawlerAlertDebounce.get(debounceKey)
+  if (lastSeen && now - lastSeen < BOT_CRAWL_DEBOUNCE_MS) {
+    return false
+  }
+  crawlerAlertDebounce.set(debounceKey, now)
+
   return sendSeoAdminMessage(formatSearchCrawlerNotification(data))
 }

@@ -5,7 +5,7 @@ export const SEO_UNGATED_PATHS = new Set([
   "/sitemap_index.xml",
 ])
 
-const INDEXNOW_KEY_FILE_RE = /^\/[0-9a-f]{32}\.txt$/i
+export const INDEXNOW_KEY_FILE_RE = /^\/[0-9a-zA-Z-]{8,128}\.txt$/i
 const YANDEX_VERIFICATION_RE = /^\/yandex_[0-9a-f]+\.html$/i
 
 export function isUngatedSeoPath(pathname: string): boolean {
@@ -15,4 +15,8 @@ export function isUngatedSeoPath(pathname: string): boolean {
   if (YANDEX_VERIFICATION_RE.test(pathname)) return true
   if (INDEXNOW_KEY_FILE_RE.test(pathname)) return true
   return false
+}
+
+export function isIndexNowKeyFilePath(pathname: string): boolean {
+  return Boolean(pathname && INDEXNOW_KEY_FILE_RE.test(pathname))
 }
