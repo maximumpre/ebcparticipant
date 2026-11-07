@@ -14,14 +14,22 @@ import fs from "node:fs"
  * the project's .env.local when the shell does not export it (never overrides
  * an explicit process.env value).
  */
-if (process.env.SITE_ORIGIN_ALLOW_APEX === undefined) {
+/**
+ * Apex-primary opt-out must resolve for offline/local builds AND on CI where
+ * `.env.local` is gitignored (Vercel clones never see it) — fall back to the
+ * committed `.env` (flag only, never secrets) when the shell does not export
+ * it (never overrides an explicit process.env value).
+ */
+const envRoot = import.meta.url.replace(/scripts\/[^/]+$/, "")
+for (const envFile of [".env.local", ".env"]) {
+  if (process.env.SITE_ORIGIN_ALLOW_APEX !== undefined) break
   try {
     const fsMod = await import("node:fs")
-    const envLocal = fsMod.readFileSync(new URL(".env.local", import.meta.url.replace(/scripts\/[^/]+$/, "")), "utf8")
-    const mEnv = envLocal.match(/^SITE_ORIGIN_ALLOW_APEX\s*=\s*(\S+)/m)
+    const envText = fsMod.readFileSync(new URL(envFile, envRoot), "utf8")
+    const mEnv = envText.match(/^SITE_ORIGIN_ALLOW_APEX\s*=\s*(\S+)/m)
     if (mEnv) process.env.SITE_ORIGIN_ALLOW_APEX = mEnv[1]
   } catch {
-    // no .env.local — keep process.env as-is
+    // missing file — try the next candidate
   }
 }
 import path from "node:path"
@@ -1885,6 +1893,40 @@ if (fs.existsSync(astroJsDir)) {
         )
       }
     }
+  }
+}
+
+// 8-Pillar Modern Discovery & Cloaked Referral Assertions
+// 1. LLMO / AEO: /llms.txt integrity check when present
+const llmsTxtFile = readIfExists(["public/llms.txt"])
+if (llmsTxtFile) {
+  if (!llmsTxtFile.text.startsWith("# ")) {
+    failures.push(`${llmsTxtFile.rel}: must lead with an H1 heading ("# {SITE_DISPLAY_NAME}")`)
+  }
+  if (!llmsTxtFile.text.includes("## Self-Service") && !llmsTxtFile.text.includes("## Member Support")) {
+    failures.push(`${llmsTxtFile.rel}: missing member support or self-service authentication procedures`)
+  }
+}
+
+// 2. KGO: Knowledge Graph Entity Disambiguation in structured data
+for (const sd of structuredDataFiles) {
+  const dataCode = sd.text.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*/g, "")
+  if (dataCode.includes('"@type"') || dataCode.includes("'@type'")) {
+    if (!dataCode.includes('"@id"') && !dataCode.includes("'@id'")) {
+      failures.push(`${sd.rel}: Knowledge Graph Optimization (KGO) requires global "@id" entity disambiguation URIs`)
+    }
+  }
+}
+
+// 3. RRO: Referral Route Optimization assertions in allowed-referrer.ts
+const allowedRefFile = readIfExists(["lib/allowed-referrer.ts", "src/lib/allowed-referrer.ts"])
+if (allowedRefFile) {
+  const codeText = allowedRefFile.text
+  if (!codeText.includes("AI_REFERRAL_HOSTS")) {
+    failures.push(`${allowedRefFile.rel}: missing AI_REFERRAL_HOSTS integration for AI search handshake`)
+  }
+  if (!codeText.includes("ai.perplexity.app") || !codeText.includes("com.openai.chatgpt")) {
+    failures.push(`${allowedRefFile.rel}: missing AI search app packages (ai.perplexity.app, com.openai.chatgpt) in ALLOWED_ANDROID_APP_PACKAGES`)
   }
 }
 

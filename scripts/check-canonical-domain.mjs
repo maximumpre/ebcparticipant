@@ -42,6 +42,23 @@ const PLACEHOLDER_PATTERNS = [
   /TODO_/i,
 ];
 
+/**
+ * Step 6: apex-primary opt-out must resolve for offline/local builds AND on CI
+ * where `.env.local` is gitignored (Vercel clones never see it) — fall back to
+ * the committed `.env` (flag only, never secrets) when the shell does not export
+ * it (never overrides an explicit process.env value). Mirrors audit-crawler-seo.mjs.
+ */
+for (const envFile of [".env.local", ".env"]) {
+  if (process.env.SITE_ORIGIN_ALLOW_APEX !== undefined) break;
+  try {
+    const envText = await readFile(new URL(`../${envFile}`, import.meta.url), "utf8");
+    const mEnv = envText.match(/^SITE_ORIGIN_ALLOW_APEX\s*=\s*(\S+)/m);
+    if (mEnv) process.env.SITE_ORIGIN_ALLOW_APEX = mEnv[1];
+  } catch {
+    // missing file — try next
+  }
+}
+
 function allowApexOrigin() {
   return process.env.SITE_ORIGIN_ALLOW_APEX === "1";
 }
