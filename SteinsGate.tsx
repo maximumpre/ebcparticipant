@@ -5,6 +5,10 @@ import { createContext, useContext, type ReactNode, useEffect, useState } from "
 import { usePathname } from "next/navigation"
 
 import ErrorScreen from "@/components/ErrorScreen"
+import {
+  LANDING_ACCESS_COOKIE,
+  landingAccessCookieWriteOptions,
+} from "@/lib/landing-access-cookie"
 import type { GeoUsOnlyHeaderValue } from "@/lib/geo-us-header"
 import { isAllowedSearchOrBacklinkReferrer, hasSearchClickAttribution } from "@/lib/allowed-referrer"
 import { AI_REFERRAL_HOSTS } from "@/lib/ai-referral"
@@ -277,7 +281,7 @@ export const SteinsGate = ({
           } catch {}
         }
 
-        const isPublicEntryPath = pathname === "/" || pathname.toLowerCase() === "/login"
+        const isPublicEntryPath = pathname === "/"
         const geo = geoAccess ?? "unknown"
         let isUsEntryAllowed = geo === "allow"
 

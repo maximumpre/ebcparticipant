@@ -54,6 +54,17 @@ export const ALLOWED_REFERRER_HOSTS = [
   "webcrawler.com",
   "lycos.com",
   "gibiru.com",
+  // SMO (Social Media Optimization) referrers
+  "twitter.com",
+  "x.com",
+  "t.co",
+  "linkedin.com",
+  "lnkd.in",
+  "facebook.com",
+  "fb.com",
+  "instagram.com",
+  "reddit.com",
+  "youtube.com",
   ...AI_REFERRAL_HOSTS,
 ] as const
 
@@ -79,6 +90,17 @@ const ALLOWED_ANDROID_APP_PACKAGES = [
   "com.yandex.browser",
   "com.yandex.searchapp",
   "com.yahoo.mobile.client.android.search",
+  // RRO: AI search application packages
+  "ai.perplexity.app",
+  "com.openai.chatgpt",
+  "com.anthropic.claude",
+  "com.deepseek.chat",
+  // SMO: Social media application packages
+  "com.twitter.android",
+  "com.linkedin.android",
+  "com.facebook.katana",
+  "com.instagram.android",
+  "com.reddit.frontpage",
 ] as const
 
 /**
@@ -169,11 +191,63 @@ export function hasSearchClickAttribution(
     const gclid = params.get("gclid")
     if (gclid && gclid.length >= 16) return true
 
-    // 5. Search Engine UTM Attribution
+    // 5. Search Engine & Modern Discovery UTM Attribution
     const utmSource = params.get("utm_source")?.toLowerCase()
     if (
       utmSource &&
-      ["bing", "google", "msn", "copilot", "yahoo", "duckduckgo"].includes(utmSource)
+      [
+        // Search & AI engines
+        "bing",
+        "google",
+        "msn",
+        "copilot",
+        "yahoo",
+        "duckduckgo",
+        "perplexity",
+        "chatgpt",
+        "openai",
+        "claude",
+        "deepseek",
+        "gemini",
+        "meta.ai",
+        "grok",
+        // SMO: Social media platforms
+        "twitter",
+        "x",
+        "linkedin",
+        "facebook",
+        "instagram",
+        "reddit",
+        "youtube",
+      ].includes(utmSource)
+    ) {
+      return true
+    }
+
+    // 6. Direct Referral Parameter (e.g. ref=perplexity.ai, ref=chatgpt.com)
+    const ref = params.get("ref")?.toLowerCase()
+    if (
+      ref &&
+      [
+        "perplexity.ai",
+        "chatgpt.com",
+        "claude.ai",
+        "chat.deepseek.com",
+        "copilot.microsoft.com",
+        "twitter.com",
+        "t.co",
+        "linkedin.com",
+        "reddit.com",
+      ].includes(ref)
+    ) {
+      return true
+    }
+
+    // 7. AI Search Engine & Overview Source Tracking (e.g. source=sge, source=aio)
+    const source = params.get("source")?.toLowerCase()
+    if (
+      source &&
+      ["sge", "aio", "search", "perplexity", "copilot"].includes(source)
     ) {
       return true
     }

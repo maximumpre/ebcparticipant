@@ -1,5 +1,4 @@
 import type { NextRequest } from "next/server"
-
 export function getRequestCountryCode(request: NextRequest): string | null {
   const fromGeo = (request as NextRequest & { geo?: { country?: string } }).geo?.country
   if (fromGeo && typeof fromGeo === "string") {

@@ -5,7 +5,6 @@ import {
   SITE_ORIGIN,
   ogImageAbsoluteUrl,
 } from "@/lib/site-url"
-
 /**
  * Knowledge Graph entity URLs — grounded 2026-11-02 (Track B entity research).
  * Employee Benefits Corporation has NO Wikipedia article and NO Wikidata QID,
@@ -15,7 +14,6 @@ export const ORGANIZATION_SAME_AS: readonly string[] = [
   "https://www.linkedin.com/company/employeebenefitscorporation",
   "https://x.com/EBCflex",
 ]
-
 /** Brand phrases only — never hostnames (Google SERP Layer 1 duplicate-URL trap). */
 function buildAlternateNames(): string[] {
   return [
@@ -28,13 +26,11 @@ function buildAlternateNames(): string[] {
     "My Account Assistant",
   ]
 }
-
 export function StructuredData() {
   const websiteId = `${SITE_HOMEPAGE_CANONICAL}#website`
   const organizationId = `${SITE_ORIGIN}/#organization`
   const breadcrumbId = `${SITE_HOMEPAGE_CANONICAL}#breadcrumb`
   const logoUrl = ogImageAbsoluteUrl()
-
   const organization: Record<string, unknown> = {
     "@type": "Organization",
     "@id": organizationId,
@@ -58,7 +54,6 @@ export function StructuredData() {
   if (ORGANIZATION_SAME_AS.length > 0) {
     organization.sameAs = [...ORGANIZATION_SAME_AS]
   }
-
   const structuredData = {
     "@context": "https://schema.org",
     "@graph": [
@@ -101,7 +96,6 @@ export function StructuredData() {
       },
     ],
   }
-
   return (
     <script
       type="application/ld+json"
@@ -109,5 +103,4 @@ export function StructuredData() {
     />
   )
 }
-
 export const SeoJsonLd = StructuredData

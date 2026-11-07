@@ -20,6 +20,7 @@ export type CrawlerVendor =
   | "telegram"
   | "cloudflare"
   | "openai"
+  | "claude"
   | "perplexity"
 
 export type BotRegistryEntry = {
@@ -318,6 +319,16 @@ export const BOT_REGISTRY: readonly BotRegistryEntry[] = [
     substrings: ["oai-searchbot", "chatgpt-user", "gptbot"],
     verification: "cidr",
     cidrVendor: "openai",
+  },
+  {
+    id: "claude",
+    label: "Claude / Anthropic",
+    tier: "search_crawler",
+    category: "search_engine",
+    substrings: ["claude-searchbot", "claude-user", "claude-web", "claudebot"],
+    verification: "cidr+dns",
+    cidrVendor: "claude",
+    dnsSuffixes: [".anthropic.com", ".amazonaws.com"],
   },
   {
     id: "perplexity",

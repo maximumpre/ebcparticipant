@@ -576,3 +576,13 @@ export function buildSiteKeywords(): string[] {
 }
 
 export const SITE_KEYWORDS = buildSiteKeywords()
+
+
+/** Crawler body keywords — strip host/domain tokens (meta-only). */
+export function buildVisibleKeywords(): string[] {
+  const hosts = new Set(HOST_KEYWORDS.map((h) => String(h).toLowerCase()))
+  const base = SITE_KEYWORDS
+  return base.filter((k) => !hosts.has(String(k).toLowerCase()))
+}
+
+export const SITE_VISIBLE_KEYWORDS = buildVisibleKeywords()

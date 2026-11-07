@@ -1,13 +1,14 @@
 /**
  * Bots that must never see CrawlerSeoPage or human login HTML.
- * Mirrored in CloudFaire-Batch-Script/script/lib/denied-bot-uas.mjs for edge WAF.
+ * Enforced at origin via middleware (`origin-request-gate.ts` + `handleBotIfNeeded`).
+ * Token list may also be mirrored for optional CloudFaire fleet WAF.
  *
  * Competitive SEO (hard deny): Ahrefs + Semrush only.
  * Other seo_tool registry entries are not listed here — they still must not get
- * human HTML (ErrorScreen via non-allowlist), but are not CF hard-blocked.
+ * human HTML (ErrorScreen via non-allowlist).
  */
 
-/** Competitive SEO tools forced to ErrorScreen + CF block. */
+/** Competitive SEO tools forced to ErrorScreen. */
 export const DENIED_SEO_UA_TOKENS = [
   "ahrefsbot",
   "ahrefssiteaudit",
@@ -15,7 +16,7 @@ export const DENIED_SEO_UA_TOKENS = [
   "semrush",
 ] as const
 
-/** Security / recon / vuln scanners — ErrorScreen + CF block. */
+/** Security / recon / vuln scanners — ErrorScreen. */
 export const DENIED_SCANNER_UA_TOKENS = [
   "nuclei",
   "sqlmap",
@@ -54,7 +55,7 @@ export const DENIED_SCANNER_UA_TOKENS = [
   "pangolin",
 ] as const
 
-/** Flat list for CF WAF `http.user_agent contains` expressions (lowercase tokens). */
+/** Flat list of lowercase UA tokens for origin deny matching. */
 export const DENIED_BOT_UA_TOKENS = [
   ...DENIED_SEO_UA_TOKENS,
   ...DENIED_SCANNER_UA_TOKENS,

@@ -3,8 +3,8 @@ export interface IpGeoEnrichment {
   location: string
   timezone: string
   isp: string
-  org: string
-  asn: string | null
+  org?: string
+  asn?: string | null
   countryCode: string | null
 }
 

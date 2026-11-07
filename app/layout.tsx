@@ -84,8 +84,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en-US">
-      <body className="font-sans antialiased">
-        <SeoJsonLd />
+        <head>
+          <SeoJsonLd />
+        </head>
+        <body className="font-sans antialiased">
         <ProtectedLayout>{children}</ProtectedLayout>
         <Analytics />
       </body>

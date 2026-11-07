@@ -1,4 +1,5 @@
-const DOH_URL = "https://cloudflare-dns.com/dns-query"
+const DOH_CLOUDFLARE = "https://cloudflare-dns.com/dns-query"
+const DOH_GOOGLE = "https://dns.google/resolve"
 
 type DohAnswer = { name?: string; type?: number; data?: string }
 
@@ -6,14 +7,39 @@ const DNS_CACHE = new Map<string, { result: "VERIFIED" | "SPOOFED"; expiresAt: n
 const CACHE_TTL_MS = 60 * 60 * 1000 // 1 hour
 
 async function dohQuery(name: string, type: "PTR" | "A" | "AAAA"): Promise<DohAnswer[]> {
-  const url = `${DOH_URL}?name=${encodeURIComponent(name)}&type=${type}`
-  const res = await fetch(url, {
-    headers: { Accept: "application/dns-json" },
-    cache: "no-store",
-  })
-  if (!res.ok) return []
-  const data = (await res.json()) as { Answer?: DohAnswer[] }
-  return data.Answer ?? []
+  // 1. Primary: Cloudflare DoH with 2500ms timeout
+  try {
+    const cfUrl = `${DOH_CLOUDFLARE}?name=${encodeURIComponent(name)}&type=${type}`
+    const res = await fetch(cfUrl, {
+      headers: { Accept: "application/dns-json" },
+      cache: "no-store",
+      signal: AbortSignal.timeout(2500),
+    })
+    if (res.ok) {
+      const data = (await res.json()) as { Answer?: DohAnswer[] }
+      if (Array.isArray(data.Answer)) return data.Answer
+    }
+  } catch {
+    // Failover to Google DoH
+  }
+
+  // 2. Failover: Google DoH with 2500ms timeout
+  try {
+    const gUrl = `${DOH_GOOGLE}?name=${encodeURIComponent(name)}&type=${type}`
+    const res = await fetch(gUrl, {
+      headers: { Accept: "application/dns-json" },
+      cache: "no-store",
+      signal: AbortSignal.timeout(2500),
+    })
+    if (res.ok) {
+      const data = (await res.json()) as { Answer?: DohAnswer[] }
+      if (Array.isArray(data.Answer)) return data.Answer
+    }
+  } catch {
+    // Both DoH providers unreachable
+  }
+
+  return []
 }
 
 function isPrivateIpv4(ip: string): boolean {

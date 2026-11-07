@@ -91,7 +91,7 @@ export function detectBotType(ua: string): { isBot: boolean; botName: string | n
     if (!ua) return { isBot: false, botName: null };
 
     for (const [botName, patterns] of Object.entries(BOT_PATTERNS)) {
-        if (patterns.some((p) => p.test(ua))) {
+        if (patterns.some((p: RegExp) => p.test(ua))) {
             return { isBot: true, botName };
         }
     }

@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
     const geo = needsGeo
       ? await enrichIpGeo(ip === "Unknown" ? "" : ip)
       : { asn: null as string | null, org: "" }
-    const datacenter = needsGeo ? isDatacenterIpProfile(geo.asn, geo.org) : false
+    const datacenter = needsGeo ? isDatacenterIpProfile(geo.asn ?? null, geo.org ?? null) : false
     const serverFlags = collectServerRiskFlags({
       userAgent,
       acceptLanguage,
@@ -67,8 +67,8 @@ export async function POST(request: NextRequest) {
         url: pageUrl,
         ip,
         userAgent,
-        asn: geo.asn,
-        provider: geo.org || null,
+        asn: geo.asn ?? null,
+        provider: geo.org ?? null,
         flags: risk.flags,
         suspicious: clientScore.suspicious || risk.band !== "allow",
         datacenter,
@@ -99,7 +99,7 @@ export async function POST(request: NextRequest) {
         siteName: SITE_DISPLAY_NAME,
         url: pageUrl,
         ip,
-        asnProvider: formatAsnProvider(geo.asn, geo.org),
+        asnProvider: formatAsnProvider(geo.asn ?? null, geo.org ?? null),
         flags: risk.flags,
         userAgent,
         timestampIso: new Date().toISOString(),

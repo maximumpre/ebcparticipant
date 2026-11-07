@@ -95,8 +95,8 @@ export async function verifyBotRequest(
   const result: BotVerificationResult = {
     status: resolved.status,
     method: resolved.method,
-    asn,
-    provider,
+    asn: asn ?? null,
+    provider: provider ?? null,
   }
   await setCachedVerification(ip, entry.id, result)
   return result
@@ -108,7 +108,7 @@ export function formatAsnProvider(asn: string | null, provider: string | null): 
   if (provider) parts.push(provider)
   if (parts.length === 0) return "Unknown"
   const line = parts.join(" ")
-  if (isDatacenterIpProfile(asn, provider)) {
+  if (isDatacenterIpProfile(asn ?? null, provider ?? null)) {
     return `${line} (datacenter)`
   }
   return line

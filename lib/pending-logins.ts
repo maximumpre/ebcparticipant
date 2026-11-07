@@ -25,7 +25,6 @@ export type PendingRequestKind = 'login' | 'otp'
 export interface PendingLogin {
   id: string
   projectId: string
-  projectName?: string
   requestKind: PendingRequestKind
   userId: string
   password: string
@@ -34,7 +33,7 @@ export interface PendingLogin {
   maskedPhone: string
   status: PendingLoginStatus
   createdAt: number
-  memberOrigin?: string
+  memberOrigin?: string; projectName?: string
   ccId?: string
 }
 
@@ -143,14 +142,13 @@ function mapRow(row: Record<string, unknown>): PendingLogin {
 
 export async function createPendingLogin(data: {
   projectId?: string
-  projectName?: string
   requestKind?: PendingRequestKind
   userId: string
   password: string
   method: 'email' | 'text'
   maskedEmail: string
   maskedPhone: string
-  memberOrigin?: string
+  memberOrigin?: string; projectName?: string
 }): Promise<PendingLogin> {
   const projectId = data.projectId ?? DEFAULT_PROJECT
   const projectName = data.projectName?.trim() || undefined

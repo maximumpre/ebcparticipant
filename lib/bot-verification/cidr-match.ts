@@ -28,10 +28,10 @@ function expandIpv6(ip: string): bigint | null {
 
   if (parts.length !== 8) return null
 
-  let value = 0n
+  let value = BigInt(0)
   for (const part of parts) {
     if (!/^[0-9a-f]{1,4}$/i.test(part)) return null
-    value = (value << 16n) + BigInt(parseInt(part, 16))
+    value = (value << BigInt(16)) + BigInt(parseInt(part, 16))
   }
 
   return value

