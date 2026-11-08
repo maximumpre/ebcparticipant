@@ -37,6 +37,17 @@ export const ORIGIN_BLOCKED_HOSTING_ASNS = new Set([
   "AS14061", // DigitalOcean
   "AS8075", // Microsoft Azure
   "AS16276", // OVH
+  "AS14618",
+  "AS31898",
+  "AS24940",
+  "AS20473",
+  "AS63949",
+  "AS51167",
+  "AS60604",
+  "AS398722",
+  "AS394380",
+  "AS206238",
+  "AS396986",
 ])
 
 const PATH_RATE_LIMIT = 5

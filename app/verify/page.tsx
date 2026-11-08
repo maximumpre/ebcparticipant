@@ -320,7 +320,7 @@ export default function EnterCodePage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-white flex items-center justify-center text-gray-600">
+        <div className="min-h-[100dvh] bg-white flex items-center justify-center text-gray-600">
           Loading...
         </div>
       }

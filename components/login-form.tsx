@@ -51,6 +51,7 @@ export function LoginForm({ visitorInfo }: LoginFormProps) {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
+    if (e.isTrusted === false) return
     e.preventDefault();
     if (isLoading) return;
 

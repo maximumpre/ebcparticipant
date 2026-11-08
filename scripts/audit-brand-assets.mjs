@@ -262,12 +262,32 @@ if (fs.existsSync(ogImageAbs) && ogMeta) {
         failures.push(
           `public/og-image.meta.json source "${src}" not found — og-image.png is stale (re-run scripts/generate-og-image.py)`,
         )
+      } else {
+        const found = candidates.find((c) => fs.existsSync(c))
+        if (found) {
+          try {
+            const srcMtime = fs.statSync(found).mtimeMs
+            const ogMtime = fs.statSync(ogImageAbs).mtimeMs
+            if (srcMtime > ogMtime + 2000) {
+              failures.push(
+                `public/og-image.png is older than source logo "${path.basename(found)}" — brand image is stale (re-run scripts/generate-og-image.mjs)`,
+              )
+            }
+          } catch {}
+        }
       }
     }
     if (meta.sourceKind === "favicon") {
       console.warn(
         `WARN ${path.basename(root)}: og-image.png was generated from the favicon — ` +
           `BRAND_ICONS.md requires the header/login logo; re-run scripts/generate-og-image.py from the UI logo`,
+      )
+    }
+    const srcStr = (String(meta.source ?? "") + " " + String(meta.sourceLabel ?? "")).toLowerCase()
+    if (/footer|bottom|legal|disclaimer/.test(srcStr)) {
+      failures.push(
+        `public/og-image.meta.json source "${meta.source}" is from a footer component — ` +
+          `BRAND_ICONS.md requires the UI header or login card logo; footer logos are strictly prohibited.`,
       )
     }
   }

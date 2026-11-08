@@ -38,7 +38,7 @@ export function EbcParticipantShell({
   showFooter = false,
 }: EbcParticipantShellProps) {
   return (
-    <div className="bg-white min-h-screen flex flex-col">
+    <div className="bg-white min-h-[100dvh] flex flex-col">
       <main className="max-w-5xl mx-auto w-full px-5 py-8 md:py-10 flex-1">
         <header className="flex items-center gap-2">
           <button type="button" onClick={restartFromGate} className="shrink-0">

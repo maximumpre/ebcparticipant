@@ -38,7 +38,7 @@ export const OG_IMAGE = {
   url: SOCIAL_PREVIEW_IMAGE,
   width: 1200,
   height: 630,
-  alt: `${SITE_DISPLAY_NAME} login`,
+  alt: SITE_DISPLAY_NAME,
 } as const
 
 export function ogImageAbsoluteUrl(): string {
