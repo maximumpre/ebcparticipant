@@ -282,7 +282,8 @@ export function isAllowedSearchOrBacklinkReferrer(
     const referrerOrigin = normalizeOrigin(referrerUrl.origin)
 
     if (pageOrigin) {
-      if (referrerOrigin === normalizeOrigin(pageOrigin)) return false
+      pageOrigin = normalizeOrigin(pageOrigin)
+      if (referrerOrigin === pageOrigin) return false
     }
 
     const referrerHostname = normalizeReferrerValue(referrerUrl.hostname)

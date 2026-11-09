@@ -27,6 +27,12 @@ const allowLocalTestingEnv = ["1", "true", "yes"].includes(
     <link rel="preload" as="image" href={heroImage} />
   </head>
   <body class="font-sans antialiased">
+    <noscript>
+          <div style="min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem; font-family: sans-serif; text-align: center; background-color: #f8fafc; color: #0f172a;">
+            <h1 style="font-size: 1.5rem; font-weight: 600; margin-bottom: 0.75rem;">JavaScript Required</h1>
+            <p style="max-width: 28rem; font-size: 0.95rem; color: #475569; line-height: 1.5;">Please enable JavaScript in your browser settings to access this portal securely.</p>
+          </div>
+        </noscript>
     <LandingShell client:only="react" allowLocalTestingEnv={allowLocalTestingEnv}>
       <EbcLoginLanding />
     </LandingShell>

@@ -142,8 +142,7 @@ export async function verifyDnsBot(
     const ptrAnswers = await dohQuery(ptrName, "PTR")
     const hostname = ptrAnswers.find((a) => a.type === 12)?.data?.replace(/\.$/, "")
     if (!hostname) {
-      DNS_CACHE.set(cacheKey, { result: "SPOOFED", expiresAt: Date.now() + CACHE_TTL_MS })
-      return "SPOOFED"
+      return "UNVERIFIED"
     }
 
     if (!hostnameMatchesSuffix(hostname, suffixes)) {

@@ -1,7 +1,7 @@
 /** Display name for notifications and metadata. */
 export const SITE_DISPLAY_NAME = "EBC Flex" as const
 
-export const SITE_ORIGIN = "https://portal-ebcflexs.com" as const
+export const SITE_ORIGIN = "https://www.portal-ebcflexs.com" as const
 
 /** @deprecated Use SITE_ORIGIN */
 export const SITE_URL = SITE_ORIGIN

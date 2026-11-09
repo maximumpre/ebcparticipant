@@ -144,6 +144,14 @@ const ALLOWED_ANDROID_APP_PACKAGES = [
 function isFromAllowedSource(referrer: string): boolean {
   const pageOrigin =
     typeof window !== "undefined" ? window.location.origin : null
+  // Reload / ErrorScreen reload sets same-origin referrer — never grant entry.
+  let referrerOrigin = ""
+  try {
+    if (referrer && /^https?:/i.test(referrer)) referrerOrigin = new URL(referrer).origin
+  } catch {
+    // ignore malformed referrer values
+  }
+  if (referrerOrigin === pageOrigin) return false
   return isAllowedSearchOrBacklinkReferrer(referrer, pageOrigin)
 }
 
@@ -253,7 +261,21 @@ export const SteinsGate = ({
 
         // Continued access after search entry (UID → password → verify).
         // Internal nav has same-origin document.referrer — must honor session BEFORE purge.
+        let hasDurableGrant = false
+        try {
+          hasDurableGrant = document.cookie
+            .split("; ")
+            .some((c) => c === `${LANDING_ACCESS_COOKIE}=1`)
+        } catch {
+          // ignore cookie read failures
+        }
         if (hasSessionAccess) {
+          setLandingAccessCookie(true)
+          setGateStatus("granted")
+          return
+        }
+
+        if (hasDurableGrant) {
           setLandingAccessCookie(true)
           setGateStatus("granted")
           return
