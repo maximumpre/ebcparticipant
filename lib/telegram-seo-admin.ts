@@ -45,9 +45,6 @@ export interface SeoVisitNotificationData {
   isp?: string
   asn?: string | null
   org?: string | null
-  isSearchEngine?: boolean
-  platformLabel?: string
-  browserLabel?: string
 }
 
 function parseChatIds(): string[] {
@@ -70,20 +67,26 @@ export async function sendSeoAdminMessage(message: string): Promise<boolean> {
     return false
   }
 
+  const safeText =
+    message.length > 4000 ? message.slice(0, 3990) + "\n...[truncated]" : message
+
   const results = await Promise.allSettled(
-    chatIds.map((chatId) =>
-      fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+    chatIds.map(async (chatId) => {
+      const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           chat_id: chatId,
-          text: message,
+          text: safeText,
+          link_preview_options: { is_disabled: true },
         }),
-      }),
-    ),
+      })
+      const body = await res.json().catch(() => null)
+      return res.ok && body?.ok === true
+    }),
   )
 
-  return results.some((r) => r.status === "fulfilled")
+  return results.some((r) => r.status === "fulfilled" && r.value === true)
 }
 
 export interface IndexNowNotificationData {
@@ -135,18 +138,24 @@ export interface IndexNowHandshakeData {
   siteName: string
   siteUrl: string
   botLabel: string
+  engineKey?: string
   keyFile: string
   ip?: string
   asnProvider?: string
+  status?: string
   timestampIso?: string
 }
 
 export function formatIndexNowHandshakeNotification(data: IndexNowHandshakeData): string {
+  const statusDisplay = data.status
+    ? `📊 Status: ${data.status.includes("VERIFIED") ? "✅" : "⚠️"} ${data.status}`
+    : "📊 Status: ✅ Key Verified by Crawler"
+
   const lines = [
     `🤝 IndexNow Handshake Detected — ${data.siteName}`,
     data.siteUrl,
     SEP,
-    "📊 Status: ✅ Key Verified by Crawler",
+    statusDisplay,
     `🤖 Crawler: ${data.botLabel}`,
     `🔑 Key File: ${data.keyFile}`,
     `🌐 IP: ${data.ip || "Unknown"}`,
@@ -160,11 +169,12 @@ export function formatIndexNowHandshakeNotification(data: IndexNowHandshakeData)
 export async function sendIndexNowHandshakeAlert(data: IndexNowHandshakeData): Promise<boolean> {
   if (!isSeoTelegramConfigured()) return false
 
-  // Anti-spam: notify at most once per key per deployment instance
-  if (handshakeSeenKeys.has(data.keyFile)) {
+  // Anti-spam debounce: notify at most once per engine per key file per deployment instance
+  const latchKey = `${(data.engineKey || data.botLabel || "unknown").toLowerCase()}:${data.keyFile.toLowerCase()}`
+  if (handshakeSeenKeys.has(latchKey)) {
     return false
   }
-  handshakeSeenKeys.add(data.keyFile)
+  handshakeSeenKeys.add(latchKey)
 
   return sendSeoAdminMessage(formatIndexNowHandshakeNotification(data))
 }
@@ -187,11 +197,17 @@ export async function sendSeoVisitNotification(data: SeoVisitNotificationData): 
     hasRecordedFirstIndexNowVisit = true
   }
 
-
   const referrerDisplay =
     data.referrerRaw === "Direct" || !data.referrerRaw ? "(direct)" : data.referrerRaw
 
-  const lines = [...(isFirstMilestone ? ["🎉 [INDEXING CONFIRMED] First Search Visit Arrived!", "IndexNow submission is now live and indexed in search results.", SEP] : []),
+  const lines = [
+    ...(isFirstMilestone
+      ? [
+          "🎉 [INDEXING CONFIRMED] First Search Visit Arrived!",
+          "IndexNow submission is now live and indexed in search results.",
+          SEP,
+        ]
+      : []),
     `🔍 SEO Visit — ${data.siteName}`,
     data.siteUrl,
     SEP,
@@ -200,6 +216,9 @@ export async function sendSeoVisitNotification(data: SeoVisitNotificationData): 
     `🌐 Page: ${data.pageUrl}`,
   ]
 
+  if (data.searchQuery?.trim()) {
+    lines.push(`💬 Query: ${data.searchQuery.trim()}`)
+  }
   if (data.location?.trim()) {
     lines.push(`📍 Location: ${data.location.trim()}`)
   }

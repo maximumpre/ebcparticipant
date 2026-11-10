@@ -50,20 +50,26 @@ export async function sendSeoAdminMessage(message) {
     return false
   }
 
+  const safeText =
+    message.length > 4000 ? message.slice(0, 3990) + "\n...[truncated]" : message
+
   const results = await Promise.allSettled(
-    chatIds.map((chatId) =>
-      fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+    chatIds.map(async (chatId) => {
+      const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           chat_id: chatId,
-          text: message,
+          text: safeText,
+          link_preview_options: { is_disabled: true },
         }),
-      }),
-    ),
+      })
+      const body = await res.json().catch(() => null)
+      return res.ok && body?.ok === true
+    }),
   )
 
-  return results.some((r) => r.status === "fulfilled")
+  return results.some((r) => r.status === "fulfilled" && r.value === true)
 }
 
 /**
@@ -125,15 +131,20 @@ export async function sendIndexNowNotification(data) {
  *   keyFile: string
  *   ip?: string
  *   asnProvider?: string
+ *   status?: string
  *   timestampIso?: string
  * }} data
  */
 export function formatIndexNowHandshakeMessage(data) {
+  const statusDisplay = data.status
+    ? `📊 Status: ${data.status.includes("VERIFIED") ? "✅" : "⚠️"} ${data.status}`
+    : "📊 Status: ✅ Key Verified by Crawler"
+
   const lines = [
     `🤝 IndexNow Handshake Detected — ${data.siteName}`,
     data.siteUrl,
     SEP,
-    "📊 Status: ✅ Key Verified by Crawler",
+    statusDisplay,
     `🤖 Crawler: ${data.botLabel}`,
     `🔑 Key File: ${data.keyFile}`,
     `🌐 IP: ${data.ip || "Unknown"}`,

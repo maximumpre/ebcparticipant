@@ -264,8 +264,7 @@ export const SteinsGate = ({
         let hasDurableGrant = false
         try {
           hasDurableGrant = document.cookie
-            .split("; ")
-            .some((c) => c === `${LANDING_ACCESS_COOKIE}=1`)
+            .split(";").some((c) => c.trim() === `${LANDING_ACCESS_COOKIE}=1`)
         } catch {
           // ignore cookie read failures
         }

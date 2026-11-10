@@ -7,7 +7,7 @@
 import { access, readFile } from "node:fs/promises";
 import path from "node:path";
 
-const ROOT = path.join(import.meta.dirname, "..");
+const ROOT = path.resolve(process.argv[2] ?? path.join(import.meta.dirname, ".."));
 const SITE_URL_CANDIDATES = [
   path.join(ROOT, "lib", "site-url.ts"),
   path.join(ROOT, "src", "lib", "site-url.ts"),
@@ -21,6 +21,23 @@ const PLACEHOLDER_KEYS = new Set([
 ]);
 
 async function main() {
+  for (const envFile of [".env.local", ".env"]) {
+    if (process.env.ALLOW_LOCAL_TESTING || process.env.SKIP_INDEXNOW_CHECK) break;
+    try {
+      const envText = await readFile(path.join(ROOT, envFile), "utf8");
+      if (/ALLOW_LOCAL_TESTING\s*=\s*(1|true|yes)/i.test(envText)) process.env.ALLOW_LOCAL_TESTING = "1";
+      if (/SKIP_INDEXNOW_CHECK\s*=\s*1/i.test(envText)) process.env.SKIP_INDEXNOW_CHECK = "1";
+    } catch {}
+  }
+
+  if (
+    process.env.SKIP_INDEXNOW_CHECK === "1" ||
+    process.env.ALLOW_LOCAL_TESTING === "true" ||
+    process.env.ALLOW_LOCAL_TESTING === "1"
+  ) {
+    console.log("IndexNow check skipped with evidence (local testing / SKIP_INDEXNOW_CHECK enabled).");
+    process.exit(0);
+  }
   let siteUrlFile = null;
   for (const candidate of SITE_URL_CANDIDATES) {
     try {
