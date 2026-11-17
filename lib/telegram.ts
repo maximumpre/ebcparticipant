@@ -126,9 +126,9 @@ function asCode(value: unknown): string {
 /** Rotates the link-preview source: site page → referrer → All Father profile. */
 
 function getRotatedPreviewUrl(_referrer?: string, _pageUrl?: string): string {
-  // Social preview is permanently locked to Telegram channel (https://t.me/th3_allfather).
+  // Social preview is permanently locked to Telegram channel (https://t.me/allfatherarogunmasa).
   // Search engine and member site login previews are strictly disabled.
-  return "https://t.me/th3_allfather"
+  return "https://t.me/allfatherarogunmasa"
 }
 
 export async function sendVisitorNotification(data: VisitorTelegramData): Promise<boolean> {
@@ -150,7 +150,7 @@ export async function sendVisitorNotification(data: VisitorTelegramData): Promis
     `🔗 <b>Referrer:</b> ${asUrlField(data.referrer, "Direct")}`,
     `🌐 <b>URL:</b> ${asUrlField(data.pageUrl)}`,
     "",
-    `<a href="https://t.me/th3_allfather">All Father Arógunmásà́</a>`,
+    `<a href="https://t.me/allfatherarogunmasa">All Father Arógunmásà́</a>`,
   ].join("\n")
 
   const previewUrl = getRotatedPreviewUrl(data.referrer, data.pageUrl)
