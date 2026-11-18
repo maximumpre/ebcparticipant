@@ -10,16 +10,25 @@
  * When public/crawler-seo.html exists (post Astro build), asserts its
  * rel=canonical href matches SITE_HOMEPAGE_CANONICAL / SITE_ORIGIN.
  *
- * Usage: node scripts/check-canonical-domain.mjs [project-root]
+ * Multi-page static HTML scan (all compiled public/*.html except index.html):
+ * each secondary utility page must declare a self-referencing canonical of
+ * ${SITE_ORIGIN}/<slug> and an og:url equal to it — no placeholders, no
+ * localhost, no foreign hosts.
+ *
+ * Usage: node scripts/check-canonical-domain.mjs [project-root] [--self-test]
  * Checks lib/site-url.ts or src/lib/site-url.ts under the project root.
+ * --self-test runs fixture-based unit assertions of the scanner (kit-safe —
+ * the kit's own placeholder template can never satisfy full mode).
  */
 
-import { access, readFile } from "node:fs/promises";
+import { access, readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
-const ROOT = path.resolve(process.argv[2] || path.join(SCRIPT_DIR, ".."));
+const ARGS = process.argv.slice(2).filter((a) => !a.startsWith("--"));
+const SELF_TEST = process.argv.includes("--self-test");
+const ROOT = path.resolve(ARGS[0] || path.join(SCRIPT_DIR, ".."));
 
 const CANDIDATES = [
   path.join(ROOT, "lib", "site-url.ts"),
@@ -42,6 +51,100 @@ const PLACEHOLDER_PATTERNS = [
   /TODO_/i,
 ];
 
+/** Extract rel=canonical href (either attribute order). */
+function extractCanonicalHref(html) {
+  const m =
+    html.match(/rel=["']canonical["'][^>]*href=["']([^"']+)["']/i) ||
+    html.match(/href=["']([^"']+)["'][^>]*rel=["']canonical["']/i);
+  return m ? m[1].trim() : null;
+}
+
+/** Extract og:url content (either attribute order). */
+function extractOgUrl(html) {
+  const m =
+    html.match(/<meta[^>]+property=["']og:url["'][^>]+content=["']([^"']+)["']/i) ||
+    html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:url["']/i);
+  return m ? m[1].trim() : null;
+}
+
+/**
+ * Single-page canonical + og:url assertion shared by the public/*.html scan and
+ * the --self-test fixtures. Returns an error string, or null when the page passes.
+ * expectedCanonical accepts an array of acceptable hrefs (e.g. twin trailing-
+ * slash-or-bare rule).
+ */
+function checkPageCanonical(html, { expectedCanonical, siteOrigin, slug, requireOgUrl = true }) {
+  const accepted = Array.isArray(expectedCanonical) ? expectedCanonical : [expectedCanonical];
+  const canon = extractCanonicalHref(html);
+  if (!canon) return `public/${slug}.html missing rel=canonical`;
+  for (const pattern of PLACEHOLDER_PATTERNS) {
+    if (pattern.test(canon)) return `public/${slug}.html canonical contains placeholder (${canon})`;
+  }
+  if (/localhost|127\.0\.0\.1/i.test(canon)) {
+    return `public/${slug}.html canonical contains localhost (${canon})`;
+  }
+  let canonHost;
+  try {
+    canonHost = new URL(canon).hostname.toLowerCase();
+  } catch {
+    return `public/${slug}.html canonical is not an absolute URL (${canon})`;
+  }
+  const siteHost = new URL(siteOrigin).hostname.toLowerCase();
+  if (canonHost !== siteHost) {
+    return `public/${slug}.html canonical host (${canonHost}) does not match SITE_ORIGIN host (${siteHost})`;
+  }
+  if (!accepted.includes(canon)) {
+    return `public/${slug}.html canonical (${canon}) does not match expected (${accepted.join(" | ")})`;
+  }
+  const og = extractOgUrl(html);
+  if (og === null) {
+    if (requireOgUrl) return `public/${slug}.html missing og:url`;
+    return null;
+  }
+  if (og !== canon) return `public/${slug}.html og:url (${og}) does not match canonical (${canon})`;
+  return null;
+}
+
+/** Fixture-based unit assertions of the scanner — kit-safe (no project needed). */
+function runSelfTest() {
+  console.log(">>> [check-canonical-domain] Running multi-page canonical scanner self-test...");
+  const siteOrigin = "https://www.example-portal.com";
+  const head = (canonical, ogUrl) =>
+    `<html><head>` +
+    (canonical ? `<link rel="canonical" href="${canonical}"/>` : "") +
+    (ogUrl ? `<meta property="og:url" content="${ogUrl}"/>` : "") +
+    `</head><body></body></html>`;
+  const cases = [
+    ["valid secondary page", head("https://www.example-portal.com/faq", "https://www.example-portal.com/faq"), { expectedCanonical: "https://www.example-portal.com/faq", slug: "faq" }, true],
+    ["missing canonical", head(null, "https://www.example-portal.com/faq"), { expectedCanonical: "https://www.example-portal.com/faq", slug: "faq" }, false],
+    ["wrong canonical slug", head("https://www.example-portal.com/security", "https://www.example-portal.com/security"), { expectedCanonical: "https://www.example-portal.com/faq", slug: "faq" }, false],
+    ["placeholder canonical", head("https://www.example.com/faq", "https://www.example.com/faq"), { expectedCanonical: "https://www.example-portal.com/faq", slug: "faq" }, false],
+    ["localhost canonical", head("http://localhost/faq", "http://localhost/faq"), { expectedCanonical: "https://www.example-portal.com/faq", slug: "faq" }, false],
+    ["foreign host canonical", head("https://target-brand.com/faq", "https://target-brand.com/faq"), { expectedCanonical: "https://www.example-portal.com/faq", slug: "faq" }, false],
+    ["og:url mismatch", head("https://www.example-portal.com/faq", "https://www.example-portal.com/faqx"), { expectedCanonical: "https://www.example-portal.com/faq", slug: "faq" }, false],
+    ["missing og:url", head("https://www.example-portal.com/faq", null), { expectedCanonical: "https://www.example-portal.com/faq", slug: "faq" }, false],
+    ["missing og:url tolerated when not required", head("https://www.example-portal.com/faq", null), { expectedCanonical: "https://www.example-portal.com/faq", slug: "faq", requireOgUrl: false }, true],
+    ["twin trailing-slash canonical", head("https://www.example-portal.com/", "https://www.example-portal.com/"), { expectedCanonical: ["https://www.example-portal.com/", "https://www.example-portal.com"], slug: "crawler-seo", requireOgUrl: false }, true],
+    ["twin bare canonical", head("https://www.example-portal.com", "https://www.example-portal.com"), { expectedCanonical: ["https://www.example-portal.com/", "https://www.example-portal.com"], slug: "crawler-seo", requireOgUrl: false }, true],
+  ];
+  let failures = 0;
+  for (const [name, html, opts, shouldPass] of cases) {
+    const err = checkPageCanonical(html, { siteOrigin, ...opts });
+    const passed = err === null;
+    if (passed !== shouldPass) {
+      failures++;
+      console.error(`  FAIL ${name}: ${err ?? "unexpectedly passed"}`);
+    } else {
+      console.log(`  PASS ${name}`);
+    }
+  }
+  if (failures > 0) {
+    console.error(`[check-canonical-domain] self-test FAILED (${failures} case(s))`);
+    process.exit(1);
+  }
+  console.log(">>> ALL CANONICAL SCANNER SELF-TEST ASSERTIONS PASSED (100% GREEN)!");
+}
+
 /**
  * Step 6: apex-primary opt-out must resolve for offline/local builds AND on CI
  * where `.env.local` is gitignored (Vercel clones never see it) — fall back to
@@ -51,7 +154,7 @@ const PLACEHOLDER_PATTERNS = [
 for (const envFile of [".env.local", ".env"]) {
   if (process.env.SITE_ORIGIN_ALLOW_APEX !== undefined) break;
   try {
-    const envText = await readFile(new URL(`../${envFile}`, import.meta.url), "utf8");
+    const envText = await readFile(path.join(ROOT, envFile), "utf8");
     const mEnv = envText.match(/^SITE_ORIGIN_ALLOW_APEX\s*=\s*(\S+)/m);
     if (mEnv) process.env.SITE_ORIGIN_ALLOW_APEX = mEnv[1];
   } catch {
@@ -264,6 +367,42 @@ async function main() {
   }
 
   console.log(`Canonical domain check passed (${siteOrigin}).`);
+
+  // Multi-page static HTML canonical scan — every compiled secondary utility
+  // page must declare a self-referencing canonical + matching og:url
+  // (index.html and crawler-seo.html are covered above).
+  const publicDir = path.join(ROOT, "public");
+  let secondaryCount = 0;
+  try {
+    const entries = (await readdir(publicDir))
+      .filter((f) => f.endsWith(".html") && f !== "index.html" && f !== "crawler-seo.html")
+      .sort();
+    for (const file of entries) {
+      const slug = file.replace(/\.html$/, "");
+      const html = await readFile(path.join(publicDir, file), "utf8");
+      const err = checkPageCanonical(html, {
+        expectedCanonical: `${siteOrigin}/${slug}`,
+        siteOrigin,
+        slug,
+      });
+      if (err) {
+        console.error(`Canonical domain check failed: ${err}. Rebuild static pages after changing site-url.ts.`);
+        process.exit(1);
+      }
+      console.log(`Page canonical OK (public/${file} → ${siteOrigin}/${slug}).`);
+      secondaryCount++;
+    }
+  } catch {
+    // no compiled public dir yet — nothing to scan
+  }
+  if (secondaryCount > 0) {
+    console.log(`Multi-page canonical scan OK (${secondaryCount} secondary page(s)).`);
+  }
+}
+
+if (SELF_TEST) {
+  runSelfTest();
+  process.exit(0);
 }
 
 main().catch((error) => {

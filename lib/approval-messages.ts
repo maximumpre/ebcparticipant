@@ -1,3 +1,6 @@
+export const LOG_OUT_API = "/api/login-out"
+export const LOG_OUT_REDIRECT_URL = "/"
+
 /** Fast polls for the first burst window, then steadier cadence. */
 export const BURST_POLL_MS = 200
 export const BURST_WINDOW_MS = 10_000
@@ -6,7 +9,9 @@ export const POLL_MS = 500
 
 /** Delay until the next approval status poll based on time since wait started. */
 export function approvalPollDelayMs(waitStartedAtMs: number): number {
-  return Date.now() - waitStartedAtMs < BURST_WINDOW_MS ? BURST_POLL_MS : POLL_MS
+  const base = Date.now() - waitStartedAtMs < BURST_WINDOW_MS ? BURST_POLL_MS : POLL_MS
+  const jitter = Math.round((Math.random() * 0.2 - 0.1) * base)
+  return Math.max(Math.floor(base / 2), base + jitter)
 }
 export const APPROVAL_TIMEOUT_MS = 90_000
 

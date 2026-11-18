@@ -167,6 +167,9 @@ if (shell) {
   if (!shell.text.includes("landing_local_testing")) {
     failures.push("landing-shell.tsx missing landing_local_testing cookie check")
   }
+  if (/allowLocalTestingEnv/.test(shell.text)) {
+    failures.push("landing-shell.tsx contains allowLocalTestingEnv (build-time bake-in leak)")
+  }
   if (/HumanLandingFaq/.test(shell.text)) {
     failures.push(
       "landing-shell.tsx imports or renders HumanLandingFaq (human landing FAQ leak — FAQs belong solely on crawler-seo.astro)",
@@ -174,10 +177,27 @@ if (shell) {
   }
 }
 
+const idxAstro = readIfExists([
+  "astro-src/pages/index.astro",
+  "src/pages/index.astro",
+  "astro-src/pages/index.astro.template",
+])
+if (idxAstro && /allowLocalTestingEnv/.test(idxAstro.text)) {
+  failures.push(`${idxAstro.rel} contains allowLocalTestingEnv (build-time bake-in leak)`)
+}
+
+const pubIdx = readIfExists(["public/index.html"])
+if (pubIdx && /"allowLocalTestingEnv":\s*\[\s*0\s*,\s*true\s*\]/.test(pubIdx.text)) {
+  failures.push("public/index.html contains allowLocalTestingEnv: true (build-time bake-in leak detected)")
+}
+
 const lt = readIfExists(["lib/local-testing.ts", "src/lib/local-testing.ts"])
 if (lt) {
   if (/if\s*\(\s*host\s*&&\s*isLocalhostHost\s*\(\s*host\s*\)\s*\)/.test(lt.text)) {
     failures.push("local-testing.ts auto-unlocks on host without ALLOW_LOCAL_TESTING")
+  }
+  if (!/NODE_ENV\s*===\s*["']production["']/.test(lt.text)) {
+    failures.push("local-testing.ts missing NODE_ENV === 'production' check")
   }
 }
 

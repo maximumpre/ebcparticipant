@@ -8,33 +8,29 @@
  */
 
 import fs from "node:fs"
+import path from "node:path"
 
-/**
- * Step 6: apex-primary opt-out must resolve for offline builds — fall back to
- * the project's .env.local when the shell does not export it (never overrides
- * an explicit process.env value).
- */
+const root = path.resolve(process.argv[2] ?? process.cwd())
+
 /**
  * Apex-primary opt-out must resolve for offline/local builds AND on CI where
  * `.env.local` is gitignored (Vercel clones never see it) — fall back to the
  * committed `.env` (flag only, never secrets) when the shell does not export
  * it (never overrides an explicit process.env value).
  */
-const envRoot = import.meta.url.replace(/scripts\/[^/]+$/, "")
 for (const envFile of [".env.local", ".env"]) {
   if (process.env.SITE_ORIGIN_ALLOW_APEX !== undefined) break
   try {
-    const fsMod = await import("node:fs")
-    const envText = fsMod.readFileSync(new URL(envFile, envRoot), "utf8")
-    const mEnv = envText.match(/^SITE_ORIGIN_ALLOW_APEX\s*=\s*(\S+)/m)
-    if (mEnv) process.env.SITE_ORIGIN_ALLOW_APEX = mEnv[1]
+    const envPath = path.join(root, envFile)
+    if (fs.existsSync(envPath)) {
+      const envText = fs.readFileSync(envPath, "utf8")
+      const mEnv = envText.match(/^SITE_ORIGIN_ALLOW_APEX\s*=\s*(\S+)/m)
+      if (mEnv) process.env.SITE_ORIGIN_ALLOW_APEX = mEnv[1]
+    }
   } catch {
     // missing file — try the next candidate
   }
 }
-import path from "node:path"
-
-const root = path.resolve(process.argv[2] ?? process.cwd())
 
 function readIfExists(relPaths) {
   for (const rel of relPaths) {
@@ -409,7 +405,7 @@ if (crawlerPage) {
       !/PAGE_H1_HEADING|SITE_DISPLAY_NAME/.test(inner)
     ) {
       failures.push(
-        `${crawlerPage.rel}: <h1> uses {WELCOME_TITLE} alone — must use {PAGE_H1_HEADING} or include {SITE_DISPLAY_NAME} (Google site-name point 2 / Testing 3 PROBE G.7g; "Welcome to Alight"-class H1 fails brand consensus)`,
+        `${crawlerPage.rel}: <h1> uses {WELCOME_TITLE} alone — must use {PAGE_H1_HEADING} or include {SITE_DISPLAY_NAME} (Google site-name point 2 / Testing 3b PROBE G.7g; "Welcome to Alight"-class H1 fails brand consensus)`,
       )
     }
   }
@@ -606,6 +602,11 @@ if (layout) {
   if (!/alternates\s*:\s*\{[^}]*canonical/.test(t)) {
     failures.push(`${layout.rel}: missing root alternates.canonical (homepage)`)
   }
+  if (/alt:\s*(?:SITE_TITLE|["'`].*?(?:login|sign.?in).*?["'`])/i.test(t)) {
+    failures.push(
+      `${layout.rel}: openGraph images alt must use SITE_DISPLAY_NAME — do not leak "login" or "sign in" into image scrapers`,
+    )
+  }
 }
 
 // Gated segment layouts must clear the inherited homepage canonical
@@ -725,9 +726,19 @@ if (hasBotVerification) {
         `${originGate.rel}: missing verifyDnsBot FCrDNS fallback for crawler verification`,
       )
     }
-    if (!/pathname\s*===\s*["']\/["'][\s\S]*?return\s*\{\s*action:\s*["']allow["']\s*\}/.test(t)) {
+    // Part XII zero-trust contract: unverified search-crawler claims are cloaked
+    // (spoofed_crawler) — the SERP twin is never served to unverified IPs. The
+    // Googlebot zero-noindex invariant is preserved by strict CIDR/FCrDNS
+    // verification passing BEFORE the cloak; local QA keeps its private-IP /
+    // ALLOW_LOCAL_TESTING carve-out.
+    if (!/reason:\s*["']spoofed_crawler["']/.test(t)) {
       failures.push(
-        `${originGate.rel}: missing search crawler fail-open on '/' (Googlebot zero-noindex invariant) — search crawlers on '/' must fail-open to CrawlerSeoPage instead of serving noindex`,
+        `${originGate.rel}: missing zero-fail-open spoofed_crawler cloak — unverified search-crawler claims must return { action: "cloak", reason: "spoofed_crawler" }`,
+      )
+    }
+    if (/pathname\s*===\s*["']\/["'][\s\S]*?return\s*\{\s*action:\s*["']allow["']\s*\}/.test(t)) {
+      failures.push(
+        `${originGate.rel}: legacy fail-open on '/' present (pathname === "/" → allow) — Part XII forbids serving the SERP twin to unverified crawler claims`,
       )
     }
     if (
@@ -1058,15 +1069,15 @@ if (astroSeoHead) {
     failures.push(`${astroSeoHead.rel}: missing <link rel="canonical">`)
   } else if (canonical[1] !== "SITE_HOMEPAGE_CANONICAL") {
     const binding = new RegExp(
-      `const\\s+${canonical[1]}\\s*=\\s*(SITE_HOMEPAGE_CANONICAL|SITE_ORIGIN)\\b`,
+      `const\\s+${canonical[1]}\\s*=\\s*([\\s\\S]*?)(?:;|\\n\\s*\\n|\\n\\s*const|\\n\\s*---)`,
     ).exec(t)
-    if (!binding) {
+    if (!binding || !binding[1].includes("SITE_HOMEPAGE_CANONICAL")) {
       failures.push(
-        `${astroSeoHead.rel}: canonical binding "${canonical[1]}" must resolve to SITE_HOMEPAGE_CANONICAL — must match app/layout.tsx alternates.canonical`,
+        `${astroSeoHead.rel}: canonical binding "${canonical[1]}" must resolve to SITE_HOMEPAGE_CANONICAL on homepage — must match app/layout.tsx alternates.canonical`,
       )
-    } else if (binding[1] !== "SITE_HOMEPAGE_CANONICAL") {
+    } else if (binding[1].trim() === "SITE_ORIGIN") {
       failures.push(
-        `${astroSeoHead.rel}: canonical must be SITE_HOMEPAGE_CANONICAL (got ${binding[1]}) — SITE_ORIGIN ships a second, conflicting canonical for the same page`,
+        `${astroSeoHead.rel}: canonical must be SITE_HOMEPAGE_CANONICAL (got SITE_ORIGIN) — SITE_ORIGIN ships a second, conflicting canonical for the same page`,
       )
     }
   }
@@ -1096,6 +1107,13 @@ if (astroSeoHead) {
       `${astroSeoHead.rel}: external Google Fonts detected — self-host fonts in public/fonts/ to eliminate Referer leakage`,
     )
   }
+
+  // og:image alt must not leak login/sign-in phrasing
+  if (/alt:\s*(?:SITE_TITLE|["'`].*?(?:login|sign.?in).*?["'`])/i.test(t)) {
+    failures.push(
+      `${astroSeoHead.rel}: OG_IMAGE alt must use SITE_DISPLAY_NAME — do not leak "login" or "sign in" into image scrapers`,
+    )
+  }
 }
 
 if (isAstro && !astroTwin) {
@@ -1113,7 +1131,7 @@ if (astroTwin) {
       !/PAGE_H1_HEADING|SITE_DISPLAY_NAME/.test(inner)
     ) {
       failures.push(
-        `${astroTwin.rel}: <h1> uses {WELCOME_TITLE} alone — must use {PAGE_H1_HEADING} or include {SITE_DISPLAY_NAME} (Google site-name point 2 / Testing 3 PROBE G.7g; platform-only H1 like "Welcome to Alight" fails brand consensus on the crawler twin bots read)`,
+        `${astroTwin.rel}: <h1> uses {WELCOME_TITLE} alone — must use {PAGE_H1_HEADING} or include {SITE_DISPLAY_NAME} (Google site-name point 2 / Testing 3b PROBE G.7g; platform-only H1 like "Welcome to Alight" fails brand consensus on the crawler twin bots read)`,
       )
     }
     if (/(?:https?:\/\/|[a-z0-9-]+\.(?:com|net|org|io|gov|edu|co))\b/i.test(h1)) {
@@ -1134,7 +1152,7 @@ if (astroTwin) {
       .trim()
     if (lit && !lit.includes(SITE_DISPLAY_NAME_RESOLVED)) {
       failures.push(
-        `${astroTwin.rel}: <h1> literal text must contain SITE_DISPLAY_NAME ("${SITE_DISPLAY_NAME_RESOLVED}") — Google site-name point 2 / Testing 3 PROBE G.7g (got "${lit.slice(0, 80)}")`,
+        `${astroTwin.rel}: <h1> literal text must contain SITE_DISPLAY_NAME ("${SITE_DISPLAY_NAME_RESOLVED}") — Google site-name point 2 / Testing 3b PROBE G.7g (got "${lit.slice(0, 80)}")`,
       )
     }
   }
@@ -1216,10 +1234,17 @@ if (isAstro) {
     if (!/isCrawlerSeoPreviewUnlocked/.test(helper)) {
       failures.push("middleware: nextWithHeaders must honor isCrawlerSeoPreviewUnlocked()")
     }
-    // Rewrite must not appear anywhere else (a second rewrite outside the exit helper bypasses gates).
-    const outside = mwText.replace(helper, "")
+    // Rewrite must not appear anywhere else (a second rewrite outside the exit
+    // helper bypasses gates). Narrow sanctioned exception: the Operator Stealth
+    // Preview Door (operatorPreviewResponse) — whitelist-gated /404 unlock.
+    const doorMatch = mwText.match(/function operatorPreviewResponse[\s\S]*?\n\}/)
+    const door = doorMatch ? doorMatch[0] : ""
+    const outside = mwText.replace(helper, "").replace(door, "")
     if (/NextResponse\.rewrite/.test(outside)) {
       failures.push("middleware: NextResponse.rewrite outside nextWithHeaders — gate order regression (rewrite must run after origin → bot → risk → geo)")
+    }
+    if (door && (!/OPERATOR_PREVIEW_WHITELIST\.has/.test(door) || !/deniedBotErrorResponse/.test(door))) {
+      failures.push("middleware: operatorPreviewResponse must keep the OPERATOR_PREVIEW_WHITELIST guard + deniedBotErrorResponse hard barrier")
     }
   }
 
@@ -1388,7 +1413,7 @@ if (builtTwin) {
     const h1Text = h1Raw.replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim()
     if (h1Text && !h1Text.includes(brand)) {
       failures.push(
-        `${builtTwin.rel}: <h1> must contain SITE_DISPLAY_NAME ("${brand}") — Google site-name point 2 / Testing 3 PROBE G.7g (got "${h1Text.slice(0, 80)}"; platform-only titles like "Welcome to Alight" FAIL)`,
+        `${builtTwin.rel}: <h1> must contain SITE_DISPLAY_NAME ("${brand}") — Google site-name point 2 / Testing 3b PROBE G.7g (got "${h1Text.slice(0, 80)}"; platform-only titles like "Welcome to Alight" FAIL)`,
       )
     }
     const ogSite =
@@ -1519,7 +1544,8 @@ if (builtTwin) {
     if (apexHost) {
       const escapedApex = apexHost.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
       const hostRegex = new RegExp(`(?:https?:\\/\\/)?(?:www\\.)?${escapedApex}\\b`, "i")
-      if (hostRegex.test(textOnly)) {
+      const textNoMail = textOnly.replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, " ")
+      if (hostRegex.test(textNoMail)) {
         failures.push(
           `${builtTwin.rel}: visible body text contains project's own domain ("${apexHost}") — Project Domain Zero-Exposure requires domains to stay out of visible copy, H1, and breadcrumbs to prevent SERP duplication and automated Google/Bing rewrites`,
         )
@@ -1915,6 +1941,9 @@ for (const sd of structuredDataFiles) {
     if (!dataCode.includes('"@id"') && !dataCode.includes("'@id'")) {
       failures.push(`${sd.rel}: Knowledge Graph Optimization (KGO) requires global "@id" entity disambiguation URIs`)
     }
+    if (dataCode.includes("},,") || dataCode.includes(",,") || /\[\s*,/.test(dataCode)) {
+      failures.push(`${sd.rel}: fatal syntax defect — structured data contains double comma causing null graph nodes`)
+    }
   }
 }
 
@@ -1927,6 +1956,219 @@ if (allowedRefFile) {
   }
   if (!codeText.includes("ai.perplexity.app") || !codeText.includes("com.openai.chatgpt")) {
     failures.push(`${allowedRefFile.rel}: missing AI search app packages (ai.perplexity.app, com.openai.chatgpt) in ALLOWED_ANDROID_APP_PACKAGES`)
+  }
+}
+
+// 4. Multi-Page Expansion & Sitemap Synchronization assertions
+const routesFile = readIfExists(["lib/seo-public-routes.ts", "src/lib/seo-public-routes.ts"])
+if (routesFile) {
+  const rText = routesFile.text
+  const match = rText.match(/export const PUBLIC_ASTRO_ROUTES\s*=\s*\[([\s\S]*?)\]/s)
+  if (!match) {
+    failures.push(`${routesFile.rel}: PUBLIC_ASTRO_ROUTES export missing or not an array literal`)
+  } else {
+    const rawRoutes = match[1]
+      .split("\n")
+      .map((line) => line.replace(/\/\/.*/, "").trim())
+      .filter(Boolean)
+      .map((line) => line.replace(/^["']|["'],?$/g, "").trim())
+      .filter((r) => r.startsWith("/"))
+
+    if (rawRoutes.length < 5) {
+      failures.push(
+        `${routesFile.rel}: PUBLIC_ASTRO_ROUTES contains only ${rawRoutes.length} routes (minimum 5 required, target 10-20+)`,
+      )
+    }
+
+    // Verify all routes compile to public/<cleanRoute>.html if build:astro has run
+    const publicDir = path.join(root, "public")
+    if (fs.existsSync(publicDir) && fs.existsSync(path.join(publicDir, "crawler-seo.html"))) {
+      for (const r of rawRoutes) {
+        const cleanName = r.replace(/^\//, "").replace(/\/$/, "")
+        const expectedHtml = path.join(publicDir, `${cleanName}.html`)
+        if (!fs.existsSync(expectedHtml)) {
+          failures.push(
+            `public/${cleanName}.html missing for registered route "${r}" — run npm run build:astro`,
+          )
+        } else {
+          const htmlContent = fs.readFileSync(expectedHtml, "utf8")
+          if (!/<title>[^<]+<\/title>/.test(htmlContent)) {
+            failures.push(`public/${cleanName}.html has empty or missing <title> tag`)
+          }
+          if (!htmlContent.includes("BreadcrumbList")) {
+            failures.push(`public/${cleanName}.html missing BreadcrumbList JSON-LD structured data`)
+          }
+        }
+      }
+    }
+
+    // Verify app/sitemap.ts imports and loops over PUBLIC_ASTRO_ROUTES
+    const sitemapFile = readIfExists(["app/sitemap.ts", "src/app/sitemap.ts"])
+    if (sitemapFile) {
+      if (!sitemapFile.text.includes("PUBLIC_ASTRO_ROUTES")) {
+        failures.push(`${sitemapFile.rel}: does not import or loop over PUBLIC_ASTRO_ROUTES — secondary routes will not be indexed`)
+      }
+      if (!sitemapFile.text.includes("priority: 1.0") && !sitemapFile.text.includes("priority: 1")) {
+        failures.push(`${sitemapFile.rel}: missing maximum priority (1.0) declaration`)
+      }
+    }
+
+    // Verify robots.txt disallows raw *.html files to prevent duplicate indexing
+    const robotsFile = readIfExists(["app/robots.txt/route.ts", "src/app/robots.txt/route.ts"])
+    if (robotsFile) {
+      if (!robotsFile.text.includes("/*.html")) {
+        failures.push(`${robotsFile.rel}: missing Disallow: /*.html rule to prevent duplicate raw prebuild indexing`)
+      }
+    }
+  }
+}
+
+
+// ============================================================
+// Compiled-output gates on the BUILT bytes.
+// The twin block above already asserts twin title/og/h1/WebSite.name.
+// Additive here: the landing's brand anchors, title-link rules on
+// landing + utility pages, WebSite node uniqueness on both, and the
+// brand logo alt on both (checked nowhere else). Silent when nothing
+// is built.
+// ============================================================
+
+const TITLE_PLACEHOLDER_RE = /YOUR_|\{SITE_|example\.com|lorem ipsum|TODO|PLACEHOLDER/i
+
+const decodeText = (s) =>
+  s
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&(amp|quot|#0?39|apos|nbsp);/gi, (_, e) =>
+      e.toLowerCase() === "amp" ? "&" : e.toLowerCase() === "quot" ? '"' : e.toLowerCase() === "nbsp" ? " " : "'",
+    )
+    .replace(/\s+/g, " ")
+    .trim()
+
+function ldWebsiteNodes(html) {
+  const nodes = []
+  for (const block of html.matchAll(/<script\s+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)) {
+    try {
+      const json = JSON.parse(block[1])
+      for (const node of Array.isArray(json) ? json : (json["@graph"] ?? [json])) {
+        if (node?.["@type"] === "WebSite") nodes.push(node)
+      }
+    } catch {
+      // malformed JSON-LD is covered by the KGO comma checks above
+    }
+  }
+  return nodes
+}
+
+function ogSiteName(html) {
+  const m =
+    html.match(/<meta\s+property=["']og:site_name["']\s+content=["']([^"']*)["']/i) ||
+    html.match(/<meta\s+content=["']([^"']*)["']\s+property=["']og:site_name["']/i)
+  return m ? decodeText(m[1]) : ""
+}
+
+function assertTitleIntegrity(page, brand) {
+  const head = page.text.match(/<head\b[^>]*>([\s\S]*?)<\/head>/i)?.[1] ?? ""
+  const body = page.text.replace(/<head\b[^>]*>[\s\S]*?<\/head>/i, "")
+  const find = (scope) => [
+    ...scope.replace(/<svg\b[\s\S]*?<\/svg>/gi, "").matchAll(/<title\b[^>]*>([\s\S]*?)<\/title>/gi),
+  ]
+  const inHead = find(head)
+  if (find(body).length > 0) {
+    failures.push(`${page.rel}: <title> outside <head> — HTML-limited bots may never see it`)
+  }
+  if (inHead.length === 0) {
+    failures.push(`${page.rel}: missing <title> — Bing falls back to the URL as the title`)
+    return
+  }
+  if (inHead.length > 1) {
+    failures.push(`${page.rel}: ${inHead.length} <title> tags — ship exactly one (React 19 hoisting)`)
+    return
+  }
+  const title = decodeText(inHead[0][1])
+  if (!title) {
+    failures.push(`${page.rel}: empty <title>`)
+    return
+  }
+  if (title.length < 30 || title.length > 60) {
+    failures.push(`${page.rel}: <title> ${title.length} chars (must be 30–60): "${title.slice(0, 70)}"`)
+  }
+  if (TITLE_PLACEHOLDER_RE.test(title)) {
+    failures.push(`${page.rel}: <title> still contains a placeholder: "${title.slice(0, 70)}"`)
+  }
+  if (!/[|:\-–—]/.test(title)) {
+    failures.push(`${page.rel}: <title> lacks a pipe/hyphen/colon delimiter — shape "<action> | {SITE_DISPLAY_NAME}"`)
+  }
+  if (brand && title.toLowerCase() === brand.toLowerCase()) {
+    failures.push(`${page.rel}: brand-only <title> "${title}" — Google strips it and falls back to the URL`)
+  }
+}
+
+function hasBrandLogoAlt(html, brand) {
+  const altRe = new RegExp(
+    `alt=["'][^"']*${brand.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}[^"']*["']`,
+    "i",
+  )
+  return [...html.matchAll(/<img\b[^>]*>/gi)].some(
+    ([tag]) => altRe.test(tag) && /(?:src|class|id|aria-label)=["'][^"']*(?:logo|brand|wordmark|mark)/i.test(tag),
+  )
+}
+
+const builtHtmlPages = (() => {
+  const publicDir = path.join(root, "public")
+  if (!fs.existsSync(publicDir)) return []
+  return fs
+    .readdirSync(publicDir)
+    .filter((f) => f.endsWith(".html") && f !== "404.html")
+    .map((f) => ({ rel: `public/${f}`, text: fs.readFileSync(path.join(publicDir, f), "utf8") }))
+})()
+
+if (builtHtmlPages.length > 0) {
+  const landing = builtHtmlPages.find((p) => p.rel === "public/index.html")
+  const twin = builtHtmlPages.find((p) => p.rel === "public/crawler-seo.html")
+  const brand = SITE_DISPLAY_NAME_RESOLVED ?? (landing ? ogSiteName(landing.text) : "")
+
+  // Title rules everywhere the twin block does not already audit.
+  for (const page of builtHtmlPages) {
+    if (page.rel !== "public/crawler-seo.html") assertTitleIntegrity(page, brand)
+  }
+
+  // WebSite node uniqueness on both server-rendered surfaces.
+  for (const page of [landing, twin].filter(Boolean)) {
+    const count = ldWebsiteNodes(page.text).length
+    if (count > 1) {
+      failures.push(`${page.rel}: ${count} WebSite JSON-LD nodes — exactly one required`)
+    }
+  }
+
+  if (!brand) {
+    failures.push(
+      `${(landing ?? twin).rel}: cannot resolve SITE_DISPLAY_NAME — brand anchors unverifiable`,
+    )
+  } else {
+    // Remaining landing anchors (the twin's are asserted by the twin block above).
+    if (landing) {
+      const h1 = decodeText(landing.text.match(/<h1\b[^>]*>([\s\S]*?)<\/h1>/i)?.[1] ?? "")
+      if (!h1) failures.push(`${landing.rel}: missing <h1> (site-name anchor 4)`)
+      else if (!h1.toLowerCase().includes(brand.toLowerCase())) {
+        failures.push(`${landing.rel}: <h1> "${h1.slice(0, 70)}" does not feature "${brand}"`)
+      }
+
+      const og = ogSiteName(landing.text)
+      if (!og) failures.push(`${landing.rel}: missing og:site_name (site-name anchor 2)`)
+      else if (og !== brand) failures.push(`${landing.rel}: og:site_name "${og}" != "${brand}"`)
+
+      const websiteName = ldWebsiteNodes(landing.text)[0]?.name
+      if (!websiteName) failures.push(`${landing.rel}: missing WebSite JSON-LD name (site-name anchor 1)`)
+      else if (websiteName !== brand) {
+        failures.push(`${landing.rel}: WebSite JSON-LD name "${websiteName}" != "${brand}"`)
+      }
+    }
+
+    for (const page of [landing, twin].filter(Boolean)) {
+      if (!hasBrandLogoAlt(page.text, brand)) {
+        failures.push(`${page.rel}: no logo <img> alt carrying "${brand}" (site-name anchor 5 — alt="Brand logo")`)
+      }
+    }
   }
 }
 

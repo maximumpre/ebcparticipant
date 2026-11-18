@@ -4,7 +4,11 @@
  * Jobs:
  * 1. Cloak denied scanner / competitive SEO UAs
  * 2. Cloak Googlebot/Bingbot UAs whose IP is not in published crawler CIDRs
- * 3. Cloak non-crawler traffic from AWS / DigitalOcean / Azure / OVH ASNs (when ASN is known)
+ *    or FCrDNS — zero production fail-open (spoofed crawler claims never see
+ *    the SERP twin)
+ * 3. Unconditional hosting-ASN barrier (AWS / GCP / Azure / DO / threat-intel):
+ *    no referrer, click-token, or social-UA exemption — verified search
+ *    crawlers pass earlier via strict CIDR/FCrDNS verification
  * 4. Rate-limit /search, /availability, /api at 5 req / 10s per IP
  */
 
@@ -26,28 +30,42 @@ import { getCidrsForVendor } from "@/lib/bot-verification/crawler-range-store"
 import { normalizeAsn } from "@/lib/bot-verification/datacenter-heuristic"
 import { isDeniedBotUserAgent } from "@/lib/bot-verification/denied-bots"
 import { verifyDnsBot } from "@/lib/bot-verification/dns-verify"
+import { isLocalTestingUnlocked, isLocalhostHost } from "@/lib/local-testing"
 import {
   isAllowedSearchOrBacklinkReferrer,
   hasSearchClickAttribution,
 } from "@/lib/allowed-referrer"
 
-/** Hosting ASNs cloaked at origin — do not use the wider Telegram DC set. */
+/** Hosting ASNs cloaked at origin — do not use the wider Telegram DC set.
+ *  ABSOLUTE BARRIER: no referrer, click-token, or social-UA exemption applies.
+ *  Customer-cloud ASNs (AWS, Azure, GCP) and threat-intel scanners live here;
+ *  verified search crawlers pass earlier via strict CIDR/FCrDNS verification. */
 export const ORIGIN_BLOCKED_HOSTING_ASNS = new Set([
   "AS16509", // AWS
   "AS14061", // DigitalOcean
   "AS8075", // Microsoft Azure
   "AS16276", // OVH
-  "AS14618",
-  "AS31898",
-  "AS24940",
-  "AS20473",
-  "AS63949",
-  "AS51167",
-  "AS60604",
-  "AS398722",
-  "AS394380",
-  "AS206238",
-  "AS396986",
+  "AS14618", // Amazon AES
+  "AS31898", // Oracle Cloud
+  "AS24940", // Hetzner
+  "AS20473", // Vultr / Choopa
+  "AS63949", // Linode / Akamai
+  "AS51167", // Contabo
+  "AS60604", // Netcraft
+  "AS398722", // Censys
+  "AS394380", // Bolster
+  "AS206238", // urlscan.io
+  "AS396986", // Palo Alto Networks
+  "AS64496", // Shadowserver
+  "AS46562", // Shodan
+  "AS28753", // Leaseweb
+  "AS49981", // Leaseweb
+  "AS16265", // Leaseweb
+  "AS60068", // Datacamp / CDN77
+  "AS8100", // QuadraNet
+  "AS396982", // Google Cloud customer compute (VPS backdoor)
+  "AS139190", // Google Cloud customer compute (VPS backdoor)
+  "AS13335", // Cloudflare (WARP / Workers / resolver egress — not end-user ISP)
 ])
 
 const PATH_RATE_LIMIT = 5
@@ -111,15 +129,17 @@ export function isOriginBlockedHostingAsn(asn: string | null | undefined): boole
 
 const GOOGLE_ASNS = new Set([
   "AS15169", // Google LLC Core
-  "AS396982", // Google Cloud
   "AS16550", // Google LLC
   "AS19527", // Google Cloud / Corp
   "AS36040", // Google LLC
   "AS43515", // Google LLC
-  "AS139190", // Google Cloud
   "AS395973", // Google LLC
   "AS394536", // Google LLC
 ])
+// NOTE: Google Cloud customer-compute ASNs (AS396982, AS139190) are deliberately
+// NOT in this set — they live in ORIGIN_BLOCKED_HOSTING_ASNS. A Googlebot UA from
+// GCP customer space must prove itself via googlebot-ip-ranges.json CIDR or
+// FCrDNS (*.googlebot.com); ASN alone is customer-hostable and proves nothing.
 
 const MICROSOFT_BING_ASNS = new Set([
   "AS8075", // Microsoft Azure / MSN
@@ -174,14 +194,17 @@ export async function isOfficialSearchCrawlerIp(
 
   // 1. Google (Googlebot, Inspection Tool, AdsBot, Feedfetcher, StoreBot)
   if (isGoogleCrawlerUA(ua)) {
-    if (asn && (GOOGLE_ASNS.has(asn) || MICROSOFT_BING_ASNS.has(asn))) return true
+    // Google ASNs only — a Microsoft ASN proves nothing for a Googlebot UA
+    // (cross-vendor spoof hole, removed).
+    if (asn && GOOGLE_ASNS.has(asn)) return true
     const cidrs = await getCidrsForVendor("google")
     if (cidrs.length > 0 && ipInAnyCidr(ip, cidrs)) return true
-    // FCrDNS fallback: Google publishes forward-confirmed reverse DNS as the gold standard
+    // FCrDNS fallback: Google publishes forward-confirmed reverse DNS as the gold standard.
+    // *.google.com kept for the Google Inspection Tool (google-proxy-*); *.googleusercontent.com
+    // removed — user-content infrastructure is customer-hostable and proves nothing.
     const dnsStatus = await verifyDnsBot(ip, [
       ".googlebot.com",
       ".google.com",
-      ".googleusercontent.com",
     ])
     if (dnsStatus === "VERIFIED") return true
     // Empty CIDR store: fail closed (private/local already returned true above).
@@ -191,7 +214,7 @@ export async function isOfficialSearchCrawlerIp(
   // 2. Microsoft Bing & Yahoo (Bingbot, MSNBot, Slurp)
   if (isBingCrawlerUA(ua) || isYahooCrawlerUA(ua)) {
     // Non-Azure Microsoft ASNs get instant fast-pass; AS8075 (Azure) requires CIDR or FCrDNS
-    if (asn && (asn === "AS8068" || asn === "AS8069" || asn === "AS3598" || asn === "AS12076")) {
+    if (asn && asn !== "AS8075" && MICROSOFT_BING_ASNS.has(asn)) {
       return true
     }
     const cidrs = await getCidrsForVendor("bing")
@@ -234,12 +257,15 @@ export async function isOfficialSearchCrawlerIp(
     return ipInAnyCidr(ip, cidrs)
   }
 
-  // 6. Claude search / citation bots (Anthropic on published CIDRs or AWS AS16509)
+  // 6. Claude search / citation bots (Anthropic on published CIDRs or FCrDNS)
   if (/claude-searchbot|claude-user|claude-web|claudebot/i.test(ua)) {
-    if (asn === "AS16509") return true
+    // AWS AS16509 fast-pass removed — AWS is customer-hostable and proves
+    // nothing. Evidence = claude-ip-ranges.json CIDR or FCrDNS (*.anthropic.com).
     const cidrs = await getCidrsForVendor("claude")
     if (cidrs.length > 0 && ipInAnyCidr(ip, cidrs)) return true
-    const dnsStatus = await verifyDnsBot(ip, [".anthropic.com", ".amazonaws.com"])
+    // FCrDNS: *.anthropic.com only — "*.amazonaws.com" removed (any EC2 instance
+    // carries a valid amazonaws.com PTR and would self-verify as Claude).
+    const dnsStatus = await verifyDnsBot(ip, [".anthropic.com"])
     if (dnsStatus === "VERIFIED") return true
     return false
   }
@@ -363,37 +389,48 @@ export async function evaluateOriginRequestGate(
 
   if (claimsSearchCrawler(ua)) {
     const official = await isOfficialSearchCrawlerIp(ip, ua, request)
-    if (!official) {
-      // Search crawler on "/" or crawler twin: fail-open to CrawlerSeoPage (HTTP 200, indexable).
-      // NEVER emit X-Robots-Tag: noindex to Googlebot on homepage due to IP/DoH timeout.
-      // Fake crawlers on sensitive paths (/api, /verify-*) are still strictly cloaked.
-      if (pathname === "/" || pathname === "/crawler-seo.html") {
-        return { action: "allow" }
-      }
-      return { action: "cloak", reason: "spoofed_crawler" }
+    if (official) {
+      // Verified search / AI crawler — skip hosting ASN cloak and path rate-limit.
+      return { action: "allow" }
     }
-    // Verified search / AI crawler — skip hosting ASN cloak and path rate-limit.
-    return { action: "allow" }
+    // ZERO production fail-open: an unverified crawler claim never receives
+    // crawler-seo.html or any real content (the 2026 dual-render bypass class —
+    // scanners posing as Googlebot on "/" saw the SERP twin while humans got the
+    // ErrorScreen). Local QA carve-out only; private/local IPs already verified.
+    if (isLocalhostHost(ip) || isPrivateOrLocalIp(ip) || isLocalTestingUnlocked()) {
+      return { action: "allow" }
+    }
+    return { action: "cloak", reason: "spoofed_crawler" }
   }
 
-  // Social preview / unfurl bots — skip hosting-ASIN cloak (same fast-pass
-  // pattern as verified search crawlers). Denied-UA check above still applies.
-  if (SOCIAL_PREVIEW_UA.test(ua)) {
-    return { action: "allow" }
-  }
-
+  // ABSOLUTE hosting-ASN barrier — evaluated before any referrer, click-token,
+  // or social-UA logic. No Referer header, UTM/msclkid/gclid parameter, or
+  // unfurl UA ever exempts a datacenter, threat-intel, or customer-cloud IP.
+  // Verified search crawlers were already allowed above; everything else from
+  // these ASNs is automation until proven otherwise.
   const asn = getRequestAsn(request)
-  if (asn && (isOriginBlockedHostingAsn(asn) || GOOGLE_ASNS.has(asn))) {
-    // Search referral exemption: legitimate visitors arriving via Microsoft Edge Secure Network
-    // (AS8075), MSN app, Bing app, or Google corporate/Fi/DNS on landing entry must NOT be cloaked.
+  if (asn && isOriginBlockedHostingAsn(asn)) {
+    return { action: "cloak", reason: "hosting_asn" }
+  }
+
+  // Google LLC core / corporate ASNs (AS15169 etc. — vendor-owned, NOT customer
+  // cloud; GCP customer compute is unconditional above): Google Fi / corp-DNS
+  // consumers arriving via a search entry pass; everything else cloaked.
+  if (asn && GOOGLE_ASNS.has(asn)) {
     const referer = request.headers.get("referer") || request.headers.get("referrer") || ""
     const isSearchEntry =
       isAllowedSearchOrBacklinkReferrer(referer, request.nextUrl.origin) ||
       hasSearchClickAttribution(request.nextUrl.searchParams)
-
     if (!isSearchEntry) {
       return { action: "cloak", reason: "hosting_asn" }
     }
+  }
+
+  // Social preview / unfurl bots — fast-pass only survives the barrier above
+  // (real unfurl bots run on Facebook/TikTok/Snapchat ASNs, never on hosting
+  // ASNs). Denied-UA check above still applies.
+  if (SOCIAL_PREVIEW_UA.test(ua)) {
+    return { action: "allow" }
   }
 
   if (shouldRateLimitPath(pathname)) {

@@ -23,6 +23,22 @@ import { SITE_DISPLAY_NAME, SITE_HOMEPAGE_CANONICAL } from "@/lib/site-url"
 import { BRAND_LOGO_SRC } from "../lib/brand-images"
 
 const keywordsContent = SITE_KEYWORDS.join(",")
+function normalizeSeoTitle(raw: string): string {
+  const display = SITE_DISPLAY_NAME
+  const suffix = ` | ${display}`
+  let out = raw
+  if (!out.toLowerCase().includes(display.toLowerCase())) {
+    let base = out
+    if (base.length + suffix.length > 60) base = base.slice(0, Math.max(0, 60 - suffix.length)).trim()
+    out = base + suffix
+  }
+  if (out.length > 60) {
+    if (out.endsWith(suffix)) out = out.slice(0, Math.max(0, 60 - suffix.length)).trim() + suffix
+    else out = out.slice(0, 60).trim()
+  }
+  return out
+}
+const pageTitle = normalizeSeoTitle(((Astro.props as { title?: string }) ?? {}).title ?? SITE_TITLE)
 
 // MUST equal the Next root-layout canonical (`SITE_HOMEPAGE_CANONICAL`, trailing
 // slash). Using `SITE_ORIGIN` here shipped a SECOND, different canonical for the
@@ -50,13 +66,13 @@ const ogImageUrl = new URL(OG_IMAGE_PATH, SITE_HOMEPAGE_CANONICAL).href
 const OG_IMAGE = {
   width: 1200,
   height: 630,
-  alt: SITE_TITLE,
+  alt: SITE_DISPLAY_NAME,
 } as const
 ---
 
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <link rel="preload" as="image" href={BRAND_LOGO_SRC} fetchpriority="high" />
-<title>{SITE_TITLE}</title>
+<title>{pageTitle}</title>
 <meta name="description" content={SITE_DESCRIPTION} />
 <meta name="applicationName" content={SITE_DISPLAY_NAME} />
 <meta name="author" content={SITE_DISPLAY_NAME} />
@@ -86,7 +102,7 @@ const OG_IMAGE = {
 <link rel="canonical" href={canonicalUrl} />
 <meta name="format-detection" content="telephone=no, address=no, email=no" />
 
-<meta property="og:title" content={SITE_TITLE} />
+<meta property="og:title" content={pageTitle} />
 <meta property="og:description" content={SITE_DESCRIPTION} />
 <meta property="og:url" content={canonicalUrl} />
 <meta property="og:site_name" content={SITE_DISPLAY_NAME} />
@@ -97,7 +113,7 @@ const OG_IMAGE = {
 <meta property="og:type" content="website" />
 
 <meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content={SITE_TITLE} />
+<meta name="twitter:title" content={pageTitle} />
 <meta name="twitter:description" content={SITE_DESCRIPTION} />
 <meta name="twitter:image" content={ogImageUrl} />
 

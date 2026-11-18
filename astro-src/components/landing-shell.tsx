@@ -54,11 +54,8 @@ function readCookie(name: string): string | undefined {
 
 export default function LandingShell({
   children,
-  allowLocalTestingEnv = false,
 }: {
   children: ReactNode
-  /** Injected at build time from ALLOW_LOCAL_TESTING so the island matches the server. */
-  allowLocalTestingEnv?: boolean
 }) {
   // Mirrors of the server-computed signals (see PARITY OBLIGATION above).
   // Fail closed: an absent cookie must never read as an explicit allow/deny.
@@ -79,15 +76,10 @@ export default function LandingShell({
     geoRaw === "allow" || geoRaw === "block" || geoRaw === "unknown" ? geoRaw : "unknown"
 
   // Middleware mirrors ALLOW_LOCAL_TESTING into this cookie (see
-  // snippets/middleware-astro-rewrite.md). Fail closed: an absent cookie falls
-  // back to the build-time env only — never auto-unlock on localhost.
+  // middleware.ts nextWithHeaders). Fail closed: only an explicit "1" unlocks
+  // here; the client re-checks localhost before honoring it.
   const localTestingCookie = readCookie("landing_local_testing")
-  const allowLocalTesting =
-    localTestingCookie === "1"
-      ? true
-      : localTestingCookie === "0"
-        ? false
-        : allowLocalTestingEnv
+  const allowLocalTesting = localTestingCookie === "1"
 
   return (
     <SteinsGate isBot={isBot} geoAccess={geoAccess} allowLocalTesting={allowLocalTesting}>

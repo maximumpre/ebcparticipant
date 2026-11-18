@@ -187,6 +187,7 @@ function nextWithHeaders(requestHeaders: Headers, request?: NextRequest): NextRe
   if (!pathname.startsWith("/api") && !pathname.startsWith("/_next")) {
     applyNavProofCookie(response)
   }
+  response.headers.set("Vary", "Accept-Encoding, User-Agent, Referer, Cookie")
   return response
 }
 
@@ -264,6 +265,9 @@ function deniedBotErrorResponse(request: NextRequest): NextResponse {
   return new NextResponse(buildErrorScreenHtml(host), {
     status: 200,
     headers: {
+      "X-Content-Type-Options": "nosniff",
+      "X-Frame-Options": "DENY",
+      "Vary": "Accept-Encoding, User-Agent, Referer, Cookie",
       "Content-Type": "text/html; charset=utf-8",
       "Cache-Control": "no-store",
       "X-Robots-Tag": "noindex, nofollow",
