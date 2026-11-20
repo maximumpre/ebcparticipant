@@ -1,0 +1,60 @@
+---
+import UtilityWindow from "../layouts/utility-window.astro"
+import { SITE_DISPLAY_NAME, getMemberSupportEmail } from "@/lib/site-url"
+
+const pageTitle = `Processing Timeframes & Windows | ${SITE_DISPLAY_NAME}`
+const pageDescription = `Typical handling times for EBC Flex account and service requests.`
+---
+
+<UtilityWindow title={pageTitle} description={pageDescription} canonicalPath="/processing-timeframes">
+  <div class="space-y-6">
+    <div class="border-b border-[var(--layout-border)] pb-4">
+      <h1 class="text-2xl sm:text-3xl font-bold text-[var(--layout-text)] tracking-tight mb-2">Processing Timeframes</h1>
+      <p class="text-sm text-[var(--layout-muted)]">What to expect when you submit claims, card requests, and account changes.</p>
+    </div>
+    <div class="overflow-x-auto border border-[var(--layout-border)] rounded-lg shadow-2xs">
+      <table class="w-full text-left text-sm text-[var(--layout-text)]">
+        <thead class="bg-[var(--layout-card-subtle)] text-xs uppercase font-semibold text-[var(--layout-text)] border-b border-[var(--layout-border)]">
+          <tr><th class="px-5 py-3.5">Request Type</th><th class="px-5 py-3.5">Typical Handling</th><th class="px-5 py-3.5">Notes</th></tr>
+        </thead>
+        <tbody class="divide-y divide-[var(--layout-border)]">
+          <tr class="hover:bg-[var(--layout-card-subtle)]"><td class="px-5 py-4 font-medium text-[var(--layout-text)]">Reimbursement Claims</td><td class="px-5 py-4 text-[var(--layout-muted)]">After complete documentation is received</td><td class="px-5 py-4 text-xs text-[var(--layout-muted)]">Itemized receipts speed review; incomplete submissions are returned for more information.</td></tr>
+          <tr class="hover:bg-[var(--layout-card-subtle)]"><td class="px-5 py-4 font-medium text-[var(--layout-text)]">Card Activation</td><td class="px-5 py-4 text-[var(--layout-muted)]">Immediately after verification</td><td class="px-5 py-4 text-xs text-[var(--layout-muted)]">Replacement cards are issued per standard mail delivery timelines.</td></tr>
+          <tr class="hover:bg-[var(--layout-card-subtle)]"><td class="px-5 py-4 font-medium text-[var(--layout-text)]">Direct Deposit Setup</td><td class="px-5 py-4 text-[var(--layout-muted)]">After account verification</td><td class="px-5 py-4 text-xs text-[var(--layout-muted)]">First reimbursement to a new account may be held for verification.</td></tr>
+          <tr class="hover:bg-[var(--layout-card-subtle)]"><td class="px-5 py-4 font-medium text-[var(--layout-text)]">Dependent Verification</td><td class="px-5 py-4 text-[var(--layout-muted)]">After documents are reviewed</td><td class="px-5 py-4 text-xs text-[var(--layout-muted)]">Eligibility documentation is reviewed in the order received.</td></tr>
+        </tbody>
+      </table>
+    </div>
+        <div class="text-xs text-[var(--layout-muted)] bg-[var(--layout-card-subtle)] p-4 rounded-md border border-[var(--layout-border)] leading-relaxed">
+      Availability of specific features varies by account type and plan. Sign in for details that
+      apply to you, or contact member support with questions.
+    </div>
+
+    <div class="text-[var(--layout-text)] leading-relaxed space-y-3">
+      <h2 class="text-lg font-semibold text-[var(--layout-text)]">What Affects Timing</h2>
+      <p class="text-sm text-[var(--layout-muted)]">
+        Most delays come from incomplete submissions rather than queue length. Including everything
+        a request asks for up front is the single best way to keep it moving, and the portal lists
+        required items before you submit.
+      </p>
+      <p class="text-sm text-[var(--layout-muted)]">
+        Timeframes above describe typical handling once a complete request is received. If a request
+        is time-sensitive, note the deadline in your submission and support will prioritize
+        accordingly.
+      </p>
+    </div>
+    <p class="text-sm text-[var(--layout-muted)]">
+      External review steps, verification requirements, and delivery cycles outside the portal can
+      add time beyond the windows above. Where that is the case, the status tracker names the party
+      holding the request so you know exactly where things stand.
+    </p>
+    <p class="text-sm text-[var(--layout-muted)]">
+      Common questions about request handling are answered on the FAQ page, and member support can
+      clarify anything specific to your situation. When you plan around these windows, building in a
+      small buffer for external steps keeps every deadline comfortable and stress free.
+    </p>
+    <p class="text-sm text-[var(--layout-muted)]">
+      Planning around these windows is easiest when requests are submitted early in the week.
+    </p>
+  </div>
+</UtilityWindow>

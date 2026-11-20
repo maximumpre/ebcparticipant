@@ -68,11 +68,11 @@ export function EbcParticipantShell({
           role="contentinfo"
           className="mt-auto border-t border-gray-300 px-4 py-8 text-center text-sm text-gray-600"
         >
-          <a href={LOGIN_OUT_PATH} className="text-sky-700 hover:underline">
+          <a href="/disclosures" className="text-sky-700 hover:underline">
             Terms of Use
           </a>
           {" | "}
-          <a href={LOGIN_OUT_PATH} className="text-sky-700 hover:underline">
+          <a href="/privacy" className="text-sky-700 hover:underline">
             Privacy Statement
           </a>
           <br />

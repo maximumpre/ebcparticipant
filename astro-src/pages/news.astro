@@ -1,0 +1,69 @@
+---
+import UtilityWindow from "../layouts/utility-window.astro"
+import { SITE_DISPLAY_NAME, getMemberSupportEmail } from "@/lib/site-url"
+
+const pageTitle = `News, Updates & Announcements | ${SITE_DISPLAY_NAME}`
+const pageDescription = `News, updates, and tips from EBC Flex.`
+---
+
+<UtilityWindow title={pageTitle} description={pageDescription} canonicalPath="/news">
+  <div class="space-y-8">
+    <div class="border-b border-[var(--layout-border)] pb-6">
+      <h1 class="text-2xl sm:text-3xl font-bold text-[var(--layout-text)] tracking-tight mb-3">News &amp; Updates</h1>
+      <p class="text-base text-[var(--layout-muted)] leading-relaxed max-w-3xl">Plan updates, deadlines, and account tips.</p>
+    </div>
+    <div class="text-[var(--layout-text)] leading-relaxed space-y-6">
+      <article class="border-l-4 border-[var(--layout-border)] pl-5">
+        <p class="text-xs text-[var(--layout-muted)] mb-1">Annual</p>
+        <h2 class="text-lg font-semibold text-[var(--layout-text)] mb-2">Contribution Limits Update</h2>
+        <p class="text-[var(--layout-muted)]">
+          The IRS publishes updated HSA and FSA contribution limits each year. Check your plan
+          materials during enrollment and adjust payroll contributions to stay within the new
+          amounts.
+        </p>
+      </article>
+      <article class="border-l-4 border-[var(--layout-border)] pl-5">
+        <p class="text-xs text-[var(--layout-muted)] mb-1">Seasonal</p>
+        <h2 class="text-lg font-semibold text-[var(--layout-text)] mb-2">Year-End FSA Deadlines</h2>
+        <p class="text-[var(--layout-muted)]">
+          FSA submission deadlines approach at year end. Review your plan's grace period or rollover
+          rules and submit outstanding claims early so nothing is left unspent.
+        </p>
+      </article>
+      <article class="border-l-4 border-[var(--layout-border)] pl-5">
+        <p class="text-xs text-[var(--layout-muted)] mb-1">Tips</p>
+        <h2 class="text-lg font-semibold text-[var(--layout-text)] mb-2">Snap and Save Your Receipts</h2>
+        <p class="text-[var(--layout-muted)]">
+          Keeping receipts makes substantiation requests painless. Photograph documentation when you
+          receive it and store it with your claim records.
+        </p>
+      </article>
+    </div>
+
+    <div class="text-[var(--layout-text)] leading-relaxed space-y-3">
+      <h2 class="text-lg font-semibold text-[var(--layout-text)]">Stay in the Loop</h2>
+      <p class="text-sm text-[var(--layout-muted)]">
+        Announcements posted here are mirrored in portal notices so nothing important is missed even
+        if you visit rarely. Checking this page at the start of each season is a simple habit that
+        catches most updates before they become urgent.
+      </p>
+      <p class="text-sm text-[var(--layout-muted)]">
+        Have a topic you would like covered? Send suggestions through the Contact page — guides and
+        updates are shaped by the questions users actually ask.
+      </p>
+    </div>
+    <p class="text-sm text-[var(--layout-muted)]">
+      Older announcements remain archived here for reference, so you can trace how policies and
+      features have changed over time. Nothing important is ever removed once posted.
+    </p>
+    <p class="text-sm text-[var(--layout-muted)]">
+      Questions about any announcement here can be directed to member support through the Contact
+      page. We are glad to help. For a broader picture of how the platform works, the Services and
+      Resources pages provide a complete overview of what is available to you today, and the FAQ
+      page answers the questions that come up most often for members like you.
+    </p>
+    <p class="text-sm text-[var(--layout-muted)]">
+      Related updates are also shared through portal notices so nothing is missed between visits.
+    </p>
+  </div>
+</UtilityWindow>

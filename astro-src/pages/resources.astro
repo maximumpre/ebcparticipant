@@ -1,0 +1,49 @@
+---
+import UtilityWindow from "../layouts/utility-window.astro"
+import { SITE_DISPLAY_NAME, getMemberSupportEmail } from "@/lib/site-url"
+
+const pageTitle = `Resources, Guides & Learning | ${SITE_DISPLAY_NAME}`
+const pageDescription = `Guides and learning resources for getting the most from EBC Flex.`
+---
+
+<UtilityWindow title={pageTitle} description={pageDescription} canonicalPath="/resources">
+  <div class="space-y-6">
+    <div class="border-b border-[var(--layout-border)] pb-4">
+      <h1 class="text-2xl sm:text-3xl font-bold text-[var(--layout-text)] tracking-tight mb-2">Resources &amp; Learning</h1>
+      <p class="text-sm text-[var(--layout-muted)]">Guides for getting the most from your spending accounts.</p>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div class="p-5 border border-[var(--layout-border)] rounded-lg bg-[var(--layout-card)]"><h3 class="font-semibold text-[var(--layout-text)] mb-1">Eligible Expense Guide</h3><p class="text-xs text-[var(--layout-muted)] leading-relaxed">What qualifies as an eligible medical expense and how to keep the documentation for your records.</p></div>
+      <div class="p-5 border border-[var(--layout-border)] rounded-lg bg-[var(--layout-card)]"><h3 class="font-semibold text-[var(--layout-text)] mb-1">Getting Started</h3><p class="text-xs text-[var(--layout-muted)] leading-relaxed">First steps for new participants: activate your card, set up direct deposit, and make your first claim.</p></div>
+      <div class="p-5 border border-[var(--layout-border)] rounded-lg bg-[var(--layout-card)]"><h3 class="font-semibold text-[var(--layout-text)] mb-1">Deadlines &amp; Reminders</h3><p class="text-xs text-[var(--layout-muted)] leading-relaxed">How plan submission deadlines work and how to avoid leaving money unspent at year end.</p></div>
+      <div class="p-5 border border-[var(--layout-border)] rounded-lg bg-[var(--layout-card)]"><h3 class="font-semibold text-[var(--layout-text)] mb-1">HSA Basics</h3><p class="text-xs text-[var(--layout-muted)] leading-relaxed">How health savings accounts work, including contributions, qualified expenses, and saving for the future.</p></div>
+    </div>
+        <div class="text-xs text-[var(--layout-muted)] bg-[var(--layout-card-subtle)] p-4 rounded-md border border-[var(--layout-border)] leading-relaxed">
+      Availability of specific features varies by account type and plan. Sign in for details that
+      apply to you, or contact member support with questions.
+    </div>
+
+    <div class="text-[var(--layout-text)] leading-relaxed space-y-3">
+      <h2 class="text-lg font-semibold text-[var(--layout-text)]">Learning That Fits Your Schedule</h2>
+      <p class="text-sm text-[var(--layout-muted)]">
+        Each guide is written to be read in one sitting and kept short on purpose. Topics build on
+        each other, so starting with the fundamentals and returning later for specifics is a natural
+        path through the material.
+      </p>
+      <p class="text-sm text-[var(--layout-muted)]">
+        When a question is more specific than the guides cover, the FAQ page and member support
+        fill the gaps. Suggestions for new guides are welcome through the Contact page.
+      </p>
+    </div>
+    <p class="text-sm text-[var(--layout-muted)]">
+      Bookmarking this page keeps the full library one click away. Material is reviewed and refreshed
+      as features change, so what you read here reflects the portal as it works today rather than how
+      it worked when the guide was first published.
+    </p>
+    <p class="text-sm text-[var(--layout-muted)]">
+      The FAQ page complements these guides with concise answers to the most common questions members
+      bring to support, and the Contact page lists the channels for anything more specific. Together
+      these pages form a complete reference you can return to whenever a question comes up.
+    </p>
+  </div>
+</UtilityWindow>

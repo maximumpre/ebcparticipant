@@ -1,0 +1,334 @@
+/* === Alight legal pages (alight.com/privacy | /legal-terms | /cookie-notice) ===
+ * Content UI reverse-engineered from the live pages (measured at 390 / 768 /
+ * 946 / 1440 viewports). Marketing nav + marketing footer columns are
+ * intentionally NOT reproduced (operator exclusion); the pre-auth
+ * secondary-window header from pre-contactus.css supplies page chrome and the
+ * black footer carries only the legal link strip (Terms and Conditions /
+ * Privacy Policy / Cookie Notice / Cookie Settings / Do Not Sell or Share My
+ * Personal Information) per operator spec.
+ *
+ * Layout model (matches the live bootstrap grid exactly at measured widths):
+ *   - Row: width calc(100% - 16px), max-width 1380px, centered.
+ *   - Copy col: 100% (<992) / 75% (lg) / 66.666% (xl) of the row, 12px gutters
+ *     (text: x=20 w=906 @946; x=42 w=896 @1440 — EXACT vs target).
+ *   - Accordion col: 100% / 91.666% / 83.333%, centered, with an inner
+ *     max-width 1000px auto-centered block; rows gain 24px side margins at xl
+ *     (faq block x=220 w=1000, rows x=244 w=952 @1440 — EXACT vs target).
+ *   - Banner: #0a2029, fluid padding-block clamp(24px, 4.4vw, 60px) (24px @390,
+ *     42px @946, 60px @1440 — EXACT vs target), h1 clamp(40px, 6vw, 55px) / 1.2
+ *     weight 300 white.
+ *   - Breadcrumbs: 16px/22.4px, "/" separators, Home link + bold current page.
+ *   - Accordion rows: 1px rgba(151,151,151,0.25) top AND bottom borders,
+ *     toggle padding 16px 0, heading 20px/24px weight 300, 24px plus/minus
+ *     square icon (CSS stand-in for the target's FontAwesome glyph).
+ *   - Table: 100% width, border-collapse, every td border-bottom
+ *     1px rgba(151,151,151,0.25), td padding 8px 16px 8px 0.
+ *   - Back to top: 48x54 white button, 1px solid #000, radius 12px, "↑".
+ *   - Footer strip: black #000, white 14px/19.6px underlined links in a
+ *     wrapping row (2-per-row below 576px, auto widths above).
+ */
+
+.legal-page {
+  min-height: 100vh;
+  background: #ffffff;
+  color: #000000;
+  font-family: "FS Thrive Elliot Web", sans-serif;
+  font-size: 16px;
+  line-height: 22.4px;
+}
+
+/* The excluded marketing nav is replaced by the standard pre-auth chrome. */
+.legal-page .precontactus-header {
+  margin-bottom: 0;
+}
+
+/* --- Centered grid (live bootstrap container-fluid / row / col parity) --- */
+.legal-row {
+  box-sizing: border-box;
+  width: calc(100% - 16px);
+  max-width: 1380px;
+  margin: 0 auto;
+}
+
+.legal-col {
+  box-sizing: border-box;
+  padding: 0 12px;
+  width: 100%;
+}
+
+@media (min-width: 992px) {
+  .legal-col-copy {
+    width: 75%;
+  }
+
+  .legal-col-faq {
+    width: 91.666%;
+    margin: 0 auto;
+  }
+}
+
+@media (min-width: 1200px) {
+  .legal-col-copy {
+    width: 66.666%;
+  }
+
+  .legal-col-faq {
+    width: 83.333%;
+  }
+}
+
+/* --- Banner --- */
+.legal-banner {
+  background-color: #0a2029;
+  padding-block: clamp(24px, 4.4vw, 60px);
+}
+
+.legal-banner h1 {
+  margin: 0;
+  font-size: clamp(40px, 6vw, 55px);
+  line-height: 1.2;
+  font-weight: 300;
+  color: #ffffff;
+}
+
+/* --- Breadcrumbs --- */
+.legal-breadcrumbs {
+  padding: 8px 0 24px;
+  font-size: 16px;
+  line-height: 22.4px;
+}
+
+.legal-breadcrumbs ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.legal-breadcrumbs li {
+  display: inline;
+  margin: 0;
+}
+
+.legal-breadcrumbs li + li::before {
+  content: "/";
+  padding: 0 8px;
+}
+
+.legal-breadcrumbs a {
+  color: #000000;
+  text-decoration: none;
+  font-weight: 400;
+}
+
+.legal-breadcrumbs a:hover {
+  text-decoration: underline;
+}
+
+.legal-breadcrumbs b {
+  font-weight: 700;
+}
+
+/* --- Copy column --- */
+.legal-intro {
+  margin: 16px 0 0;
+}
+
+.legal-rich-text {
+  color: #000000;
+}
+
+.legal-rich-text p {
+  margin: 0 0 16px;
+  font-size: 16px;
+  line-height: 22.4px;
+  font-weight: 400;
+}
+
+.legal-rich-text strong,
+.legal-rich-text b {
+  font-weight: 700;
+}
+
+.legal-rich-text a {
+  color: #000000;
+  text-decoration: underline;
+}
+
+.legal-rich-text ul,
+.legal-rich-text ol {
+  margin: 0 0 16px;
+  padding: 0 0 0 40px;
+  list-style-type: disc;
+}
+
+.legal-rich-text li {
+  margin: 0;
+  padding: 0;
+  line-height: 22.4px;
+}
+
+.legal-rich-text table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0 0 16px;
+}
+
+.legal-rich-text td {
+  padding: 8px 16px 8px 0;
+  font-size: 16px;
+  line-height: 22.4px;
+  font-weight: 400;
+  vertical-align: top;
+  border-bottom: 1px solid rgba(151, 151, 151, 0.25);
+}
+
+.legal-rich-text td p {
+  margin: 0;
+}
+
+/* --- Accordion sections (privacy policy) --- */
+.legal-faq-list {
+  margin-top: 65px;
+}
+
+.legal-faq-inner {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+@media (min-width: 1200px) {
+  .legal-faq-inner > .legal-faq {
+    margin: 0 24px;
+  }
+}
+
+.legal-faq {
+  border-top: 1px solid rgba(151, 151, 151, 0.25);
+  border-bottom: 1px solid rgba(151, 151, 151, 0.25);
+}
+
+.legal-faq__toggle {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 16px 0;
+  cursor: pointer;
+  list-style: none;
+}
+
+.legal-faq__toggle::-webkit-details-marker {
+  display: none;
+}
+
+.legal-faq__heading {
+  margin: 0;
+  font-size: 20px;
+  line-height: 24px;
+  font-weight: 300;
+  color: #000000;
+}
+
+/* 24px hit box with a 12px plus/minus-square glyph (target: FontAwesome
+ * plus-square / minus-square at 12px, black). */
+.legal-faq__icon {
+  position: relative;
+  flex: none;
+  width: 24px;
+  height: 24px;
+  margin-left: 16px;
+}
+
+.legal-faq__icon::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  transform: translate(-50%, -50%);
+  background-color: #000000;
+  border-radius: 2px;
+}
+
+.legal-faq__icon::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  transform: translate(-50%, -50%);
+  background:
+    linear-gradient(#ffffff, #ffffff) center / 6px 2px no-repeat,
+    linear-gradient(#ffffff, #ffffff) center / 2px 6px no-repeat;
+}
+
+.legal-faq[open] .legal-faq__icon::after {
+  background: linear-gradient(#ffffff, #ffffff) center / 6px 2px no-repeat;
+}
+
+.legal-faq__content {
+  padding: 0 24px 16px 0;
+}
+
+/* --- Back to top --- */
+.legal-back-to-top-wrap {
+  display: flex;
+  justify-content: flex-end;
+  padding: 12px 12px 24px;
+}
+
+.legal-back-to-top {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 54px;
+  background: #ffffff;
+  border: 1px solid #000000;
+  border-radius: 12px;
+  color: #000000;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+/* --- Footer legal strip (marketing columns intentionally excluded) --- */
+.legal-footer {
+  background-color: #000000;
+  color: #ffffff;
+  padding: 48px 0;
+  font-family: "FS Thrive Elliot Web", sans-serif;
+}
+
+.legal-footer ul {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.legal-footer li {
+  width: 50%;
+  padding: 0 12px 12px;
+  box-sizing: border-box;
+}
+
+@media (min-width: 576px) {
+  .legal-footer li {
+    width: auto;
+  }
+}
+
+.legal-footer a {
+  color: #ffffff;
+  font-size: 14px;
+  line-height: 19.6px;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.legal-footer a:hover {
+  text-decoration: none;
+}

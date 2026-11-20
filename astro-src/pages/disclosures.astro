@@ -1,0 +1,64 @@
+---
+import UtilityWindow from "../layouts/utility-window.astro"
+import { SITE_DISPLAY_NAME, getMemberSupportEmail } from "@/lib/site-url"
+
+const pageTitle = `Legal & Compliance Disclosures | ${SITE_DISPLAY_NAME}`
+const pageDescription = `Legal, tax, and service disclosures for EBC Flex users.`
+---
+
+<UtilityWindow title={pageTitle} description={pageDescription} canonicalPath="/disclosures">
+  <div class="space-y-8">
+    <div class="border-b border-[var(--layout-border)] pb-6">
+      <h1 class="text-2xl sm:text-3xl font-bold text-[var(--layout-text)] tracking-tight mb-3">Disclosures</h1>
+      <p class="text-base text-[var(--layout-muted)] leading-relaxed max-w-3xl">
+        Important tax and plan information for spending account participants.
+      </p>
+    </div>
+    <div class="text-[var(--layout-text)] leading-relaxed space-y-4">
+      <h2 class="text-xl font-semibold text-[var(--layout-text)]">Tax Rules Apply</h2>
+      <p class="text-[var(--layout-muted)]">
+        HSA, FSA, and HRA accounts are governed by IRS rules that define eligible expenses,
+        contribution limits, and distribution requirements. Tax information on this site is general
+        in nature and is not tax advice — consult a qualified professional about your situation.
+      </p>
+      <h2 class="text-xl font-semibold text-[var(--layout-text)]">Plan Documents Govern</h2>
+      <p class="text-[var(--layout-muted)]">
+        Your plan documents define eligibility, covered expenses, deadlines, and any grace period,
+        rollover, or use-it-or-lose-it rules. Where this site differs from the plan documents, the
+        plan documents control.
+      </p>
+      <h2 class="text-xl font-semibold text-[var(--layout-text)]">Card &amp; Substantiation</h2>
+      <p class="text-[var(--layout-muted)]">
+        Benefits debit card transactions may require substantiation with receipts or explanation of
+        benefits documentation. Unsubstantiated transactions may be reversed per plan rules.
+      </p>
+      <h2 class="text-xl font-semibold text-[var(--layout-text)]">Technology Availability</h2>
+      <p class="text-[var(--layout-muted)]">
+        Portal features may change over time and can be subject to maintenance windows. Some tools
+        require specific account types to be active.
+      </p>
+    </div>
+
+    <h2 class="text-xl font-semibold text-[var(--layout-text)]">Communications &amp; Notices</h2>
+    <p class="text-[var(--layout-muted)]">
+      Electronic communications and disclosures delivered through the portal may satisfy legal
+      delivery requirements where permitted. Keeping your contact details current ensures these
+      notices reach you on time and preserves your ability to act within the windows they define.
+    </p>
+    <h2 class="text-xl font-semibold text-[var(--layout-text)]">Questions</h2>
+    <p class="text-[var(--layout-muted)]">
+      If any statement here is unclear or appears inconsistent with documents you have received,
+      contact member support. The documents referenced in this page govern, and support can help
+      locate the specific language that applies to your situation.
+    </p>
+    <p class="text-[var(--layout-muted)]">
+      These disclosures are provided for general information and do not modify any agreement you
+      have entered into. In the event of a conflict between this page and a signed agreement or plan
+      document, the signed agreement or plan document governs in all respects.
+    </p>
+    <p class="text-[var(--layout-muted)]">
+      The Privacy Notice and Security pages provide related detail on how information is handled and
+      protected across the platform.
+    </p>
+  </div>
+</UtilityWindow>

@@ -1,0 +1,59 @@
+---
+import UtilityWindow from "../layouts/utility-window.astro"
+import { SITE_DISPLAY_NAME, getMemberSupportEmail } from "@/lib/site-url"
+
+const pageTitle = `Account Fees & Plan Limits | ${SITE_DISPLAY_NAME}`
+const pageDescription = `Program costs, fees, and plan details for EBC Flex accounts.`
+---
+
+<UtilityWindow title={pageTitle} description={pageDescription} canonicalPath="/fee-schedule">
+  <div class="space-y-6">
+    <div class="border-b border-[var(--layout-border)] pb-4">
+      <h1 class="text-2xl sm:text-3xl font-bold text-[var(--layout-text)] tracking-tight mb-2">Account Fees &amp; Limits</h1>
+      <p class="text-sm text-[var(--layout-muted)]">Fee categories and plan limits that can apply to spending accounts.</p>
+    </div>
+    <div class="overflow-x-auto border border-[var(--layout-border)] rounded-lg shadow-2xs">
+      <table class="w-full text-left text-sm text-[var(--layout-text)]">
+        <thead class="bg-[var(--layout-card-subtle)] text-xs uppercase font-semibold text-[var(--layout-text)] border-b border-[var(--layout-border)]">
+          <tr><th class="px-5 py-3.5">Category</th><th class="px-5 py-3.5">Applies To</th><th class="px-5 py-3.5">Basis</th><th class="px-5 py-3.5">Details</th></tr>
+        </thead>
+        <tbody class="divide-y divide-[var(--layout-border)]">
+          <tr class="hover:bg-[var(--layout-card-subtle)]"><td class="px-5 py-4 font-medium text-[var(--layout-text)]">Account Maintenance</td><td class="px-5 py-4 text-[var(--layout-muted)]">HSA accounts</td><td class="px-5 py-4 text-[var(--layout-muted)]">Where applicable</td><td class="px-5 py-4 text-xs text-[var(--layout-muted)]">Some HSA custodians apply monthly maintenance fees as disclosed at account opening.</td></tr>
+          <tr class="hover:bg-[var(--layout-card-subtle)]"><td class="px-5 py-4 font-medium text-[var(--layout-text)]">Expedited Services</td><td class="px-5 py-4 text-[var(--layout-muted)]">Claims &amp; cards</td><td class="px-5 py-4 text-[var(--layout-muted)]">Per request</td><td class="px-5 py-4 text-xs text-[var(--layout-muted)]">Expedited card replacement or rush reimbursement where offered by your plan.</td></tr>
+          <tr class="hover:bg-[var(--layout-card-subtle)]"><td class="px-5 py-4 font-medium text-[var(--layout-text)]">Contribution Limits</td><td class="px-5 py-4 text-[var(--layout-muted)]">HSA &amp; FSA</td><td class="px-5 py-4 text-[var(--layout-muted)]">Annual (IRS)</td><td class="px-5 py-4 text-xs text-[var(--layout-muted)]">Annual contribution limits are set by the IRS and published each year in your plan materials.</td></tr>
+          <tr class="hover:bg-[var(--layout-card-subtle)]"><td class="px-5 py-4 font-medium text-[var(--layout-text)]">Plan Deadlines</td><td class="px-5 py-4 text-[var(--layout-muted)]">FSA accounts</td><td class="px-5 py-4 text-[var(--layout-muted)]">Per plan rules</td><td class="px-5 py-4 text-xs text-[var(--layout-muted)]">Submission deadlines and any grace period or rollover are set by your specific plan.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="text-xs text-[var(--layout-muted)] bg-[var(--layout-card-subtle)] p-4 rounded-md border border-[var(--layout-border)] leading-relaxed">
+      Fees and limits depend on your plan documents and account type. Sign in to see the terms that
+      apply to your accounts, or contact member support with questions.
+    </div>
+
+    <div class="text-[var(--layout-text)] leading-relaxed space-y-3">
+      <h2 class="text-lg font-semibold text-[var(--layout-text)]">How to Read This Page</h2>
+      <p class="text-sm text-[var(--layout-muted)]">
+        The table above groups the cost and limit categories that commonly apply. Your specific
+        amounts depend on your plan documents and account type, and the figures that matter to you
+        are shown in the portal at the moments they apply — before you confirm elections and on
+        every statement afterward.
+      </p>
+      <p class="text-sm text-[var(--layout-muted)]">
+        If a line item ever looks unfamiliar, member support can explain what it covers and why it
+        applies to your account.
+      </p>
+    </div>
+    <p class="text-sm text-[var(--layout-muted)]">
+      Nothing on this page changes the terms of your plan documents, and where a discrepancy exists
+      the plan documents control. This summary exists to make the categories easier to understand at
+      a glance before you dig into the formal language.
+    </p>
+    <p class="text-sm text-[var(--layout-muted)]">
+      For answers to common questions about costs and contributions, see the FAQ page, or contact
+      member support for detail specific to your account.
+    </p>
+    <p class="text-sm text-[var(--layout-muted)]">
+      Related questions about costs and limits are covered in the FAQ and Resources pages as well.
+    </p>
+  </div>
+</UtilityWindow>

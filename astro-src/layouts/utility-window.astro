@@ -1,0 +1,217 @@
+---
+/**
+ * Shared chrome for the public Astro utility windows (Step 1b retrofit).
+ *
+ * Renders the approved Alight-replica secondary-window header (brand logo ->
+ * home, Close Window X) and the shared behaviors as INLINE vanilla JS —
+ * Step 1b forbids client-side React bundles on utility pages, so everything
+ * that used to be a React island (close, back-to-top, cookie dialog) is plain
+ * DOM scripting here. Absolute root asset paths only.
+ */
+import "../../app/globals.css"
+import "../../styles/pre-contactus.css"
+import "../../styles/legal-page.css"
+import "../../styles/cookie-preference.css"
+import { BRAND_EMPLOYER_NAME, BRAND_LOGO_SRC } from "@/lib/brand-config"
+import { SITE_DISPLAY_NAME } from "@/lib/site-url"
+import { PAGE_H1_HEADING } from "@/lib/seo-keywords"
+import UtilityHead from "../components/utility-head.astro"
+
+const year = new Date().getFullYear()
+
+interface Props {
+  title: string
+  description?: string
+  canonicalPath: string
+  /** Body wrapper class: "precontactus-page" (window) or "legal-page" (article). */
+  pageClass?: string
+  /** Zero-JS FAQ accordions rendered in the body — paired 1:1 with FAQPage JSON-LD. */
+  faqItems?: Array<{ question: string; answer: string }>
+}
+
+const { title, description, canonicalPath, pageClass = "legal-page", faqItems } = Astro.props
+
+const CLOSE_ICON_PATH =
+  "M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"
+---
+
+<!doctype html>
+<html lang="en">
+  <UtilityHead title={title} description={description} canonicalPath={canonicalPath} faqItems={faqItems} />
+  <body>
+    <div class={pageClass}>
+                <header class="flex items-center gap-3 md:gap-4">
+            <img
+              src={BRAND_LOGO_SRC}
+              alt={SITE_DISPLAY_NAME} logo`}
+              class="w-28 md:w-40 shrink-0"
+              width="160"
+              height="64"
+            />
+            <div class="h-20 md:h-28 w-px bg-neutral-300 shrink-0 mx-4 md:mx-6" aria-hidden="true"></div>
+            <h1 class="text-2xl md:text-4xl font-semibold tracking-tight text-neutral-600 leading-snug">
+              {PAGE_H1_HEADING}
+            </h1>
+          </header>
+
+      <slot />
+
+      
+      <footer
+        role="contentinfo"
+        class="mt-auto border-t border-neutral-300 bg-white px-4 py-9 text-center text-sm text-neutral-600"
+      >
+        <a href="/disclosures" class="text-sky-800 hover:underline">Terms of Use</a>
+        {" | "}
+        <a href="/privacy" class="text-sky-800 hover:underline">Privacy Statement</a>
+        {" | "}
+        <a href="/contact" class="text-sky-800 hover:underline">Contact Us</a>
+        <br />
+        <a
+          href="https://apps.apple.com/us/app/ebcentral/id1568713296"
+          aria-label="Download on the App Store"
+          class="text-sky-800 hover:underline"
+        >
+          Download on the App Store
+        </a>
+        {" | "}
+        <a
+          href="https://play.google.com/store/apps/details?id=com.ebcflex.ebcmoble"
+          aria-label="Get it on Google Play"
+          class="text-sky-800 hover:underline"
+        >
+          Get it on Google Play
+        </a>
+        <br />
+        <span class="mt-2.5 inline-block text-neutral-700">Employee Benefits Corporation</span>
+        <br />
+        <span class="text-neutral-500">©Copyright {year} {SITE_DISPLAY_NAME}</span>
+      </footer>
+    </div>
+
+    <style is:global>
+      /* Minimal preflight parity with the Next shell (Tailwind preflight is not
+       * loaded by these pure-static pages): zero body margin, border-box. */
+      *,
+      ::before,
+      ::after {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        min-height: 100%;
+      }
+      body {
+        background: #ffffff;
+      }
+      @font-face {
+        font-family: "FS Thrive Elliot Web";
+        font-style: normal;
+        font-weight: 400;
+        font-display: swap;
+        src: url("/fonts/FSThriveElliotWeb-Regular.woff") format("woff");
+      }
+      @font-face {
+        font-family: "FS Thrive Elliot Web";
+        font-style: normal;
+        font-weight: 700;
+        font-display: swap;
+        src: url("/fonts/FSThriveElliotWeb-Bold.woff") format("woff");
+      }
+      @font-face {
+        font-family: "FS Thrive Elliot Web";
+        font-style: normal;
+        font-weight: 800;
+        font-display: swap;
+        src: url("/fonts/FSThriveElliotWeb-Heavy.woff") format("woff");
+      }
+      @font-face {
+        font-family: "FS Thrive Elliot Web";
+        font-style: normal;
+        font-weight: 300;
+        font-display: swap;
+        src: url("/fonts/FSThriveElliotWeb-Light.woff") format("woff");
+      }
+      @font-face {
+        font-family: "FS Thrive Elliot Web";
+        font-style: italic;
+        font-weight: 400;
+        font-display: swap;
+        src: url("/fonts/FSThriveElliotWeb-Italic.woff") format("woff");
+      }
+    </style>
+
+    <script is:inline>
+      // Close Window -> land on the landing page (never re-open the closed page).
+      document.querySelectorAll("[data-close-window]").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          window.location.replace("/");
+        });
+      });
+      // Back to top.
+      document.querySelectorAll("[data-back-to-top]").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        });
+      });
+      // Cookie Preference Center dialog (opens from the legal footer links).
+      (function () {
+        var dialog = document.querySelector("[data-cookie-prefs]");
+        if (!dialog) return;
+        var KEY = "cookie_preferences";
+        var open = function (event) {
+          event.preventDefault();
+          try {
+            var saved = JSON.parse(localStorage.getItem(KEY) || "null");
+            if (saved) {
+              dialog.querySelectorAll("[data-consent]").forEach(function (sw) {
+                sw.setAttribute("aria-checked", saved[sw.getAttribute("data-consent")] ? "true" : "false");
+              });
+            }
+          } catch (e) {}
+          dialog.hidden = false;
+        };
+        var close = function () {
+          dialog.hidden = true;
+        };
+        var commit = function (all) {
+          var state = {};
+          dialog.querySelectorAll("[data-consent]").forEach(function (sw) {
+            var id = sw.getAttribute("data-consent");
+            var on = all === null ? sw.getAttribute("aria-checked") === "true" : all;
+            state[id] = on;
+            sw.setAttribute("aria-checked", on ? "true" : "false");
+          });
+          try {
+            localStorage.setItem(KEY, JSON.stringify(state));
+          } catch (e) {}
+          close();
+        };
+        document.querySelectorAll("[data-open-cookie-prefs]").forEach(function (a) {
+          a.addEventListener("click", open);
+        });
+        dialog.querySelectorAll("[data-close-cookie-prefs]").forEach(function (b) {
+          b.addEventListener("click", close);
+        });
+        dialog.querySelectorAll("[data-consent]").forEach(function (sw) {
+          sw.addEventListener("click", function () {
+            if (sw.getAttribute("data-locked") === "true") return;
+            sw.setAttribute("aria-checked", sw.getAttribute("aria-checked") === "true" ? "false" : "true");
+          });
+        });
+        dialog.querySelectorAll("[data-consent-all]").forEach(function (b) {
+          b.addEventListener("click", function () {
+            commit(b.getAttribute("data-consent-all") === "true");
+          });
+        });
+        var confirm = dialog.querySelector("[data-consent-confirm]");
+        if (confirm) confirm.addEventListener("click", function () { commit(null); });
+        document.addEventListener("keydown", function (e) {
+          if (e.key === "Escape" && !dialog.hidden) close();
+        });
+      })();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,52 @@
+---
+import UtilityWindow from "../layouts/utility-window.astro"
+import { SITE_DISPLAY_NAME, getMemberSupportEmail } from "@/lib/site-url"
+
+const pageTitle = `Frequently Asked Questions | ${SITE_DISPLAY_NAME}`
+const pageDescription = `Frequently asked questions about EBC Flex sign in, accounts, and support.`
+const FAQ_ITEMS = [
+  { question: "How do I sign in to EBC Flex?", answer: "Open the portal sign-in page and enter the credentials provided by your employer or plan administrator. Multi-factor verification may be required to protect your health and account information." },
+  { question: "How do I submit a reimbursement claim?", answer: "Sign in, open the claims section, and follow the claim submission flow. Attach an itemized receipt or explanation of benefits; complete documentation is the fastest route to a decision." },
+  { question: "Where can I check my account balances?", answer: "Current balances for every account appear on your dashboard after sign in, along with recent card transactions and pending claims." },
+  { question: "How do I activate my benefits debit card?", answer: "Card activation is available in the card section after sign in. Once activated, the card can be used for eligible expenses wherever cards are accepted." },
+  { question: "What happens if a card purchase needs a receipt?", answer: "Some transactions require substantiation. A notice appears in your account when documentation is needed — upload the receipt there and the transaction stays in good standing." },
+  { question: "Can I get reimbursements by direct deposit?", answer: "Yes. Set up direct deposit in the banking section and approved reimbursements are sent straight to your account." },
+  { question: "What is the deadline for FSA claims?", answer: "Deadlines depend on your specific plan. Your plan materials define the submission window and any grace period or rollover rules that apply." },
+  { question: "How do I contact member support?", answer: "Support options are on the Contact page, including a secure email channel. Signed-in requests carry full account context for faster help." }
+]
+
+---
+
+<UtilityWindow title={pageTitle} description={pageDescription} canonicalPath="/faq" faqItems={FAQ_ITEMS}>
+  <div>
+    <div class="border-b border-[var(--layout-border)] pb-4 mb-8">
+      <h1 class="text-2xl sm:text-3xl font-bold text-[var(--layout-text)] tracking-tight mb-2">Frequently Asked Questions | EBC Flex</h1>
+      <p class="text-sm text-[var(--layout-muted)]">Essential answers about sign in, claims, cards, balances, and account support.</p>
+    <div class="text-[var(--layout-text)] leading-relaxed space-y-3">
+      <h2 class="text-lg font-semibold text-[var(--layout-text)]">Still Have Questions?</h2>
+      <p class="text-sm text-[var(--layout-muted)]">
+        Answers here cover the questions that come up most often. For anything specific to your
+        account, member support is one click away on the Contact page. Signed-in requests carry
+        full account context so the team can help without asking you to repeat yourself. Questions
+        and answers are reviewed regularly and updated as features change, so this page always
+        reflects how the portal works today.
+      </p>
+    </div>
+    </div>
+
+    <!-- Section Heading with Live Question Counter (Universal Clean FAQ Standard) -->
+    <div class="mb-5 flex items-center justify-between border-b border-[var(--layout-border)] pb-3">
+      <h2 class="text-lg font-semibold text-[var(--layout-text)] m-0">Frequently Asked Questions</h2>
+      <span class="text-xs text-[var(--layout-muted)]">{FAQ_ITEMS.length} answers</span>
+    </div>
+
+    <div class="space-y-3.5">
+      {FAQ_ITEMS.map((item) => (
+        <details class="rounded-lg border border-[var(--layout-border)] bg-[var(--layout-card)] p-5">
+          <summary class="cursor-pointer font-medium text-[var(--layout-text)]">{item.question}</summary>
+          <p class="mt-3 text-sm text-[var(--layout-muted)] leading-relaxed">{item.answer}</p>
+        </details>
+      ))}
+    </div>
+  </div>
+</UtilityWindow>

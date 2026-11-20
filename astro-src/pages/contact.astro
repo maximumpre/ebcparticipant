@@ -1,0 +1,82 @@
+---
+import UtilityWindow from "../layouts/utility-window.astro"
+import { SITE_DISPLAY_NAME, getMemberSupportEmail } from "@/lib/site-url"
+
+const pageTitle = `Contact & Member Support | ${SITE_DISPLAY_NAME}`
+const pageDescription = `Contact EBC Flex member support for account questions and assistance.`
+---
+
+<UtilityWindow title={pageTitle} description={pageDescription} canonicalPath="/contact">
+  <div class="space-y-8">
+    <div class="border-b border-[var(--layout-border)] pb-6">
+      <h1 class="text-2xl sm:text-3xl font-bold text-[var(--layout-text)] tracking-tight mb-3">Contact &amp; Support</h1>
+      <p class="text-base text-[var(--layout-muted)] leading-relaxed max-w-3xl">
+        Support channels and account assistance for portal users.
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div class="p-5 border border-[var(--layout-border)] rounded-lg bg-[var(--layout-card)] flex flex-col justify-between">
+        <div>
+          <div class="text-xs font-semibold uppercase tracking-wider text-[var(--layout-text)] bg-[var(--layout-card-subtle)] px-2 py-0.5 rounded inline-block mb-3">Account Questions</div>
+          <h3 class="font-semibold text-lg text-[var(--layout-text)] mb-2">Signed-In Account Support</h3>
+          <p class="text-xs text-[var(--layout-muted)] leading-relaxed mb-4">
+            For account-specific questions, transactions, or document requests, sign in and submit
+            your request from the account area. Requests submitted in-portal carry full account
+            context for faster assistance.
+          </p>
+        </div>
+        <div class="pt-3 border-t border-[var(--layout-border)]">
+          <a href="/api/login-out" class="inline-flex items-center text-xs font-semibold text-[var(--layout-text)] hover:text-[var(--layout-primary)]">
+            Sign In to Portal &rarr;
+          </a>
+        </div>
+      </div>
+
+      <div class="p-5 border border-[var(--layout-border)] rounded-lg bg-[var(--layout-card)] flex flex-col justify-between">
+        <div>
+          <div class="text-xs font-semibold uppercase tracking-wider text-[var(--layout-text)] bg-[var(--layout-card-subtle)] px-2 py-0.5 rounded inline-block mb-3">General Inquiries</div>
+          <h3 class="font-semibold text-lg text-[var(--layout-text)] mb-2">Member Services Desk</h3>
+          <p class="text-xs text-[var(--layout-muted)] leading-relaxed mb-4">
+            For platform navigation questions, access issues, or general assistance, reach the
+            member services desk directly by email.
+          </p>
+        </div>
+        <div class="pt-3 border-t border-[var(--layout-border)]">
+          <a href={`mailto:${getMemberSupportEmail()}`} class="inline-flex items-center text-xs font-semibold text-[var(--layout-text)] hover:text-[var(--layout-primary)]">
+            Email: {getMemberSupportEmail()} &rarr;
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="text-xs text-[var(--layout-muted)] bg-[var(--layout-card-subtle)] p-4 rounded-md border border-[var(--layout-border)] leading-relaxed">
+      When you write, include the best way to reach you and the hours that work for a callback if
+      one is needed. If your inquiry involves multiple accounts or dependents, listing them up front
+      helps support address everything in a single response.
+    </div>
+
+    <div class="text-[var(--layout-text)] leading-relaxed space-y-3">
+      <h2 class="text-lg font-semibold text-[var(--layout-text)]">Before You Write</h2>
+      <p class="text-sm text-[var(--layout-muted)]">
+        Many questions are answered fastest inside the portal itself. Account records, status
+        trackers, and notices are kept current in the account area, and the FAQ page covers the
+        questions that come up most often. Checking those first often saves a round trip.
+      </p>
+      <p class="text-sm text-[var(--layout-muted)]">
+        When you do need to reach support, including a clear description of what you were trying to
+        do and what you saw instead lets the team reproduce the issue and respond with a solution
+        rather than another question.
+      </p>
+    </div>
+    <p class="text-sm text-[var(--layout-muted)]">
+      Support hours and response targets depend on channel volume, but every message is logged and
+      tracked to completion. If your question spans more than one topic, listing each item separately
+      helps the team answer everything completely in the first response.
+    </p>
+    <p class="text-sm text-[var(--layout-muted)]">
+      The FAQ page is a good first stop for quick answers, and the Resources section offers deeper
+      guides on the topics members ask about most.
+    </p>
+  </div>
+</UtilityWindow>

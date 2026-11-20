@@ -1,0 +1,63 @@
+---
+import UtilityWindow from "../layouts/utility-window.astro"
+import { SITE_DISPLAY_NAME, getMemberSupportEmail } from "@/lib/site-url"
+
+const pageTitle = `Privacy & Cookie Preferences | ${SITE_DISPLAY_NAME}`
+const pageDescription = `How EBC Flex collects, uses, and protects your information.`
+---
+
+<UtilityWindow title={pageTitle} description={pageDescription} canonicalPath="/privacy">
+  <div class="space-y-8">
+    <div class="border-b border-[var(--layout-border)] pb-6">
+      <h1 class="text-2xl sm:text-3xl font-bold text-[var(--layout-text)] tracking-tight mb-3">Privacy Notice</h1>
+      <p class="text-base text-[var(--layout-muted)] leading-relaxed max-w-3xl">
+        How your information is collected, used, and protected across EBC Flex.
+      </p>
+    </div>
+    <div class="text-[var(--layout-text)] leading-relaxed space-y-4">
+      <h2 class="text-xl font-semibold text-[var(--layout-text)]">Information We Handle</h2>
+      <p class="text-[var(--layout-muted)]">
+        To administer your accounts, the portal handles identity and contact details, account
+        transactions, claim documentation you submit, and technical data used to keep the platform
+        secure and reliable.
+      </p>
+      <h2 class="text-xl font-semibold text-[var(--layout-text)]">How Information Is Used</h2>
+      <p class="text-[var(--layout-muted)]">
+        Information is used to process claims and payments, verify eligibility, meet legal and
+        plan requirements, prevent fraud, and improve the service. It is shared only with the
+        parties needed to deliver those services or where required by law.
+      </p>
+      <h2 class="text-xl font-semibold text-[var(--layout-text)]">Your Choices</h2>
+      <p class="text-[var(--layout-muted)]">
+        Manage cookie preferences anytime through Cookie Settings in the footer. Questions about
+        your information or this notice can be directed to member support through the Contact page.
+      </p>
+    </div>
+
+    <h2 class="text-xl font-semibold text-[var(--layout-text)]">Retention &amp; Security</h2>
+    <p class="text-[var(--layout-muted)]">
+      Information is retained only as long as needed for the purposes described here or as required
+      by law, and it is protected with administrative, technical, and physical safeguards
+      appropriate to its sensitivity. Access is limited to authorized personnel and the service
+      providers who help deliver the platform.
+    </p>
+    <h2 class="text-xl font-semibold text-[var(--layout-text)]">Updates to This Notice</h2>
+    <p class="text-[var(--layout-muted)]">
+      This notice may be updated as services or requirements change. The current version is always
+      published on this page, and material changes are communicated through the portal or by other
+      means as required. Continued use of the site after an update indicates acceptance of the
+      revised notice.
+    </p>
+    <p class="text-[var(--layout-muted)]">
+      Where service providers help operate the platform, they are bound by contractual
+      confidentiality and data-protection terms, and they may use information only to deliver the
+      services they were engaged for. This notice applies to information handled through the portal
+      and related service communications.
+    </p>
+    <p class="text-[var(--layout-muted)]">
+      Related pages — Security, Disclosures, and Contact — provide additional detail on specific
+      topics referenced in this notice. Together they describe the full picture of how the platform
+      serves and protects you.
+    </p>
+  </div>
+</UtilityWindow>

@@ -1,0 +1,128 @@
+/* === Pre-auth Contact Us secondary window (pre-contactus parity) ===
+ * Geometry reverse-engineered from the live Alight Worklife
+ * `#/web/sutterhealth/pre-contactus` secondary window (measured at
+ * 390 / 946 / 1440 viewports):
+ *   - 56px secondary header: logo box (max 216x48, 216x40 on small screens) left,
+ *     40x40 Close Window hit area right, 1px #949494 bottom rule, 32px gap below.
+ *   - Centered content well: width calc(100% - 44px), max-width 1236px,
+ *     22px inner gutters (text column starts 44px from the viewport edge).
+ *   - h2 24px/28.8px w400 #000 with 11px rhythm; body 14px/21px #1c1e20;
+ *     phone paragraphs sit in a gutter row 11px narrower than the copy.
+ *   - Content well min-height 400px + 33px tail, then a 25px empty footer strip.
+ */
+
+.precontactus-page {
+  min-height: 100vh;
+  background: #ffffff;
+  color: #1c1e20;
+  font-family: "FS Thrive Elliot Web", Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  line-height: 21px;
+}
+
+.precontactus-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 56px;
+  padding: 0 24px;
+  margin: 0 0 32px;
+  background: #ffffff;
+  border-bottom: 1px solid #949494;
+}
+
+.precontactus-header-brand {
+  display: flex;
+  align-items: center;
+  max-width: 216px;
+}
+
+.precontactus-logo {
+  display: block;
+  width: auto;
+  /* Explicit height: viewBox-only SVGs (no intrinsic size) collapse to 0x0
+   * under width/height auto — the header logo must never disappear. */
+  height: 48px;
+  max-width: 216px;
+  object-fit: contain;
+}
+
+.precontactus-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  background: transparent;
+  color: #282828;
+  cursor: pointer;
+}
+
+.precontactus-close svg {
+  display: block;
+  width: 24px;
+  height: 24px;
+}
+
+.precontactus-main {
+  min-height: 400px;
+  margin-bottom: 33px;
+}
+
+.precontactus-wrapper {
+  box-sizing: border-box;
+  width: calc(100% - 44px);
+  max-width: 1236px;
+  margin: 0 auto;
+  padding: 0 22px;
+}
+
+.precontactus-wrapper h2 {
+  margin: 0 0 11px;
+  font-size: 24px;
+  font-weight: 400;
+  line-height: 28.8px;
+  letter-spacing: normal;
+  color: #000000;
+}
+
+.precontactus-page p {
+  margin: 0 0 11px;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 21px;
+  letter-spacing: normal;
+  color: #1c1e20;
+}
+
+/* Collapses the h2's 11px bottom margin so the intro sits flush under it. */
+.precontactus-page p.precontactus-intro {
+  margin: -11px 0 11px;
+}
+
+.precontactus-page strong {
+  font-weight: 700;
+}
+
+/* The live phone paragraphs render 11px narrower than the copy column
+ * (Alight `al-gutter-row`); keep the same measure so mobile wrapping matches. */
+.precontactus-phone-blocks {
+  width: calc(100% - 11px);
+}
+
+.precontactus-footer {
+  height: 25px;
+}
+
+@media (max-width: 767px) {
+  .precontactus-header {
+    padding: 0 16px;
+  }
+
+  .precontactus-logo {
+    height: 40px;
+  }
+}

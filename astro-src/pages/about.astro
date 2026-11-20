@@ -1,0 +1,68 @@
+---
+import UtilityWindow from "../layouts/utility-window.astro"
+import { SITE_DISPLAY_NAME, getMemberSupportEmail } from "@/lib/site-url"
+
+const pageTitle = `About the Secure Online Portal | ${SITE_DISPLAY_NAME}`
+const pageDescription = `About EBC Flex — the secure online portal for your accounts and services.`
+---
+
+<UtilityWindow title={pageTitle} description={pageDescription} canonicalPath="/about">
+  <div class="space-y-8">
+    <div class="border-b border-[var(--layout-border)] pb-6">
+      <h1 class="text-2xl sm:text-3xl font-bold text-[var(--layout-text)] tracking-tight mb-3">About EBC Flex</h1>
+      <p class="text-base text-[var(--layout-muted)] leading-relaxed max-w-3xl">
+        The secure portal for your tax-advantaged spending accounts — HSA, FSA, and HRA — in one place.
+      </p>
+    </div>
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 py-2">
+      <div class="p-4 bg-[var(--layout-card-subtle)] border border-[var(--layout-border)] rounded-lg text-center"><div class="text-2xl font-bold text-[var(--layout-text)]">HSA</div><div class="text-xs text-[var(--layout-muted)] mt-1">Health Savings</div></div>
+      <div class="p-4 bg-[var(--layout-card-subtle)] border border-[var(--layout-border)] rounded-lg text-center"><div class="text-2xl font-bold text-[var(--layout-text)]">FSA</div><div class="text-xs text-[var(--layout-muted)] mt-1">Flexible Spending</div></div>
+      <div class="p-4 bg-[var(--layout-card-subtle)] border border-[var(--layout-border)] rounded-lg text-center"><div class="text-2xl font-bold text-[var(--layout-text)]">HRA</div><div class="text-xs text-[var(--layout-muted)] mt-1">Health Reimbursement</div></div>
+      <div class="p-4 bg-[var(--layout-card-subtle)] border border-[var(--layout-border)] rounded-lg text-center"><div class="text-2xl font-bold text-[var(--layout-text)]">Cards</div><div class="text-xs text-[var(--layout-muted)] mt-1">Benefits Debit</div></div>
+    </div>
+    <div class="text-[var(--layout-text)] leading-relaxed space-y-4">
+      <h2 class="text-xl font-semibold text-[var(--layout-text)]">Your Accounts, One Sign In</h2>
+      <p class="text-[var(--layout-muted)]">
+        EBC Flex gives you one secure place to manage the tax-advantaged accounts your employer
+        provides. Check balances, submit claims, upload receipts, track reimbursements, and manage
+        your benefits debit card — all without paperwork or waiting for statements in the mail.
+      </p>
+      <p class="text-[var(--layout-muted)]">
+        Whether you are paying for a doctor visit with your card, filing a claim for a pharmacy
+        purchase, or planning ahead for next year's contributions, the portal keeps the details of
+        every account visible and current throughout the year.
+      </p>
+      <h2 class="text-xl font-semibold text-[var(--layout-text)]">Built for Real Life</h2>
+      <p class="text-[var(--layout-muted)]">
+        Eligible expense guidance, plan deadlines, and substantiation requirements are published in
+        one place so you know what qualifies before you spend. When a claim needs documentation,
+        the upload flow walks you through it and shows the status while it is reviewed.
+      </p>
+    </div>
+
+    <h2 class="text-xl font-semibold text-[var(--layout-text)]">What You Can Expect</h2>
+    <p class="text-[var(--layout-muted)]">
+      The portal is designed around clarity and control. Information is organized so the answers to
+      everyday questions are visible without digging, and status indicators show where each request
+      stands at every step. When something needs your attention, notices appear alongside the
+      records they relate to rather than in a separate inbox.
+    </p>
+    <p class="text-[var(--layout-muted)]">
+      Accessibility and mobile responsiveness are built in, so the same experience works across
+      screen sizes and assistive technologies. Support is available when you need it — see the
+      Contact page for the channels that fit the urgency of your question.
+    </p>
+    <p class="text-[var(--layout-muted)]">
+      Security is a shared responsibility: the platform protects the data behind strong controls,
+      and a few good habits on your side complete the picture. Keep your contact details current so
+      verification messages reach you, choose passwords you do not reuse elsewhere, and review your
+      account records periodically. Together these steps keep your information accurate and your
+      access yours alone.
+    </p>
+    <p class="text-[var(--layout-muted)]">
+      Explore the other pages in this section for details on services, security, and support.
+      Everything you need to understand how the portal works is published here, kept current as the
+      platform evolves.
+    </p>
+  </div>
+</UtilityWindow>

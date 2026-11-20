@@ -167,7 +167,7 @@ export function LoginForm({ visitorInfo }: LoginFormProps) {
             </div>
 
             <div className="help-row">
-              <a href="#">Help</a>
+              <a href="/faq">Help</a>
               <span className="help-badge">?</span>
             </div>
 
@@ -239,9 +239,9 @@ export function LoginForm({ visitorInfo }: LoginFormProps) {
       <footer>
         <div className="footer-top">
           <div className="footer-links">
-            <a href="#">Contact Us</a>
-            <a href="#">Feedback</a>
-            <a href="#">Protect Yourself From Website Fraud</a>
+            <a href="/contact">Contact Us</a>
+            <a href="/contact">Feedback</a>
+            <a href="/security">Protect Yourself From Website Fraud</a>
           </div>
           <div className="footer-right">
             <div className="alight-worklife-logo">
@@ -288,10 +288,10 @@ export function LoginForm({ visitorInfo }: LoginFormProps) {
 
         <div className="footer-bottom">
           <div className="footer-legal-links">
-            <a href="#">Privacy Policy</a>
-            <a href="#">Terms Of Use</a>
-            <a href="#">Cookie Notice</a>
-            <a href="#">
+            <a href="/privacy">Privacy Policy</a>
+            <a href="/disclosures">Terms Of Use</a>
+            <a href="/privacy">Cookie Notice</a>
+            <a href="/privacy">
               Cookie Settings [Do Not Sell or Share My Personal Information]
             </a>
           </div>
@@ -312,7 +312,7 @@ export function LoginForm({ visitorInfo }: LoginFormProps) {
             website. You may disable them from your browser at any time. To
             learn more, please see our Cookie Notice. By selecting Accept
             Cookies, you consent to our use of cookies.&nbsp;
-            <a href="#">Cookie Notice</a>
+            <a href="/privacy">Cookie Notice</a>
           </p>
           <div className="cookie-btns">
             <button

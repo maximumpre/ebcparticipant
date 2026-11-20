@@ -19,6 +19,7 @@ import { GEO_US_ONLY_HEADER } from "@/lib/geo-us-header"
 import { isIndexNowVerificationPath } from "@/lib/indexnow-verification"
 import { isLocalTestingUnlocked } from "@/lib/local-testing"
 import { isSeoCrawlerPath } from "@/lib/seo-crawler-paths"
+import { isPublicAstroRoute } from "@/lib/seo-public-routes"
 import { isUngatedSeoPath } from "@/lib/seo-public-paths"
 import { isYandexVerificationPath } from "@/lib/yandex-verification"
 import { SITE_HOMEPAGE_CANONICAL, SITE_URL } from "@/lib/site-url"
@@ -124,6 +125,12 @@ function nextWithHeaders(requestHeaders: Headers, request?: NextRequest): NextRe
       : astroFile
     : null
 
+  // Clean-URL utility rewrites (Step 1b §2.3b) — registry-driven, additive.
+  const cleanUtilityPath =
+    pathname.length > 1 && pathname.endsWith("/") ? pathname.slice(0, -1) : pathname
+  const utilityTarget =
+    request && isPublicAstroRoute(cleanUtilityPath) ? `${cleanUtilityPath}.html` : null
+
   // SSR human cloak: no allowed Referer + no grant cookie → ErrorScreen (no login flash).
   if (
     request &&
@@ -139,9 +146,10 @@ function nextWithHeaders(requestHeaders: Headers, request?: NextRequest): NextRe
     }
   }
 
+  const rewriteTarget = astroTarget ?? utilityTarget
   const response =
-    astroTarget && request
-      ? NextResponse.rewrite(new URL(astroTarget, request.nextUrl))
+    rewriteTarget && request
+      ? NextResponse.rewrite(new URL(rewriteTarget, request.nextUrl))
       : NextResponse.next({ request: { headers: requestHeaders } })
 
   if (requestHeaders.get("x-crawler-seo-page") === "1" || wantsCrawlerVariant) {

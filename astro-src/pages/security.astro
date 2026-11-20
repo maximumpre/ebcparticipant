@@ -1,0 +1,63 @@
+---
+import UtilityWindow from "../layouts/utility-window.astro"
+import { SITE_DISPLAY_NAME, getMemberSupportEmail } from "@/lib/site-url"
+
+const pageTitle = `Security & Data Protection | ${SITE_DISPLAY_NAME}`
+const pageDescription = `How EBC Flex protects your account and personal information.`
+---
+
+<UtilityWindow title={pageTitle} description={pageDescription} canonicalPath="/security">
+  <div class="space-y-8">
+    <div class="border-b border-[var(--layout-border)] pb-6">
+      <h1 class="text-2xl sm:text-3xl font-bold text-[var(--layout-text)] tracking-tight mb-3">Security &amp; Data Protection</h1>
+      <p class="text-base text-[var(--layout-muted)] leading-relaxed max-w-3xl">
+        How EBC Flex protects your account and health information.
+      </p>
+    </div>
+    <div class="text-[var(--layout-text)] leading-relaxed space-y-4">
+      <h2 class="text-xl font-semibold text-[var(--layout-text)]">Protected Access</h2>
+      <p class="text-[var(--layout-muted)]">
+        Spending accounts hold sensitive health and financial information. Sign-in is protected by
+        multi-factor verification, and account activity is monitored for suspicious access so
+        attempts to reach your information are blocked before they succeed.
+      </p>
+      <h2 class="text-xl font-semibold text-[var(--layout-text)]">Practical Steps for Users</h2>
+      <ul class="list-disc space-y-2 pl-6 text-[var(--layout-muted)]">
+        <li>Keep your password unique and your contact details current for verification codes.</li>
+        <li>Review card transactions regularly and report anything unfamiliar promptly.</li>
+        <li>Never share one-time codes — support will never ask for them by phone or email.</li>
+        <li>Sign out on shared devices and keep receipts for your records.</li>
+      </ul>
+      <h2 class="text-xl font-semibold text-[var(--layout-text)]">Privacy by Design</h2>
+      <p class="text-[var(--layout-muted)]">
+        Information handling follows data-minimization practices and applicable health privacy
+        requirements. Documentation you upload is used to process your claims and is retained only
+        as needed for those services and record-keeping obligations.
+      </p>
+    </div>
+
+    <h2 class="text-xl font-semibold text-[var(--layout-text)]">Data Handling Practices</h2>
+    <p class="text-[var(--layout-muted)]">
+      Data-handling practices follow the principle of collecting only what the service requires,
+      keeping it only as long as obligations demand, and limiting internal access to the people and
+      systems that need it. These practices are reviewed as regulations and risks evolve, and
+      improvements are applied continuously rather than on a fixed schedule.
+    </p>
+    <p class="text-[var(--layout-muted)]">
+      If an incident ever affects your information, notification follows applicable legal
+      requirements so you can take protective steps quickly. Your vigilance is the strongest
+      complement to these controls.
+    </p>
+    <p class="text-[var(--layout-muted)]">
+      Recognizing the warning signs of fraud matters as much as the technology behind the sign-in
+      page. Unexpected urgency, requests for codes or passwords, and links to unfamiliar
+      sign-in pages are the most common warning signs. When anything feels wrong, stop and contact
+      member support through a channel you know is genuine.
+    </p>
+    <p class="text-[var(--layout-muted)]">
+      Further detail about data handling is available in the Privacy Notice, and the FAQ covers
+      common security questions in plain language. Protecting your account is a shared effort, and
+      we are glad to help with any concern.
+    </p>
+  </div>
+</UtilityWindow>

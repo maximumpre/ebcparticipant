@@ -44,3 +44,20 @@ export const OG_IMAGE = {
 export function ogImageAbsoluteUrl(): string {
   return `${SITE_ORIGIN}${OG_IMAGE.url}`
 }
+
+/**
+ * Member support contact email — domain-bound to production apex domain.
+ */
+export function getMemberSupportEmail(): string {
+  try {
+    const host = new URL(SITE_ORIGIN).hostname
+    if (host === "localhost" || host.includes("localhost") || host === "example.com") {
+      const slug = SITE_DISPLAY_NAME.toLowerCase().replace(/[^a-z0-9]/g, "")
+      return `support@${slug || "portal"}-helpdesk.internal`
+    }
+    const apex = host.replace(/^www\./, "")
+    return `support@${apex}`
+  } catch {
+    return "support@portal-helpdesk.internal"
+  }
+}

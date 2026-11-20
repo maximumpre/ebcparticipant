@@ -11,6 +11,7 @@ import { SITE_ORIGIN, SITE_SITEMAP_URL } from "@/lib/site-url"
  * Content-Usage: bots=y, search=y, train-ai=n
  */
 const CRAWL_DISALLOW = [
+  "/*.html",
   "/api/",
   "/verify",
   "/verify/",

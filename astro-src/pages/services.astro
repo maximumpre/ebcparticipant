@@ -1,0 +1,65 @@
+---
+import UtilityWindow from "../layouts/utility-window.astro"
+import { SITE_DISPLAY_NAME, getMemberSupportEmail } from "@/lib/site-url"
+
+const pageTitle = `Account Services & Resources | ${SITE_DISPLAY_NAME}`
+const pageDescription = `Explore the services and account workflows available through EBC Flex.`
+---
+
+<UtilityWindow title={pageTitle} description={pageDescription} canonicalPath="/services">
+  <div class="space-y-8">
+    <div class="border-b border-[var(--layout-border)] pb-6">
+      <h1 class="text-2xl sm:text-3xl font-bold text-[var(--layout-text)] tracking-tight mb-3">Account Services</h1>
+      <p class="text-base text-[var(--layout-muted)] leading-relaxed max-w-3xl">
+        Everything you can do with your spending accounts in the portal.
+      </p>
+    </div>
+    <div class="text-[var(--layout-text)] leading-relaxed space-y-4">
+      <h2 class="text-xl font-semibold text-[var(--layout-text)]">Claims &amp; Reimbursements</h2>
+      <ul class="list-disc space-y-3 pl-6 text-[var(--layout-muted)]">
+        <li><strong class="text-[var(--layout-text)]">Submit claims:</strong> file reimbursement claims with itemized receipts and track them while they are reviewed.</li>
+        <li><strong class="text-[var(--layout-text)]">Direct deposit:</strong> receive approved reimbursements straight to your bank account.</li>
+        <li><strong class="text-[var(--layout-text)]">Receipt upload:</strong> photograph and upload documentation to substantiate card purchases.</li>
+        <li><strong class="text-[var(--layout-text)]">Claim history:</strong> review past claims, decisions, and payment details in one record.</li>
+      </ul>
+      <h2 class="text-xl font-semibold text-[var(--layout-text)]">Cards &amp; Payments</h2>
+      <ul class="list-disc space-y-3 pl-6 text-[var(--layout-muted)]">
+        <li><strong class="text-[var(--layout-text)]">Benefits debit card:</strong> activate a new card and use it for eligible expenses wherever cards are accepted.</li>
+        <li><strong class="text-[var(--layout-text)]">Card controls:</strong> review transactions and report a card that is lost or damaged.</li>
+        <li><strong class="text-[var(--layout-text)]">Balances:</strong> see current balances for every account at a glance.</li>
+      </ul>
+      <h2 class="text-xl font-semibold text-[var(--layout-text)]">Account Management</h2>
+      <p class="text-[var(--layout-muted)]">
+        Update contact and banking details, review eligible expense lists, and check the deadlines
+        that apply to your plan — including year-end FSA submission windows and HSA contribution
+        limits published each year.
+      </p>
+    </div>
+        <div class="text-xs text-[var(--layout-muted)] bg-[var(--layout-card-subtle)] p-4 rounded-md border border-[var(--layout-border)] leading-relaxed">
+      Availability of specific features varies by account type and plan. Sign in for details that
+      apply to you, or contact member support with questions.
+    </div>
+
+    <h2 class="text-xl font-semibold text-[var(--layout-text)]">Self-Service, Any Time</h2>
+    <p class="text-[var(--layout-muted)]">
+      Every workflow in the portal is designed to be completed on your own schedule. Tasks that once
+      required forms and phone calls now finish in minutes, with confirmation at each step and a
+      record of what was submitted. When a request needs review, the portal shows the status so you
+      are never left guessing where things stand.
+    </p>
+    <p class="text-[var(--layout-muted)]">
+      Because these tools are available around the clock, you can handle time-sensitive matters
+      without waiting for business hours. Guidance is built into each flow, and help is close by if
+      a step is unclear.
+    </p>
+    <p class="text-[var(--layout-muted)]">
+      The service catalog grows as needs evolve. Features are added based on the questions and
+      requests members bring to support, so if a tool you expect is missing today it may well be on
+      the way. Feedback through the Contact page directly shapes what gets built next.
+    </p>
+    <p class="text-[var(--layout-muted)]">
+      Visit the Resources page for guides covering each workflow in depth, or head to the FAQ for
+      quick answers to common questions about how these services work day to day.
+    </p>
+  </div>
+</UtilityWindow>
