@@ -33,6 +33,12 @@ npm run dev
 
 ## Changelog
 
+### 2026-11-20 — Fleet kit-parity fix: CF-proxied search entries cloaked + geo header trust order
+- **Completed:** Kit-drift fixes applied fleet-wide (source of truth: `Sleipnir the glider/Steins Gate/`). (1) Origin gate: AS13335/AS209242 hosting-barrier now exempt when Cloudflare is provably in front (`CF_EGRESS_ASNS` + `isBehindCloudflare`) — on CF-fronted deploys the proxy ASN was cloaking every visitor including search-referred entries and granted reloads; direct WARP/Workers/resolver egress still blocked. (2) `lib/edge-geo.ts` + mirror adopted from kit with the S6 trust order (CF `cf-ipcountry` only when behind Cloudflare, platform-validated `x-vercel-ip-country` on Vercel, CDN headers fallback) — removes the client-spoofable country header path, strengthening the US-only geo gate. (3) `isBehindCloudflare` exported from `lib/client-ip.ts` mirrors. **US-only geo enforcement untouched** (`middleware.ts` country branches unchanged).
+- **Files affected:** `lib/bot-verification/origin-request-gate.ts` (+ `src/lib/` mirror where present), `lib/edge-geo.ts` (+ mirror), `lib/client-ip.ts` (+ mirror).
+- **Verification:** static asserts (patch markers present, no `middleware.ts` in diff); `npx tsc --noEmit` exit 0; `npm run build` (full prebuild audit chain + next build) exit 0.
+- **Outcome:** Search-referred visitors on Cloudflare-fronted production open the landing again; US-only geo gate intact and spoof-resistant; direct-visit/denied-bot cloak semantics unchanged.
+
 ### 2026-11-19 — Landing footer link remap + landing chrome adoption
 - **Completed:** Remapped every twin and human-landing header/footer link whose content exists among the 12 utility pages to its registry path (About Us -> /about, Terms/Legal -> /disclosures, Privacy/Cookie variants -> /privacy, Security/Fraud -> /security, Help variants -> /faq, Contact/Feedback/Support -> /contact, product/overview -> /services). Links with no generated page and login-flow endings (/api/login-out) unchanged. Adopted each project's own landing header + footer chrome on the 12 utility pages (per-project unique; replaced generic legal strip). Replaced placeholder logos with real brand assets.
 - **Files affected:** `astro-src/pages/crawler-seo.astro`, landing components (`components/*.tsx`, `astro-src/components/LoginForm.astro`), `astro-src/lib/seo-links.js` (trio), `astro-src/layouts/utility-window.astro`, `lib/brand-config.ts`.
