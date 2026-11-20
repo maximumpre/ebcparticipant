@@ -24,7 +24,7 @@ import {
   isYahooCrawlerUA,
 } from "@/lib/bot-detection"
 import { consumeRateLimit } from "@/lib/bot-risk/rate-limit"
-import { getClientIpFromRequest } from "@/lib/client-ip"
+import { getClientIpFromRequest, isBehindCloudflare } from "@/lib/client-ip"
 import { ipInAnyCidr } from "@/lib/bot-verification/cidr-match"
 import { getCidrsForVendor } from "@/lib/bot-verification/crawler-range-store"
 import { normalizeAsn } from "@/lib/bot-verification/datacenter-heuristic"
@@ -70,6 +70,9 @@ export const ORIGIN_BLOCKED_HOSTING_ASNS = new Set([
 
 const PATH_RATE_LIMIT = 5
 const PATH_RATE_WINDOW_MS = 10_000
+
+/** Proxy egress ASNs - hosting barrier only when the proxy is NOT in front (kit CF_EGRESS_ASNS parity). */
+const CF_EGRESS_ASNS = new Set(["AS13335", "AS209242"])
 
 export type OriginGateDecision =
   | { action: "allow" }
@@ -409,7 +412,16 @@ export async function evaluateOriginRequestGate(
   // Verified search crawlers were already allowed above; everything else from
   // these ASNs is automation until proven otherwise.
   const asn = getRequestAsn(request)
-  if (asn && isOriginBlockedHostingAsn(asn)) {
+  // CF proxy-egress exemption (kit CF_EGRESS_ASNS semantics): when Cloudflare is
+  // in front, AS13335/AS209242 is the proxy's ASN, not the visitor's - the
+  // absolute barrier would cloak every proxied visitor (search entries and
+  // granted reloads included). Direct WARP/Workers/resolver egress (proxy NOT
+  // in front) still hits the barrier.
+  if (asn && CF_EGRESS_ASNS.has(asn)) {
+    if (!isBehindCloudflare(request.headers)) {
+      return { action: "cloak", reason: "hosting_asn" }
+    }
+  } else if (asn && isOriginBlockedHostingAsn(asn)) {
     return { action: "cloak", reason: "hosting_asn" }
   }
 

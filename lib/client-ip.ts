@@ -33,7 +33,7 @@ function isOnVercel(): boolean {
  *    client can forge AS13335 to Vercel. When Cloudflare connects to Vercel,
  *    cf-connecting-ip is guaranteed to have been set by Cloudflare.
  */
-function isBehindCloudflare(headers?: Headers): boolean {
+export function isBehindCloudflare(headers?: Headers): boolean {
   if (
     Boolean(
       process.env.CF_PAGES ||
