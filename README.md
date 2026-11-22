@@ -33,6 +33,13 @@ npm run dev
 
 ## Changelog
 
+### 2026-11-22 — Commit missing header brand logos
+- **Completed:** Track `ebc-corporate-stacked.svg`, `ebc-logo-horizontal.png`, and `ebc-footer-mark.png` under `public/emp/images/` (header/marketing referenced them but they were untracked → 404 on Vercel).
+- **Files affected:** public/emp/images/ebc-corporate-stacked.svg, public/emp/images/ebc-logo-horizontal.png, public/emp/images/ebc-footer-mark.png
+- **Verification:** live `/emp/images/ebc-corporate-stacked.svg` was 404; files now committed for deploy.
+- **Outcome:** Header logo renders in production.
+
+
 ### 2026-11-22 — Wire HomepageVisitorNotify on landing
 - **Completed:** Mount kit landing-mount `HomepageVisitorNotify` inside SteinsGate granted subtree (ErrorScreen never notifies).
 - **Files affected:** astro-src/components/landing-shell.tsx, components/homepage-visitor-notify.tsx
