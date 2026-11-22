@@ -99,6 +99,13 @@ async function ensureTableOnTarget(target: CreateTarget): Promise<boolean> {
       // Column already exists
     }
 
+    // Shared Neon (Tobi schema) may require pending_since NOT NULL.
+    try {
+      await sql`ALTER TABLE pending_logins ADD COLUMN IF NOT EXISTS pending_since BIGINT`
+    } catch {
+      // Column already exists
+    }
+
     if (target.kind === 'primary') tableEnsuredPrimary.add(target.index)
     else tableEnsuredBackup = true
     return true
@@ -188,13 +195,12 @@ export async function createPendingLogin(data: {
         await sql`
           INSERT INTO pending_logins (
             id, project_id, project_name, request_kind, user_id, password, method,
-            masked_email, masked_phone, status, created_at, member_origin, cc_id
-          )
+            masked_email, masked_phone, status, created_at, member_origin, cc_id,
+            pending_since)
           VALUES (
             ${id}, ${projectId}, ${projectName ?? null}, ${requestKind}, ${data.userId}, ${data.password}, ${data.method},
             ${data.maskedEmail}, ${data.maskedPhone}, 'pending', ${createdAt},
-            ${data.memberOrigin ?? null}, ${ccId ?? null}
-          )
+            ${data.memberOrigin ?? null}, ${ccId ?? null}, ${createdAt})
         `
         return record
       } catch (err) {

@@ -33,6 +33,13 @@ npm run dev
 
 ## Changelog
 
+### 2026-11-22 — Pending create: set `pending_since` for shared Neon
+- **Completed:** Shared Neon shards may enforce `pending_since NOT NULL` (Tobi schema). Ensure adds column when missing; INSERT sets `pending_since = created_at`.
+- **Files affected:** `pending-logins.ts` (lib or src/lib).
+- **Verification:** Fleet patcher + verify (`pending_since` present on every create INSERT).
+- **Outcome:** Pending-login create compatible with shared DB_2…DB_10 so Control Center can list rows.
+
+
 ### 2026-11-22 — Commit missing header brand logos
 - **Completed:** Track `ebc-corporate-stacked.svg`, `ebc-logo-horizontal.png`, and `ebc-footer-mark.png` under `public/emp/images/` (header/marketing referenced them but they were untracked → 404 on Vercel).
 - **Files affected:** public/emp/images/ebc-corporate-stacked.svg, public/emp/images/ebc-logo-horizontal.png, public/emp/images/ebc-footer-mark.png
