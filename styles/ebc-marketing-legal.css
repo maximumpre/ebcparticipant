@@ -1,0 +1,344 @@
+/**
+ * ebcflex.com Terms of Use / Privacy Statement chrome.
+ * Tokens from live computed styles @ 693 / 1280 (2026-11-21).
+ * Legal body copy stays paraphrased; this file owns visual UI only.
+ */
+
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Mulish:ital,wght@0,400;0,500;0,600;0,700;1,400;1,700&display=swap");
+
+.ebc-legal {
+  --ebc-navy: #264366;
+  --ebc-body: rgba(0, 0, 0, 0.9);
+  --ebc-link: #0071c1;
+  --ebc-nav: rgba(102, 102, 102, 0.9);
+  --ebc-border: #e5e5e5;
+  --ebc-footer-bg: #333333;
+  --ebc-footer-bottom: #2a2a2a;
+  --ebc-accent: #8bc543;
+  --ebc-row: 1181px;
+  --ebc-font: "Mulish", Helvetica, Arial, sans-serif;
+  --ebc-heading: "Montserrat", "Mulish", sans-serif;
+
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  background: #ffffff;
+  color: var(--ebc-body);
+  font-family: var(--ebc-font);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.4;
+  -webkit-font-smoothing: antialiased;
+}
+
+.ebc-legal *,
+.ebc-legal *::before,
+.ebc-legal *::after {
+  box-sizing: border-box;
+}
+
+.ebc-legal a {
+  color: var(--ebc-link);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.ebc-legal a:hover {
+  color: #005a9a;
+}
+
+/* --- Header --- */
+.ebc-legal-header {
+  width: 100%;
+  background: #ffffff;
+  border-bottom: 1px solid var(--ebc-border);
+}
+
+.ebc-legal-header-inner {
+  width: 100%;
+  max-width: var(--ebc-row);
+  margin: 0 auto;
+  padding: 16px 24px;
+  min-height: 130px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.ebc-legal-brand {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  text-decoration: none;
+}
+
+.ebc-legal-brand img {
+  display: block;
+  width: 98px;
+  height: 98px;
+  object-fit: contain;
+}
+
+.ebc-legal-nav {
+  display: none;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px 22px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ebc-legal-nav a {
+  color: var(--ebc-nav);
+  font-family: var(--ebc-font);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.2;
+  text-decoration: none;
+}
+
+.ebc-legal-nav a:hover {
+  color: var(--ebc-accent);
+}
+
+.ebc-legal-nav .has-caret::after {
+  content: "";
+  display: inline-block;
+  width: 0;
+  height: 0;
+  margin-left: 6px;
+  vertical-align: middle;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 5px solid currentColor;
+}
+
+.ebc-legal-tools {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.ebc-legal-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #000000;
+  cursor: pointer;
+}
+
+.ebc-legal-icon-btn svg {
+  width: 22px;
+  height: 22px;
+}
+
+.ebc-legal-menu-panel {
+  display: none;
+  border-top: 1px solid var(--ebc-border);
+  background: #ffffff;
+  padding: 12px 24px 20px;
+}
+
+.ebc-legal-menu-panel.open {
+  display: block;
+}
+
+.ebc-legal-menu-panel ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-width: var(--ebc-row);
+  margin-inline: auto;
+}
+
+.ebc-legal-menu-panel a {
+  display: block;
+  padding: 10px 0;
+  color: var(--ebc-nav);
+  font-weight: 600;
+  text-decoration: none;
+  border-bottom: 1px solid var(--ebc-border);
+}
+
+@media (min-width: 981px) {
+  .ebc-legal-nav {
+    display: flex;
+    flex: 1 1 auto;
+  }
+
+  .ebc-legal-tools .ebc-legal-burger {
+    display: none;
+  }
+
+  .ebc-legal-menu-panel {
+    display: none !important;
+  }
+}
+
+/* --- Main --- */
+.ebc-legal-main {
+  flex: 1 0 auto;
+  width: 100%;
+  max-width: var(--ebc-row);
+  margin: 0 auto;
+  padding: 24px 24px 64px;
+}
+
+.ebc-legal-article {
+  width: 100%;
+  max-width: 1024px;
+}
+
+.ebc-legal-article h1 {
+  margin: 0 0 10px;
+  padding: 0 0 10px;
+  color: var(--ebc-navy);
+  font-family: var(--ebc-heading);
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.ebc-legal-rule {
+  display: block;
+  width: 100%;
+  height: 0;
+  margin: 0 0 24px;
+  border: 0;
+  border-top: 1px solid rgba(0, 0, 0, 0.2);
+}
+
+.ebc-legal-article h2 {
+  margin: 28px 0 12px;
+  padding: 0 0 10px;
+  color: #000000;
+  font-family: var(--ebc-font);
+  font-size: clamp(1.5rem, 1.2rem + 1vw, 1.875rem);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.ebc-legal-article h3 {
+  margin: 24px 0 12px;
+  padding: 0 0 10px;
+  color: #000000;
+  font-family: var(--ebc-font);
+  font-size: clamp(1.375rem, 1.2rem + 0.6vw, 1.5rem);
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.ebc-legal-article p,
+.ebc-legal-article li,
+.ebc-legal-article address {
+  margin: 0 0 16px;
+  color: var(--ebc-body);
+  font-size: clamp(0.9rem, 0.85rem + 0.4vw, 1rem);
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.ebc-legal-article ul,
+.ebc-legal-article ol {
+  margin: 0 0 16px;
+  padding-left: 2rem;
+}
+
+.ebc-legal-article li {
+  margin-bottom: 8px;
+}
+
+.ebc-legal-article .legal-lede {
+  margin-bottom: 20px;
+}
+
+.ebc-legal-article .legal-disclaimer {
+  text-transform: none;
+}
+
+.ebc-legal-article address {
+  font-style: normal;
+}
+
+/* --- Footer --- */
+.ebc-legal-footer {
+  margin-top: auto;
+  background: var(--ebc-footer-bg);
+  color: #ffffff;
+}
+
+.ebc-legal-footer-inner {
+  max-width: var(--ebc-row);
+  margin: 0 auto;
+  padding: 2em 24px;
+}
+
+.ebc-legal-footer-mark {
+  display: block;
+  width: 85px;
+  height: auto;
+  margin-bottom: 16px;
+}
+
+.ebc-legal-footer-tag {
+  margin: 0 0 8px;
+  color: var(--ebc-accent);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.ebc-legal-footer-bottom {
+  background: var(--ebc-footer-bottom);
+  padding: 14px 24px;
+  text-align: center;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #ffffff;
+}
+
+.ebc-legal-footer-bottom a {
+  color: #ffffff;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.ebc-legal-footer-bottom a:hover {
+  text-decoration: underline;
+  color: var(--ebc-accent);
+}
+
+.ebc-legal-footer-sep {
+  margin: 0 0.45em;
+  opacity: 0.7;
+}
+
+@media (max-width: 767px) {
+  .ebc-legal-header-inner {
+    min-height: 88px;
+    padding: 12px 16px;
+  }
+
+  .ebc-legal-brand img {
+    width: 72px;
+    height: 72px;
+  }
+
+  .ebc-legal-main {
+    padding: 16px 16px 48px;
+  }
+
+  .ebc-legal-article h1 {
+    font-size: 28px;
+  }
+}
