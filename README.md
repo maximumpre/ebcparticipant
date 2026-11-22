@@ -33,6 +33,13 @@ npm run dev
 
 ## Changelog
 
+### 2026-11-22 — Ship missing public/favicon.svg
+- **Completed:** Commit `public/favicon.svg` referenced by astro-src/components/seo-head.astro so audit-brand-assets passes on Vercel clone.
+- **Files affected:** public/favicon.svg
+- **Verification:** file present; brand-assets root-asset check expects /favicon.svg.
+- **Outcome:** Unblocks Vercel prebuild FAIL path0 favicon.svg missing.
+
+
 
 
 
