@@ -1,0 +1,467 @@
+---
+/**
+ * Shared layout for Astro utility pages (Step 1b).
+ * EBC DS tokens from Step 1a target harvest. Zero client React.
+ * Uses UtilityHead for per-route canonical + BreadcrumbList + optional FAQPage.
+ */
+import UtilityHead from "../components/utility-head.astro"
+import { SITE_DISPLAY_NAME } from "@/lib/site-url"
+import { BRAND_LOGO_SRC } from "../lib/brand-images"
+import { PUBLIC_ASTRO_ROUTES } from "@/lib/seo-public-routes"
+
+interface Props {
+  title: string
+  description: string
+  pageName?: string
+  canonicalPath?: string
+  faqItems?: Array<{ question: string; answer: string }>
+}
+
+const { title, description, faqItems } = Astro.props
+const canonicalPath = Astro.props.canonicalPath
+if (canonicalPath === undefined) {
+  throw new Error(
+    "[utility-layout] Missing required `canonicalPath` prop.",
+  )
+}
+const pageName = Astro.props.pageName || title.split("|")[0].trim()
+
+const computedTitle = title.includes(SITE_DISPLAY_NAME)
+  ? title
+  : `${title} | ${SITE_DISPLAY_NAME}`
+
+function formatRouteLabel(route: string): string {
+  const overrides: Record<string, string> = {
+    "/faq": "FAQ",
+    "/fee-schedule": "Fee Schedule",
+    "/processing-timeframes": "Processing Timeframes",
+  }
+  if (overrides[route]) return overrides[route]
+  return route
+    .replace(/^\//, "")
+    .split("-")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ")
+}
+
+const serviceKeywords = ["service", "account", "portal", "form", "fee"]
+const resourceKeywords = ["resource", "faq", "help", "processing", "timeframe"]
+const companyKeywords = ["about", "news", "contact"]
+const legalKeywords = ["legal", "privacy", "disclose", "disclosure", "security", "compliance"]
+
+const categorized = {
+  services: [] as string[],
+  resources: [] as string[],
+  company: [] as string[],
+  legal: [] as string[],
+}
+
+PUBLIC_ASTRO_ROUTES.forEach((r, idx) => {
+  const lower = r.toLowerCase()
+  if (serviceKeywords.some((k) => lower.includes(k))) categorized.services.push(r)
+  else if (resourceKeywords.some((k) => lower.includes(k))) categorized.resources.push(r)
+  else if (companyKeywords.some((k) => lower.includes(k))) categorized.company.push(r)
+  else if (legalKeywords.some((k) => lower.includes(k))) categorized.legal.push(r)
+  else {
+    const cols = [categorized.services, categorized.resources, categorized.company, categorized.legal]
+    cols[idx % 4].push(r)
+  }
+})
+---
+
+<!DOCTYPE html>
+<html lang="en-US">
+  <UtilityHead
+    title={computedTitle}
+    description={description}
+    canonicalPath={canonicalPath}
+    faqItems={faqItems}
+  />
+  <style is:global>
+      :root {
+        --layout-bg: #f5f5f5;
+        --layout-text: #333333;
+        --layout-heading-font: "Montserrat", system-ui, sans-serif;
+        --layout-body-font: "Mulish", system-ui, sans-serif;
+        --layout-card: #ffffff;
+        --layout-card-subtle: #e3eef6;
+        --layout-border: #e5e5e5;
+        --layout-muted: #4d4d4d;
+        --layout-primary: #264366;
+        --layout-primary-fg: #ffffff;
+      }
+
+      *,
+      ::before,
+      ::after {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        min-height: 100%;
+      }
+
+      .utility-root {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        background-color: var(--layout-bg);
+        color: var(--layout-text);
+        font-family: var(--layout-body-font);
+        -webkit-font-smoothing: antialiased;
+      }
+
+      .utility-header {
+        width: 100%;
+        background-color: var(--layout-card);
+        border-bottom: 1px solid var(--layout-border);
+        position: sticky;
+        top: 0;
+        z-index: 30;
+      }
+
+      .utility-header-inner {
+        max-width: 1152px;
+        margin: 0 auto;
+        padding: 0 16px;
+        height: 72px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .utility-brand-link {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        text-decoration: none;
+        color: var(--layout-text);
+      }
+
+      .utility-brand-logo {
+        height: 48px;
+        max-width: 160px;
+        width: auto;
+        object-fit: contain;
+      }
+
+      .utility-brand-title {
+        font-family: var(--layout-heading-font);
+        font-weight: 700;
+        font-size: 15px;
+        letter-spacing: -0.01em;
+        color: var(--layout-text);
+      }
+
+      .utility-signin-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 40px;
+        padding: 0 16px;
+        font-size: 14px;
+        font-weight: 700;
+        font-family: var(--layout-body-font);
+        text-decoration: none;
+        border-radius: 8px;
+        border: 1px solid var(--layout-primary);
+        background-color: var(--layout-primary);
+        color: var(--layout-primary-fg);
+      }
+      .utility-signin-btn:hover {
+        background-color: #1a2d45;
+        border-color: #1a2d45;
+      }
+
+      .utility-main {
+        flex: 1 0 auto;
+        width: 100%;
+        max-width: 980px;
+        margin: 0 auto;
+        padding: 40px 16px;
+      }
+
+      .utility-breadcrumbs {
+        margin-bottom: 24px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        color: var(--layout-muted);
+      }
+      .utility-breadcrumbs a {
+        color: inherit;
+        text-decoration: none;
+      }
+      .utility-breadcrumbs a:hover {
+        color: var(--layout-primary);
+        text-decoration: underline;
+      }
+      .utility-breadcrumbs-sep {
+        opacity: 0.5;
+      }
+      .utility-breadcrumbs-cur {
+        color: var(--layout-text);
+        font-weight: 600;
+      }
+
+      .utility-article {
+        background-color: var(--layout-card);
+        border: 1px solid var(--layout-border);
+        border-radius: 12px;
+        padding: 36px 32px;
+        box-shadow: 0 1px 2px rgba(20, 28, 46, 0.06), 0 4px 12px rgba(20, 28, 46, 0.07);
+      }
+
+      .utility-article h1 {
+        font-family: var(--layout-heading-font);
+        font-size: clamp(24px, 4vw, 28px);
+        font-weight: 700;
+        margin: 0 0 16px 0;
+        color: var(--layout-text);
+        line-height: 1.3;
+      }
+
+      .utility-article h2 {
+        font-family: var(--layout-heading-font);
+        font-size: clamp(18px, 3vw, 20px);
+        font-weight: 700;
+        margin: 28px 0 12px 0;
+        color: var(--layout-text);
+        line-height: 1.35;
+      }
+
+      .utility-article p {
+        font-size: 15px;
+        line-height: 1.65;
+        margin: 0 0 16px 0;
+        color: var(--layout-muted);
+      }
+
+      .utility-article a {
+        color: var(--layout-primary);
+      }
+
+      .utility-article table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 24px 0;
+        font-size: 14px;
+      }
+      .utility-article th {
+        background-color: var(--layout-card-subtle);
+        color: var(--layout-text);
+        font-weight: 700;
+        padding: 12px 14px;
+        border-bottom: 2px solid var(--layout-border);
+        text-align: left;
+      }
+      .utility-article td {
+        padding: 12px 14px;
+        border-bottom: 1px solid var(--layout-border);
+        color: var(--layout-text);
+      }
+
+      .utility-article details {
+        border: 1px solid var(--layout-border);
+        border-radius: 10px;
+        margin-bottom: 14px;
+        background-color: var(--layout-card);
+        overflow: hidden;
+      }
+      .utility-article details[open] {
+        border-color: var(--layout-primary);
+      }
+      .utility-article summary {
+        padding: 16px 20px;
+        font-weight: 600;
+        font-size: 15px;
+        cursor: pointer;
+        color: var(--layout-text);
+        list-style: none;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+      }
+      .utility-article summary::-webkit-details-marker {
+        display: none;
+      }
+      .utility-article summary::after {
+        content: "";
+        width: 8px;
+        height: 8px;
+        border-right: 2px solid var(--layout-muted);
+        border-bottom: 2px solid var(--layout-muted);
+        transform: rotate(45deg);
+        flex-shrink: 0;
+      }
+      .utility-article details[open] summary::after {
+        transform: rotate(-135deg);
+        border-color: var(--layout-primary);
+      }
+      .utility-article details p {
+        padding: 14px 20px 18px;
+        margin: 0;
+        font-size: 14px;
+        border-top: 1px solid var(--layout-border);
+      }
+
+      .utility-article .grid,
+      .utility-article [class*="grid-cols"] {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+        margin: 20px 0;
+      }
+
+      .utility-footer {
+        width: 100%;
+        background-color: var(--layout-card);
+        border-top: 1px solid var(--layout-border);
+        margin-top: auto;
+        padding: 48px 16px 24px;
+      }
+      .utility-footer-inner {
+        max-width: 1152px;
+        margin: 0 auto;
+      }
+      .utility-footer-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 32px;
+        margin-bottom: 40px;
+        font-size: 14px;
+      }
+      .utility-footer-col h4 {
+        font-family: var(--layout-heading-font);
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--layout-text);
+        margin: 0 0 14px 0;
+      }
+      .utility-footer-col ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+      .utility-footer-col li {
+        margin-bottom: 8px;
+      }
+      .utility-footer-col a {
+        color: var(--layout-muted);
+        text-decoration: none;
+        font-size: 13px;
+      }
+      .utility-footer-col a:hover {
+        color: var(--layout-primary);
+        text-decoration: underline;
+      }
+      .utility-footer-bottom {
+        border-top: 1px solid var(--layout-border);
+        padding-top: 24px;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        font-size: 12px;
+        color: var(--layout-muted);
+      }
+      .utility-footer-bottom a {
+        color: var(--layout-primary);
+        text-decoration: none;
+      }
+      .utility-footer-bottom a:hover {
+        text-decoration: underline;
+      }
+
+      @media (max-width: 640px) {
+        .utility-brand-title {
+          display: none;
+        }
+        .utility-article {
+          padding: 24px 18px;
+        }
+      }
+    </style>
+  <body class="utility-root">
+    <header class="utility-header">
+      <div class="utility-header-inner">
+        <a href="/" class="utility-brand-link">
+          <img
+            src={BRAND_LOGO_SRC}
+            alt={`${SITE_DISPLAY_NAME} logo`}
+            class="utility-brand-logo"
+            width="120"
+            height="48"
+            loading="eager"
+            fetchpriority="high"
+          />
+          <span class="utility-brand-title">{SITE_DISPLAY_NAME}</span>
+        </a>
+        <a href="/" class="utility-signin-btn">Sign In</a>
+      </div>
+    </header>
+
+    <main class="utility-main">
+      <nav class="utility-breadcrumbs" aria-label="Breadcrumb">
+        <a href="/">Home</a>
+        <span class="utility-breadcrumbs-sep">/</span>
+        <span class="utility-breadcrumbs-cur">{pageName}</span>
+      </nav>
+
+      <article class="utility-article">
+        <slot />
+      </article>
+    </main>
+
+    <footer class="utility-footer">
+      <div class="utility-footer-inner">
+        <div class="utility-footer-grid">
+          <div class="utility-footer-col">
+            <h4>Portal Services</h4>
+            <ul>
+              <li><a href="/">Member Sign In</a></li>
+              {categorized.services.map((r) => (
+                <li><a href={r}>{formatRouteLabel(r)}</a></li>
+              ))}
+            </ul>
+          </div>
+          <div class="utility-footer-col">
+            <h4>Resources & Guides</h4>
+            <ul>
+              {categorized.resources.map((r) => (
+                <li><a href={r}>{formatRouteLabel(r)}</a></li>
+              ))}
+            </ul>
+          </div>
+          <div class="utility-footer-col">
+            <h4>Company & News</h4>
+            <ul>
+              {categorized.company.map((r) => (
+                <li><a href={r}>{formatRouteLabel(r)}</a></li>
+              ))}
+            </ul>
+          </div>
+          <div class="utility-footer-col">
+            <h4>Trust & Disclosures</h4>
+            <ul>
+              {categorized.legal.map((r) => (
+                <li><a href={r}>{formatRouteLabel(r)}</a></li>
+              ))}
+            </ul>
+          </div>
+        </div>
+        <div class="utility-footer-bottom">
+          <p>© {new Date().getFullYear()} {SITE_DISPLAY_NAME}. All rights reserved.</p>
+          <div>
+            <a href="/">Portal Home</a>
+          </div>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,134 @@
+---
+/**
+ * Marketing-site legal chrome for /disclosures + /privacy.
+ * Visual parity with https://www.ebcflex.com/termsofuse/ and /privacystatement/
+ * (header, type, divider, footer). Zero client React.
+ */
+import UtilityHead from "../components/utility-head.astro"
+import { SITE_DISPLAY_NAME } from "@/lib/site-url"
+import "../../styles/ebc-marketing-legal.css"
+
+interface Props {
+  title: string
+  description: string
+  pageName: string
+  canonicalPath: string
+}
+
+const { title, description, pageName, canonicalPath } = Astro.props
+const year = new Date().getFullYear()
+
+const nav = [{ label: "Login", href: "/", caret: false }] as const
+---
+
+<!DOCTYPE html>
+<html lang="en-US">
+  <UtilityHead title={title} description={description} canonicalPath={canonicalPath} />
+  <body class="ebc-legal">
+    <header class="ebc-legal-header">
+      <div class="ebc-legal-header-inner">
+        <a class="ebc-legal-brand" href="/" aria-label={`${SITE_DISPLAY_NAME} home`}>
+          <img
+            src="/emp/images/ebc-logo-horizontal.png"
+            alt="Employee Benefits Corporation"
+            width="98"
+            height="98"
+          />
+        </a>
+
+        <ul class="ebc-legal-nav" aria-label="Primary">
+          {
+            nav.map((item) => (
+              <li>
+                <a
+                  href={item.href}
+                  class={item.caret ? "has-caret" : undefined}
+                >
+                  {item.label}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+
+        <div class="ebc-legal-tools">
+          <button
+            type="button"
+            class="ebc-legal-icon-btn"
+            aria-label="Search"
+            onclick="window.location.href='/faq'"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="7"></circle>
+              <path d="M20 20l-3.5-3.5"></path>
+            </svg>
+          </button>
+          <button
+            type="button"
+            class="ebc-legal-icon-btn ebc-legal-burger"
+            aria-label="Open menu"
+            aria-expanded="false"
+            aria-controls="ebc-legal-menu"
+            id="ebc-legal-burger"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 7h16M4 12h16M4 17h16"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="ebc-legal-menu-panel" id="ebc-legal-menu" hidden>
+        <ul>
+          {
+            nav.map((item) => (
+              <li>
+                <a href={item.href}>{item.label}</a>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+    </header>
+
+    <main class="ebc-legal-main">
+      <article class="ebc-legal-article" aria-label={pageName}>
+        <slot />
+      </article>
+    </main>
+
+    <footer class="ebc-legal-footer" role="contentinfo">
+      <div class="ebc-legal-footer-inner">
+        <img
+          class="ebc-legal-footer-mark"
+          src="/emp/images/ebc-footer-mark.png"
+          alt=""
+          width="85"
+          height="85"
+        />
+        <p class="ebc-legal-footer-tag">An employee-owned company</p>
+      </div>
+      <div class="ebc-legal-footer-bottom">
+        Copyright © {year} Employee Benefits Corporation
+        <span class="ebc-legal-footer-sep" aria-hidden="true">|</span>
+        <a href="/privacy">Privacy Statement</a>
+        <span class="ebc-legal-footer-sep" aria-hidden="true">|</span>
+        <a href="/disclosures">Terms of Use</a>
+      </div>
+    </footer>
+
+    <script is:inline>
+      (function () {
+        var btn = document.getElementById("ebc-legal-burger");
+        var panel = document.getElementById("ebc-legal-menu");
+        if (!btn || !panel) return;
+        btn.addEventListener("click", function () {
+          var open = panel.classList.toggle("open");
+          panel.hidden = !open;
+          btn.setAttribute("aria-expanded", open ? "true" : "false");
+          btn.setAttribute("aria-label", open ? "Close menu" : "Open menu");
+        });
+      })();
+    </script>
+  </body>
+</html>

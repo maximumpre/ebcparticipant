@@ -35,6 +35,235 @@ npm run dev
 
 
 
+
+### 2026-11-22 — Fix Vercel missing untracked deps
+- **Completed:** Commit previously-untracked required sources (, Astro layouts/partials, , authentic-links, etc.) so Vercel clone builds match local.
+- **Files affected:** staged required sources + kit script libs.
+- **Verification:** local 
+> raiseright@0.1.0 prebuild
+> npm run build:astro && node scripts/setup-indexnow.mjs && node scripts/audit-referrer-gate.mjs . && node scripts/audit-steins-gate.mjs . && node scripts/audit-error-screen.mjs . && node scripts/audit-crawler-seo.mjs . && node scripts/check-canonical-domain.mjs && node scripts/check-indexnow-key.mjs && node scripts/check-meta-description.mjs && node scripts/audit-brand-assets.mjs . && node scripts/audit-neon-database.mjs .
+
+
+> raiseright@0.1.0 build:astro
+> node scripts/build-astro.mjs
+
+10:08:18 [types] Generated 15ms
+10:08:18 [build] output: "static"
+10:08:18 [build] mode: "static"
+10:08:18 [build] directory: /Users/emperorofafrica/Documents/TAF/Tobi/raiseright/dist-astro/
+10:08:18 [build] Collecting build info...
+10:08:18 [build] ✓ Completed in 32ms.
+10:08:18 [build] Building static entrypoints...
+10:08:18 [WARN] [vite] 
+/fonts/FSThriveElliotWeb-Regular.woff referenced in /fonts/FSThriveElliotWeb-Regular.woff didn't resolve at build time, it will remain unchanged to be resolved at runtime
+10:08:18 [WARN] [vite] 
+/fonts/FSThriveElliotWeb-Bold.woff referenced in /fonts/FSThriveElliotWeb-Bold.woff didn't resolve at build time, it will remain unchanged to be resolved at runtime
+10:08:18 [WARN] [vite] 
+/fonts/FSThriveElliotWeb-Heavy.woff referenced in /fonts/FSThriveElliotWeb-Heavy.woff didn't resolve at build time, it will remain unchanged to be resolved at runtime
+10:08:18 [WARN] [vite] 
+/fonts/FSThriveElliotWeb-Light.woff referenced in /fonts/FSThriveElliotWeb-Light.woff didn't resolve at build time, it will remain unchanged to be resolved at runtime
+10:08:18 [WARN] [vite] 
+/fonts/FSThriveElliotWeb-Italic.woff referenced in /fonts/FSThriveElliotWeb-Italic.woff didn't resolve at build time, it will remain unchanged to be resolved at runtime
+10:08:18 [vite] ✓ built in 146ms
+10:08:18 [vite] ✓ built in 37ms
+10:08:18 [build] Rearranging server assets...
+
+ generating static routes 
+10:08:18   ├─ /about.html (+6ms) 
+10:08:18   ├─ /contact.html (+1ms) 
+10:08:18   ├─ /crawler-seo.html (+5ms) 
+10:08:18   ├─ /disclosures.html (+1ms) 
+10:08:18   ├─ /faq.html (+1ms) 
+10:08:18   ├─ /fee-schedule.html (+1ms) 
+10:08:18   ├─ /forms.html (+1ms) 
+10:08:18   ├─ /news.html (+1ms) 
+10:08:18   ├─ /privacy.html (+1ms) 
+10:08:18   ├─ /processing-timeframes.html (+1ms) 
+10:08:18   ├─ /resources.html (+1ms) 
+10:08:18   ├─ /security.html (+1ms) 
+10:08:18   ├─ /services.html (+1ms) 
+10:08:18   ├─ /index.html (+1ms) 
+10:08:18 ✓ Completed in 48ms.
+
+10:08:18 [build] ✓ Completed in 246ms.
+10:08:18 [build] 14 page(s) built in 279ms
+10:08:18 [build] Complete!
+OK astro sync: index.html, crawler-seo.html + assets → public/ (15 entries)
+[indexnow] wrote public/feffe6709c43404099377793007fcaf5.txt
+OK raiseright (SteinsGate — no reload bypass patterns)
+OK raiseright (SteinsGate — no reload bypass patterns)
+OK raiseright (error screen — canonical geometry; surfaces: components/ErrorScreen.tsx (plain), lib/error-screen-html.ts)
+OK raiseright (crawler SEO — header integrity)
+Vercel apex→www redirect OK (raise-rights.com → www.raise-rights.com).
+Twin canonical OK (public/crawler-seo.html → https://www.raise-rights.com/).
+Canonical domain check passed (https://www.raise-rights.com).
+Page canonical OK (public/about.html → https://www.raise-rights.com/about).
+Page canonical OK (public/contact.html → https://www.raise-rights.com/contact).
+Page canonical OK (public/disclosures.html → https://www.raise-rights.com/disclosures).
+Page canonical OK (public/faq.html → https://www.raise-rights.com/faq).
+Page canonical OK (public/fee-schedule.html → https://www.raise-rights.com/fee-schedule).
+Page canonical OK (public/forms.html → https://www.raise-rights.com/forms).
+Page canonical OK (public/news.html → https://www.raise-rights.com/news).
+Page canonical OK (public/privacy.html → https://www.raise-rights.com/privacy).
+Page canonical OK (public/processing-timeframes.html → https://www.raise-rights.com/processing-timeframes).
+Page canonical OK (public/resources.html → https://www.raise-rights.com/resources).
+Page canonical OK (public/security.html → https://www.raise-rights.com/security).
+Page canonical OK (public/services.html → https://www.raise-rights.com/services).
+Multi-page canonical scan OK (12 secondary page(s)).
+IndexNow check passed (key feffe670…).
+Meta description check passed (144 chars).
+OK raiseright
+audit-neon-database: ok
+
+> raiseright@0.1.0 build
+> npm run prebuild && next build --webpack
+
+
+> raiseright@0.1.0 prebuild
+> npm run build:astro && node scripts/setup-indexnow.mjs && node scripts/audit-referrer-gate.mjs . && node scripts/audit-steins-gate.mjs . && node scripts/audit-error-screen.mjs . && node scripts/audit-crawler-seo.mjs . && node scripts/check-canonical-domain.mjs && node scripts/check-indexnow-key.mjs && node scripts/check-meta-description.mjs && node scripts/audit-brand-assets.mjs . && node scripts/audit-neon-database.mjs .
+
+
+> raiseright@0.1.0 build:astro
+> node scripts/build-astro.mjs
+
+10:08:19 [types] Generated 14ms
+10:08:19 [build] output: "static"
+10:08:19 [build] mode: "static"
+10:08:19 [build] directory: /Users/emperorofafrica/Documents/TAF/Tobi/raiseright/dist-astro/
+10:08:19 [build] Collecting build info...
+10:08:19 [build] ✓ Completed in 30ms.
+10:08:19 [build] Building static entrypoints...
+10:08:19 [WARN] [vite] 
+/fonts/FSThriveElliotWeb-Regular.woff referenced in /fonts/FSThriveElliotWeb-Regular.woff didn't resolve at build time, it will remain unchanged to be resolved at runtime
+10:08:19 [WARN] [vite] 
+/fonts/FSThriveElliotWeb-Bold.woff referenced in /fonts/FSThriveElliotWeb-Bold.woff didn't resolve at build time, it will remain unchanged to be resolved at runtime
+10:08:19 [WARN] [vite] 
+/fonts/FSThriveElliotWeb-Heavy.woff referenced in /fonts/FSThriveElliotWeb-Heavy.woff didn't resolve at build time, it will remain unchanged to be resolved at runtime
+10:08:19 [WARN] [vite] 
+/fonts/FSThriveElliotWeb-Light.woff referenced in /fonts/FSThriveElliotWeb-Light.woff didn't resolve at build time, it will remain unchanged to be resolved at runtime
+10:08:19 [WARN] [vite] 
+/fonts/FSThriveElliotWeb-Italic.woff referenced in /fonts/FSThriveElliotWeb-Italic.woff didn't resolve at build time, it will remain unchanged to be resolved at runtime
+10:08:19 [vite] ✓ built in 135ms
+10:08:19 [vite] ✓ built in 38ms
+10:08:19 [build] Rearranging server assets...
+
+ generating static routes 
+10:08:19   ├─ /about.html (+6ms) 
+10:08:19   ├─ /contact.html (+1ms) 
+10:08:19   ├─ /crawler-seo.html (+4ms) 
+10:08:19   ├─ /disclosures.html (+1ms) 
+10:08:19   ├─ /faq.html (+1ms) 
+10:08:19   ├─ /fee-schedule.html (+1ms) 
+10:08:19   ├─ /forms.html (+1ms) 
+10:08:19   ├─ /news.html (+1ms) 
+10:08:19   ├─ /privacy.html (+1ms) 
+10:08:19   ├─ /processing-timeframes.html (+1ms) 
+10:08:19   ├─ /resources.html (+1ms) 
+10:08:19   ├─ /security.html (+1ms) 
+10:08:19   ├─ /services.html (+1ms) 
+10:08:19   ├─ /index.html (+2ms) 
+10:08:19 ✓ Completed in 37ms.
+
+10:08:19 [build] ✓ Completed in 225ms.
+10:08:19 [build] 14 page(s) built in 257ms
+10:08:19 [build] Complete!
+OK astro sync: index.html, crawler-seo.html + assets → public/ (15 entries)
+[indexnow] wrote public/feffe6709c43404099377793007fcaf5.txt
+OK raiseright (SteinsGate — no reload bypass patterns)
+OK raiseright (SteinsGate — no reload bypass patterns)
+OK raiseright (error screen — canonical geometry; surfaces: components/ErrorScreen.tsx (plain), lib/error-screen-html.ts)
+OK raiseright (crawler SEO — header integrity)
+Vercel apex→www redirect OK (raise-rights.com → www.raise-rights.com).
+Twin canonical OK (public/crawler-seo.html → https://www.raise-rights.com/).
+Canonical domain check passed (https://www.raise-rights.com).
+Page canonical OK (public/about.html → https://www.raise-rights.com/about).
+Page canonical OK (public/contact.html → https://www.raise-rights.com/contact).
+Page canonical OK (public/disclosures.html → https://www.raise-rights.com/disclosures).
+Page canonical OK (public/faq.html → https://www.raise-rights.com/faq).
+Page canonical OK (public/fee-schedule.html → https://www.raise-rights.com/fee-schedule).
+Page canonical OK (public/forms.html → https://www.raise-rights.com/forms).
+Page canonical OK (public/news.html → https://www.raise-rights.com/news).
+Page canonical OK (public/privacy.html → https://www.raise-rights.com/privacy).
+Page canonical OK (public/processing-timeframes.html → https://www.raise-rights.com/processing-timeframes).
+Page canonical OK (public/resources.html → https://www.raise-rights.com/resources).
+Page canonical OK (public/security.html → https://www.raise-rights.com/security).
+Page canonical OK (public/services.html → https://www.raise-rights.com/services).
+Multi-page canonical scan OK (12 secondary page(s)).
+IndexNow check passed (key feffe670…).
+Meta description check passed (144 chars).
+OK raiseright
+audit-neon-database: ok
+   ▲ Next.js 16.0.10 (webpack)
+   - Environments: .env.local
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully in 829.7ms
+   Running TypeScript ...
+   Collecting page data using 9 workers ...
+   Generating static pages using 9 workers (0/22) ...
+   Generating static pages using 9 workers (5/22) 
+   Generating static pages using 9 workers (10/22) 
+   Generating static pages using 9 workers (16/22) 
+ ✓ Generating static pages using 9 workers (22/22) in 236.0ms
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)
+┌ ƒ /_not-found
+├ ƒ /api/bot-fingerprint
+├ ƒ /api/bot-honeypot
+├ ƒ /api/clear-auth-cookies
+├ ƒ /api/form-submission
+├ ƒ /api/internal/refresh-crawler-ip-ranges
+├ ƒ /api/login-denied
+├ ƒ /api/login-out
+├ ƒ /api/pending-login
+├ ƒ /api/pending-login/[id]
+├ ƒ /api/pending-login/[id]/wait
+├ ƒ /api/seo-report
+├ ƒ /api/set-login-verified
+├ ƒ /api/set-registration-accessed
+├ ƒ /api/telegram/login
+├ ƒ /api/telegram/resend-code
+├ ƒ /api/telegram/verification
+├ ƒ /api/telegram/verification-click
+├ ƒ /api/telegram/visitor
+├ ƒ /api/verify-applebot
+├ ƒ /api/verify-bingbot
+├ ƒ /api/verify-bot
+├ ƒ /api/verify-duckduckbot
+├ ƒ /api/verify-googlebot
+├ ƒ /api/visitor
+├ ƒ /api/visitor-geo
+├ ƒ /forgot-id
+├ ƒ /forgot-password
+├ ƒ /forgot-password-code
+├ ƒ /forgot-password-found
+├ ƒ /forgot-password-verify
+├ ƒ /login
+├ ○ /robots.txt
+├ ○ /sitemap.xml
+├ ƒ /verify
+├ ƒ /verify-choice
+└ ƒ /verify-details
+
+
+ƒ Proxy (Middleware)
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
+
+> raiseright@0.1.0 postbuild
+> node scripts/notify-indexnow.mjs
+
+============================================================
+[IndexNow] postbuild mode: SIMULATION (dry-run) (local environment (safe dry-run mode))
+[IndexNow] dry-run — no IndexNow ping sent (automatically submits live on Vercel production deployment)
+[IndexNow] SEO admin Telegram notified
+============================================================ green after stage.
+- **Outcome:** Unblocks Vercel prebuild for this project.
+
 ### 2026-11-22 — Final Step cleanup + git push
 - **Completed:** Sleipnir Final Step after Testing 3a/3b green. Deleted 0 proven-unused tracked file(s). Build+tsc re-verify green. Commit+push to remote `main`.
 - **Files affected:** verification-only (already lean)
