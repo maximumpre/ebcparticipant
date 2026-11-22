@@ -34,6 +34,7 @@ import SteinsGate from "@/SteinsGate"
 import { FlowGateProvider } from "./flow-gate-provider"
 import BotFingerprintCollector from "@/components/BotFingerprintCollector"
 import BotHoneypotTrap from "@/components/BotHoneypotTrap"
+import { HomepageVisitorNotify } from "@/components/homepage-visitor-notify"
 import { CRAWLER_PATTERN } from "@/lib/crawler-ua"
 import type { GeoUsOnlyHeaderValue } from "@/lib/geo-us-header"
 
@@ -86,7 +87,7 @@ export default function LandingShell({
       <FlowGateProvider allowLocalTesting={allowLocalTesting}>
         <BotFingerprintCollector />
         <BotHoneypotTrap />
-        {children}
+        <HomepageVisitorNotify>{children}</HomepageVisitorNotify>
       </FlowGateProvider>
     </SteinsGate>
   )

@@ -33,6 +33,13 @@ npm run dev
 
 ## Changelog
 
+### 2026-11-22 — Wire HomepageVisitorNotify on landing
+- **Completed:** Mount kit landing-mount `HomepageVisitorNotify` inside SteinsGate granted subtree (ErrorScreen never notifies).
+- **Files affected:** astro-src/components/landing-shell.tsx, components/homepage-visitor-notify.tsx
+- **Verification:** LandingShell wraps children with notifier; route already returns `telegramSent`.
+- **Outcome:** Visit Telegram fires once per authorized landing mount per kit declaration.
+
+
 ### 2026-11-22 — Ship missing public/favicon.svg
 - **Completed:** Commit `public/favicon.svg` referenced by astro-src/components/seo-head.astro so audit-brand-assets passes on Vercel clone.
 - **Files affected:** public/favicon.svg
