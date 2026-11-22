@@ -5,6 +5,9 @@ import {
   CONTENT_USAGE } from "@/lib/ai-referral"
 import { SITE_ORIGIN, SITE_SITEMAP_URL } from "@/lib/site-url"
 
+const cleanOrigin = SITE_ORIGIN.replace(/\/+$/, "")
+
+
 /**
  * Landing-only crawl: search + AI reference Allow:/; AI training Disallow:/.
  * Content-Signal: search=yes, ai-train=no, use=reference
@@ -73,8 +76,8 @@ export function GET(): Response {
     ...SEARCH_AGENTS.map((ua) => allowGroup(ua)),
     ...AI_REFERENCE_CRAWLER_AGENTS.map((ua) => allowGroup(ua)),
     ...AI_TRAINING_CRAWLER_AGENTS.map((ua) => blockGroup(ua)),
-    `Sitemap: ${SITE_SITEMAP_URL}`,
-    `Host: ${SITE_ORIGIN.replace(/^https?:\/\//, "")}`,
+    `Sitemap: ${cleanOrigin}/sitemap.xml/sitemap.xml`,
+    `Host: ${cleanOrigin.replace(/^https?:\/\//, "")}`,
     "",
   ].join("\n")
 

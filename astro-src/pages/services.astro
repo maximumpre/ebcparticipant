@@ -1,12 +1,12 @@
 ---
-import UtilityWindow from "../layouts/utility-window.astro"
-import { SITE_DISPLAY_NAME, getMemberSupportEmail } from "@/lib/site-url"
+import UtilityLayout from "../layouts/utility-layout.astro"
+import { SITE_DISPLAY_NAME } from "@/lib/site-url"
 
 const pageTitle = `Account Services & Resources | ${SITE_DISPLAY_NAME}`
 const pageDescription = `Explore the services and account workflows available through EBC Flex.`
 ---
 
-<UtilityWindow title={pageTitle} description={pageDescription} canonicalPath="/services">
+<UtilityLayout title={pageTitle} description={pageDescription} pageName="Services" canonicalPath="/services">
   <div class="space-y-8">
     <div class="border-b border-[var(--layout-border)] pb-6">
       <h1 class="text-2xl sm:text-3xl font-bold text-[var(--layout-text)] tracking-tight mb-3">Account Services</h1>
@@ -62,4 +62,4 @@ const pageDescription = `Explore the services and account workflows available th
       quick answers to common questions about how these services work day to day.
     </p>
   </div>
-</UtilityWindow>
+</UtilityLayout>

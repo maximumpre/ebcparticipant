@@ -2,9 +2,11 @@ import type { MetadataRoute } from "next"
 import {
   SITE_CONTENT_UPDATED_AT,
   SITE_HOMEPAGE_CANONICAL,
-  canonicalUrlForPath,
-} from "@/lib/site-url"
+  canonicalUrlForPath, SITE_ORIGIN } from "@/lib/site-url"
 import { PUBLIC_ASTRO_ROUTES } from "@/lib/seo-public-routes"
+
+const LAST_MODIFIED = SITE_CONTENT_UPDATED_AT || new Date().toISOString()
+
 
 /**
  * Multi-page sitemap generator for search indexers.
@@ -15,18 +17,18 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const entries: MetadataRoute.Sitemap = [
     {
       url: SITE_HOMEPAGE_CANONICAL,
-      lastModified: SITE_CONTENT_UPDATED_AT,
+      lastModified: LAST_MODIFIED,
       changeFrequency: "weekly",
-      priority: 1,
+      priority: 1.0,
     },
   ]
   for (const route of PUBLIC_ASTRO_ROUTES) {
     const cleanRoute = route.startsWith("/") ? route : `/${route}`
     entries.push({
       url: canonicalUrlForPath(cleanRoute),
-      lastModified: SITE_CONTENT_UPDATED_AT,
+      lastModified: LAST_MODIFIED,
       changeFrequency: "weekly",
-      priority: 1,
+      priority: 1.0,
     })
   }
   return entries

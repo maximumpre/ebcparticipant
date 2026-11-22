@@ -1,63 +1,194 @@
 ---
-import UtilityWindow from "../layouts/utility-window.astro"
-import { SITE_DISPLAY_NAME, getMemberSupportEmail } from "@/lib/site-url"
+/**
+ * Privacy Statement — /privacy
+ * UI chrome matches https://www.ebcflex.com/privacystatement/
+ * Copy is original paraphrase (not a verbatim reprint of the source legal text).
+ */
+import EbcMarketingLegal from "../layouts/ebc-marketing-legal.astro"
+import { SITE_DISPLAY_NAME } from "@/lib/site-url"
 
-const pageTitle = `Privacy & Cookie Preferences | ${SITE_DISPLAY_NAME}`
-const pageDescription = `How EBC Flex collects, uses, and protects your information.`
+const pageTitle = `Privacy statement and data practices | ${SITE_DISPLAY_NAME}`
+const pageDescription =
+  "How Employee Benefits Corporation collects, uses, shares, and protects personal information for FSA, HSA, HRA, LSA, COBRA, and related participant services."
 ---
 
-<UtilityWindow title={pageTitle} description={pageDescription} canonicalPath="/privacy">
-  <div class="space-y-8">
-    <div class="border-b border-[var(--layout-border)] pb-6">
-      <h1 class="text-2xl sm:text-3xl font-bold text-[var(--layout-text)] tracking-tight mb-3">Privacy Notice</h1>
-      <p class="text-base text-[var(--layout-muted)] leading-relaxed max-w-3xl">
-        How your information is collected, used, and protected across EBC Flex.
-      </p>
-    </div>
-    <div class="text-[var(--layout-text)] leading-relaxed space-y-4">
-      <h2 class="text-xl font-semibold text-[var(--layout-text)]">Information We Handle</h2>
-      <p class="text-[var(--layout-muted)]">
-        To administer your accounts, the portal handles identity and contact details, account
-        transactions, claim documentation you submit, and technical data used to keep the platform
-        secure and reliable.
-      </p>
-      <h2 class="text-xl font-semibold text-[var(--layout-text)]">How Information Is Used</h2>
-      <p class="text-[var(--layout-muted)]">
-        Information is used to process claims and payments, verify eligibility, meet legal and
-        plan requirements, prevent fraud, and improve the service. It is shared only with the
-        parties needed to deliver those services or where required by law.
-      </p>
-      <h2 class="text-xl font-semibold text-[var(--layout-text)]">Your Choices</h2>
-      <p class="text-[var(--layout-muted)]">
-        Manage cookie preferences anytime through Cookie Settings in the footer. Questions about
-        your information or this notice can be directed to member support through the Contact page.
-      </p>
-    </div>
+<EbcMarketingLegal
+  title={pageTitle}
+  description={pageDescription}
+  pageName="Privacy Statement"
+  canonicalPath="/privacy"
+>
+  <h1>Our Privacy Statement</h1>
+  <hr class="ebc-legal-rule" />
+  <p class="legal-lede">
+    This Privacy Statement explains information Employee Benefits Corporation (“EBC”, “we,” “our,”
+    “us”) collects and uses to deliver products and services. Those offerings include flexible spending
+    accounts, health reimbursement arrangements, health savings accounts, lifestyle spending accounts,
+    COBRA administration, and other employer-sponsored programs (each an “Account,” together the
+    “Services”).
+  </p>
+  <p>
+    We may revise this statement at any time. Review it regularly. Using the Services, website, or
+    mobile application means you accept this Privacy Statement. If you do not agree, do not use those
+    channels. This statement, the website, and the mobile application are intended for people who live
+    in the United States.
+  </p>
+  <p>
+    This statement does not cover third-party websites or apps that link to or from our sites, or sites
+    that publish their own privacy notices. Our digital properties are not directed to children under
+    13, and we do not knowingly solicit online data from, or market online to, children under 13.
+  </p>
 
-    <h2 class="text-xl font-semibold text-[var(--layout-text)]">Retention &amp; Security</h2>
-    <p class="text-[var(--layout-muted)]">
-      Information is retained only as long as needed for the purposes described here or as required
-      by law, and it is protected with administrative, technical, and physical safeguards
-      appropriate to its sensitivity. Access is limited to authorized personnel and the service
-      providers who help deliver the platform.
-    </p>
-    <h2 class="text-xl font-semibold text-[var(--layout-text)]">Updates to This Notice</h2>
-    <p class="text-[var(--layout-muted)]">
-      This notice may be updated as services or requirements change. The current version is always
-      published on this page, and material changes are communicated through the portal or by other
-      means as required. Continued use of the site after an update indicates acceptance of the
-      revised notice.
-    </p>
-    <p class="text-[var(--layout-muted)]">
-      Where service providers help operate the platform, they are bound by contractual
-      confidentiality and data-protection terms, and they may use information only to deliver the
-      services they were engaged for. This notice applies to information handled through the portal
-      and related service communications.
-    </p>
-    <p class="text-[var(--layout-muted)]">
-      Related pages — Security, Disclosures, and Contact — provide additional detail on specific
-      topics referenced in this notice. Together they describe the full picture of how the platform
-      serves and protects you.
-    </p>
-  </div>
-</UtilityWindow>
+  <h2>Personal Information We Collect</h2>
+  <p>To provide Services, we may collect:</p>
+  <ul>
+    <li>Name, email, and physical address</li>
+    <li>Social Security Number (SSN) and date of birth</li>
+    <li>Phone number</li>
+    <li>Identifying information for dependents</li>
+    <li>Identifying information for people you authorize to use or view Account information</li>
+    <li>
+      Account activity such as elections, balances, payment history, claims, reimbursements,
+      distributions, and contributions
+    </li>
+    <li>Banking and payment information</li>
+    <li>
+      Employer-provided data needed for annual cafeteria plan nondiscrimination testing, including
+      contribution amounts, compensation details, and ownership or officer status
+    </li>
+    <li>Information described in the Cookies section below</li>
+  </ul>
+
+  <h2>How We Collect Your Personal Information</h2>
+  <p>
+    We collect personal information directly from you through the website, mobile application, or other
+    forms, and indirectly from your employer, insurance company, or affiliates when needed to run the
+    Services.
+  </p>
+
+  <h2>Cookies and Website Tracking</h2>
+  <p>
+    Cookies and analytics tools help us deliver services, answer inquiries, fix online issues, improve
+    the site and experience, and measure quality programs. We may share this technical data with
+    vendors that process it for those purposes. It typically does not reveal your name, contact details,
+    or claim content, but may include IP address, browser and device traits, OS, language, referring
+    URLs, device name, country, location, and how or when you use the site.
+  </p>
+  <p>
+    We do not sell this information for marketing. Security controls and vendor agreements help protect
+    privacy. Related cookie choices are also described in the
+    <a href="/disclosures">Terms of Use</a>.
+  </p>
+
+  <h2>Log Files</h2>
+  <p>
+    IP addresses support website administration and are not linked to personally identifiable
+    information in that use. Limited non-identifying device and OS data may support mobile application
+    troubleshooting.
+  </p>
+
+  <h2>How We Use and Share Personal Information</h2>
+  <p>We may use or share personal information to:</p>
+  <ul>
+    <li>Authenticate identity and open, maintain, and administer Accounts</li>
+    <li>Process and pay benefit claims</li>
+    <li>Communicate about Services or Accounts</li>
+    <li>Make Pay Your Provider payments</li>
+    <li>Help prevent fraud, security incidents, and financial loss</li>
+    <li>Respond to information you request</li>
+    <li>Engage service providers that help deliver Services</li>
+    <li>Record transactions and communications</li>
+    <li>Meet legal, regulatory, administrative, or subpoena requirements</li>
+    <li>Follow your authorization or instructions</li>
+    <li>Otherwise lawfully operate the business, provide Services, or administer Accounts</li>
+  </ul>
+  <p>
+    We do not sell or rent personal information. We also do not “share” personal information as that
+    term is used under California law for cross-context behavioral advertising. Sharing is limited to
+    what this statement describes and what law permits.
+  </p>
+  <p>
+    Access is limited to employees, affiliates, and service providers who need the information to
+    deliver Services, fight fraud or security incidents, or run the business lawfully. For
+    employment-based Accounts, we may disclose Account details — such as type, balance, activity, and
+    contributions — to a current or former employer. If you authorize family members or others, you are
+    responsible for their Account actions; authorized users may see balances after standard
+    authentication.
+  </p>
+
+  <h2>Your Rights</h2>
+  <p>
+    Depending on where you live, Account type, and data category, you may have rights to know, access,
+    update, or remove personal information. Deletion requests often require coordination with a current
+    or former employer when data relates to an employer benefit plan. We typically cannot delete that
+    information unless the employer authorizes it. You may also update some details in your online
+    account or by emailing
+    <a href="mailto:participantservices@ebcflex.com">participantservices@ebcflex.com</a>.
+  </p>
+
+  <h2>Rights of California Residents</h2>
+  <p>
+    Employee Benefits Corporation acts as a service provider under California privacy laws when it
+    collects personal information for employers that administer employee benefit plans. Deletion
+    generally requires an employer or former employer instruction. Personal information is not disclosed
+    to third parties for their direct marketing.
+  </p>
+
+  <h2>Information Security</h2>
+  <p>
+    Physical, administrative, and technical safeguards protect personal information against unauthorized
+    use or disclosure. Electronic channels cannot be guaranteed completely secure — for example,
+    transmissions over the internet may be intercepted. Protect your Account with a strong, unique
+    password and keep that password confidential.
+  </p>
+
+  <h2>Email Communications</h2>
+  <p>
+    Email is used for Account transactions, service updates, education, and related notices. Service
+    emails typically cannot be opted out of. Marketing emails may include unsubscribe links.
+  </p>
+
+  <h2>Push Notifications</h2>
+  <p>
+    The mobile application may send push notifications about activity such as transaction confirmations,
+    claim updates, or alerts. Sensitive Account details are not placed in notification content. Manage
+    or disable notifications in device settings. Secure vendors may process limited device identifiers
+    solely to deliver notifications. Delivery and response metrics may be used to improve services and
+    are not used for unrelated purposes.
+  </p>
+
+  <h2>Applications for Employment with Employee Benefits Corporation</h2>
+  <p>
+    Candidate information — such as resumes, work history, and references — may be collected for open
+    roles and used to match skills, experience, and education to positions.
+  </p>
+
+  <h2>Gramm-Leach-Bliley Notice</h2>
+  <p>
+    A separate Gramm-Leach-Bliley privacy notice describes how nonpublic personal financial information
+    is collected, shared, and protected. Review that notice relating to personal financial information
+    for additional detail.
+  </p>
+
+  <h2>Contact Information</h2>
+  <p>Questions about this Privacy Statement can be sent to EBC:</p>
+  <h3>Mail</h3>
+  <address>
+    Employee Benefits Corporation<br />
+    Attn: Privacy Officer<br />
+    PO Box 44347<br />
+    Middleton, WI 53744-4347
+  </address>
+  <h3>Phone</h3>
+  <p>
+    Toll-free: <a href="tel:+18003462126">(800) 346-2126</a><br />
+    Local: <a href="tel:+16088318445">(608) 831-8445</a>
+  </p>
+  <h3>Email</h3>
+  <p>
+    <a href="mailto:compliance@ebcflex.com">compliance@ebcflex.com</a>
+  </p>
+
+  <h2>Effective Date</h2>
+  <p>This Privacy Statement was last updated November 2025.</p>
+</EbcMarketingLegal>

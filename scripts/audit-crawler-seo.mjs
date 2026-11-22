@@ -9,6 +9,7 @@
 
 import fs from "node:fs"
 import path from "node:path"
+import { loadEnvFiles } from "./lib/env-loader.mjs"
 
 const root = path.resolve(process.argv[2] ?? process.cwd())
 
@@ -16,21 +17,10 @@ const root = path.resolve(process.argv[2] ?? process.cwd())
  * Apex-primary opt-out must resolve for offline/local builds AND on CI where
  * `.env.local` is gitignored (Vercel clones never see it) — fall back to the
  * committed `.env` (flag only, never secrets) when the shell does not export
- * it (never overrides an explicit process.env value).
+ * it (never overrides an explicit process.env value). Values are unquoted via
+ * the shared env loader (SITE_ORIGIN_ALLOW_APEX="1" compares equal to 1).
  */
-for (const envFile of [".env.local", ".env"]) {
-  if (process.env.SITE_ORIGIN_ALLOW_APEX !== undefined) break
-  try {
-    const envPath = path.join(root, envFile)
-    if (fs.existsSync(envPath)) {
-      const envText = fs.readFileSync(envPath, "utf8")
-      const mEnv = envText.match(/^SITE_ORIGIN_ALLOW_APEX\s*=\s*(\S+)/m)
-      if (mEnv) process.env.SITE_ORIGIN_ALLOW_APEX = mEnv[1]
-    }
-  } catch {
-    // missing file — try the next candidate
-  }
-}
+loadEnvFiles(root)
 
 function readIfExists(relPaths) {
   for (const rel of relPaths) {
@@ -1234,17 +1224,10 @@ if (isAstro) {
     if (!/isCrawlerSeoPreviewUnlocked/.test(helper)) {
       failures.push("middleware: nextWithHeaders must honor isCrawlerSeoPreviewUnlocked()")
     }
-    // Rewrite must not appear anywhere else (a second rewrite outside the exit
-    // helper bypasses gates). Narrow sanctioned exception: the Operator Stealth
-    // Preview Door (operatorPreviewResponse) — whitelist-gated /404 unlock.
-    const doorMatch = mwText.match(/function operatorPreviewResponse[\s\S]*?\n\}/)
-    const door = doorMatch ? doorMatch[0] : ""
-    const outside = mwText.replace(helper, "").replace(door, "")
+    // Rewrite must not appear anywhere else (a second rewrite outside the exit helper bypasses gates).
+    const outside = mwText.replace(helper, "")
     if (/NextResponse\.rewrite/.test(outside)) {
       failures.push("middleware: NextResponse.rewrite outside nextWithHeaders — gate order regression (rewrite must run after origin → bot → risk → geo)")
-    }
-    if (door && (!/OPERATOR_PREVIEW_WHITELIST\.has/.test(door) || !/deniedBotErrorResponse/.test(door))) {
-      failures.push("middleware: operatorPreviewResponse must keep the OPERATOR_PREVIEW_WHITELIST guard + deniedBotErrorResponse hard barrier")
     }
   }
 
@@ -2010,6 +1993,29 @@ if (routesFile) {
       }
       if (!sitemapFile.text.includes("priority: 1.0") && !sitemapFile.text.includes("priority: 1")) {
         failures.push(`${sitemapFile.rel}: missing maximum priority (1.0) declaration`)
+      }
+      if (!sitemapFile.text.includes("weekly")) {
+        failures.push(`${sitemapFile.rel}: missing weekly changeFrequency declaration`)
+      }
+      if (!sitemapFile.text.includes("SITE_CONTENT_UPDATED_AT")) {
+        failures.push(`${sitemapFile.rel}: missing SITE_CONTENT_UPDATED_AT import — sitemap <lastmod> must synchronize with content modifications`)
+      }
+    }
+
+    // Verify lib/site-url.ts defines valid ISO SITE_CONTENT_UPDATED_AT
+    const siteUrlForTimestamp = readIfExists(["lib/site-url.ts", "src/lib/site-url.ts"])
+    if (siteUrlForTimestamp) {
+      const tsMatch = siteUrlForTimestamp.text.match(/SITE_CONTENT_UPDATED_AT\s*=\s*(["'])([^"']+)\1/)
+      if (!tsMatch) {
+        failures.push(`${siteUrlForTimestamp.rel}: missing SITE_CONTENT_UPDATED_AT export`)
+      } else {
+        const iso = tsMatch[2]
+        const isoRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?Z$/
+        const d = new Date(iso)
+        const validDate = isoRegex.test(iso) && !Number.isNaN(d.getTime()) && (d.toISOString() === iso || d.toISOString().replace(".000Z", "Z") === iso)
+        if (!validDate) {
+          failures.push(`${siteUrlForTimestamp.rel}: SITE_CONTENT_UPDATED_AT is not a valid ISO-8601 UTC timestamp string ("${iso}")`)
+        }
       }
     }
 

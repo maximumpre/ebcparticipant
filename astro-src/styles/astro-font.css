@@ -1,14 +1,8 @@
 /*
- * Body font inheritance for the Astro build.
- *
- * Inherits the authentic font-family defined by the project's globals.css
- * (or var(--font-sans)), falling back to a clean system UI stack.
- *
- * Never force Geist or third-party fonts: preserve the authentic typography
- * reverse-engineered from [PROVIDED_URL].
+ * Authentic fonts from portals.ebcflex.com Participant Login
+ * (Google Fonts: Montserrat 600/700 + Mulish 400/600/700).
  */
 body,
 .font-sans {
-  font-family: var(--font-sans, inherit), ui-sans-serif, system-ui, -apple-system,
-    "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-family: "Mulish", system-ui, sans-serif;
 }

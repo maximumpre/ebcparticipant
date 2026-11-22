@@ -23,7 +23,15 @@ export const viewport = { width: "device-width", initialScale: 1 }
   <head>
     <SeoHead />
     <SeoJsonLd />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Mulish:wght@400;600;700&display=swap"
+    />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="preload" as="image" href={heroImage} />
+    <link rel="preload" as="image" href={BRAND_LOGO_SRC} />
   </head>
   <body class="font-sans antialiased">
     <div class="astro-brand-shell" style="position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap">

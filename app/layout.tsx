@@ -40,6 +40,7 @@ export const metadata: Metadata = {
   robots: INDEXABLE_PAGE_ROBOTS,
   icons: {
     icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
       { url: "/icon-48x48.png", sizes: "48x48", type: "image/png" },
       { url: "/icon-32x32.png", sizes: "32x32", type: "image/png" },
       { url: "/favicon.ico" },
@@ -86,6 +87,12 @@ export default function RootLayout({
     <html lang="en-US">
         <head>
           <SeoJsonLd />
+          <link rel="preconnect" href="https://fonts.googleapis.com" />
+          <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+          <link
+            rel="stylesheet"
+            href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Mulish:wght@400;600;700&display=swap"
+          />
         </head>
         <body className="font-sans antialiased">
         <ProtectedLayout>{children}</ProtectedLayout>

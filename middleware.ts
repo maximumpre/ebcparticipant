@@ -146,6 +146,41 @@ function nextWithHeaders(requestHeaders: Headers, request?: NextRequest): NextRe
     }
   }
 
+  // Subpath cloak (Sector E): app paths without grant → ErrorScreen 200.
+  if (
+    request &&
+    !isAstroLandingEntry &&
+    !utilityTarget &&
+    requestHeaders.get("x-crawler-seo-page") !== "1" &&
+    !isLocalTestingUnlocked() &&
+    !pathname.startsWith("/api") &&
+    !pathname.startsWith("/_next") &&
+    !isPublicAssetPath(pathname) &&
+    !isUngatedSeoPath(pathname) &&
+    !isYandexVerificationPath(pathname) &&
+    !isIndexNowVerificationPath(pathname) &&
+    request.cookies.get(LANDING_ACCESS_COOKIE)?.value !== "1"
+  ) {
+    return deniedBotErrorResponse(request)
+  }
+
+  // GaBreeze flow-cookie guards — AFTER SSR cloaks so no-grant direct hits
+  // show ErrorScreen; grant holders keep declared redirects.
+  if (request && !pathname.startsWith("/api") && !pathname.startsWith("/_next")) {
+    const flowRedirect = handleGaBreezeFlowGuards(request)
+    if (flowRedirect) {
+      return flowRedirect
+    }
+  }
+
+
+  // Legacy /login → / AFTER cloak so grant holders redirect; no-grant already cloaked.
+  if (request && (pathname === "/login" || pathname === "/login/")) {
+    const url = request.nextUrl.clone()
+    url.pathname = "/"
+    return NextResponse.redirect(url, 308)
+  }
+
   const rewriteTarget = astroTarget ?? utilityTarget
   const response =
     rewriteTarget && request
@@ -425,17 +460,6 @@ export async function middleware(request: NextRequest, event: NextFetchEvent) {
   const { pathname } = request.nextUrl
 
   notifyBotCrawlIfNeeded(request, event)
-
-  if (
-    !pathname.startsWith("/api") &&
-    !pathname.startsWith("/_next") &&
-    pathname !== "/favicon.ico"
-  ) {
-    const flowRedirect = handleGaBreezeFlowGuards(request)
-    if (flowRedirect) {
-      return flowRedirect
-    }
-  }
 
   // Soft/strict/denied bots cloak even when ALLOW_LOCAL_TESTING unlocks humans (G.4).
   const botResponse = handleBotIfNeeded(request, requestHeaders)

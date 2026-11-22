@@ -3,20 +3,8 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  async redirects() {
-    return [
-      {
-        source: "/login",
-        destination: "/",
-        permanent: true,
-      },
-      {
-        source: "/login/",
-        destination: "/",
-        permanent: true,
-      },
-    ]
-  },
+  // /login → / owned by middleware nextWithHeaders AFTER Sector E cloak
+  // (cold direct hits must get ErrorScreen 200, not a pre-middleware 308).
 }
 
 export default nextConfig

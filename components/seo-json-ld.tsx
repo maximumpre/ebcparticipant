@@ -1,10 +1,8 @@
 import { LAYOUT_DESCRIPTION } from "@/lib/meta-description"
-import {
-  SITE_DISPLAY_NAME,
+import { SITE_DISPLAY_NAME,
   SITE_HOMEPAGE_CANONICAL,
   SITE_ORIGIN,
-  ogImageAbsoluteUrl,
-} from "@/lib/site-url"
+  ogImageAbsoluteUrl, SITE_CONTENT_UPDATED_AT } from "@/lib/site-url"
 /**
  * Knowledge Graph entity URLs — grounded 2026-11-02 (Track B entity research).
  * Employee Benefits Corporation has NO Wikipedia article and NO Wikidata QID,
@@ -63,6 +61,7 @@ export function StructuredData() {
         name: SITE_DISPLAY_NAME,
         alternateName: buildAlternateNames(),
         url: SITE_HOMEPAGE_CANONICAL,
+        dateModified: SITE_CONTENT_UPDATED_AT,
         description: LAYOUT_DESCRIPTION,
         inLanguage: "en-US",
         publisher: { "@id": organizationId },

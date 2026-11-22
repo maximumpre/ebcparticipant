@@ -1,64 +1,197 @@
 ---
-import UtilityWindow from "../layouts/utility-window.astro"
-import { SITE_DISPLAY_NAME, getMemberSupportEmail } from "@/lib/site-url"
+/**
+ * Terms of Use — /disclosures
+ * UI chrome matches https://www.ebcflex.com/termsofuse/
+ * Copy is original paraphrase (not a verbatim reprint of the source legal text).
+ */
+import EbcMarketingLegal from "../layouts/ebc-marketing-legal.astro"
+import { SITE_DISPLAY_NAME } from "@/lib/site-url"
 
-const pageTitle = `Legal & Compliance Disclosures | ${SITE_DISPLAY_NAME}`
-const pageDescription = `Legal, tax, and service disclosures for EBC Flex users.`
+const pageTitle = `Terms of use and legal disclosures | ${SITE_DISPLAY_NAME}`
+const pageDescription =
+  "Terms governing use of the Employee Benefits Corporation website and online participant services, including security, alerts, liability limits, and Wisconsin venue."
+const year = new Date().getFullYear()
 ---
 
-<UtilityWindow title={pageTitle} description={pageDescription} canonicalPath="/disclosures">
-  <div class="space-y-8">
-    <div class="border-b border-[var(--layout-border)] pb-6">
-      <h1 class="text-2xl sm:text-3xl font-bold text-[var(--layout-text)] tracking-tight mb-3">Disclosures</h1>
-      <p class="text-base text-[var(--layout-muted)] leading-relaxed max-w-3xl">
-        Important tax and plan information for spending account participants.
-      </p>
-    </div>
-    <div class="text-[var(--layout-text)] leading-relaxed space-y-4">
-      <h2 class="text-xl font-semibold text-[var(--layout-text)]">Tax Rules Apply</h2>
-      <p class="text-[var(--layout-muted)]">
-        HSA, FSA, and HRA accounts are governed by IRS rules that define eligible expenses,
-        contribution limits, and distribution requirements. Tax information on this site is general
-        in nature and is not tax advice — consult a qualified professional about your situation.
-      </p>
-      <h2 class="text-xl font-semibold text-[var(--layout-text)]">Plan Documents Govern</h2>
-      <p class="text-[var(--layout-muted)]">
-        Your plan documents define eligibility, covered expenses, deadlines, and any grace period,
-        rollover, or use-it-or-lose-it rules. Where this site differs from the plan documents, the
-        plan documents control.
-      </p>
-      <h2 class="text-xl font-semibold text-[var(--layout-text)]">Card &amp; Substantiation</h2>
-      <p class="text-[var(--layout-muted)]">
-        Benefits debit card transactions may require substantiation with receipts or explanation of
-        benefits documentation. Unsubstantiated transactions may be reversed per plan rules.
-      </p>
-      <h2 class="text-xl font-semibold text-[var(--layout-text)]">Technology Availability</h2>
-      <p class="text-[var(--layout-muted)]">
-        Portal features may change over time and can be subject to maintenance windows. Some tools
-        require specific account types to be active.
-      </p>
-    </div>
+<EbcMarketingLegal
+  title={pageTitle}
+  description={pageDescription}
+  pageName="Terms of Use"
+  canonicalPath="/disclosures"
+>
+  <h1>Terms of Use</h1>
+  <hr class="ebc-legal-rule" />
+  <p class="legal-lede">
+    Review our <a href="/privacy">Privacy Statement</a> to learn how personal information is managed,
+    how Employee Benefits Corporation protects that information, and what rights may apply to you.
+  </p>
 
-    <h2 class="text-xl font-semibold text-[var(--layout-text)]">Communications &amp; Notices</h2>
-    <p class="text-[var(--layout-muted)]">
-      Electronic communications and disclosures delivered through the portal may satisfy legal
-      delivery requirements where permitted. Keeping your contact details current ensures these
-      notices reach you on time and preserves your ability to act within the windows they define.
-    </p>
-    <h2 class="text-xl font-semibold text-[var(--layout-text)]">Questions</h2>
-    <p class="text-[var(--layout-muted)]">
-      If any statement here is unclear or appears inconsistent with documents you have received,
-      contact member support. The documents referenced in this page govern, and support can help
-      locate the specific language that applies to your situation.
-    </p>
-    <p class="text-[var(--layout-muted)]">
-      These disclosures are provided for general information and do not modify any agreement you
-      have entered into. In the event of a conflict between this page and a signed agreement or plan
-      document, the signed agreement or plan document governs in all respects.
-    </p>
-    <p class="text-[var(--layout-muted)]">
-      The Privacy Notice and Security pages provide related detail on how information is handled and
-      protected across the platform.
-    </p>
-  </div>
-</UtilityWindow>
+  <h3>Agreement Between User and Employee Benefits Corporation</h3>
+  <p>
+    These Terms of Use control access to the Employee Benefits Corporation website and related Online
+    Services offered to customers. Online Services include electronic account access and the ability to
+    complete permitted transactions through the portal.
+  </p>
+  <p>
+    Access is conditioned on accepting these terms, conditions, and notices without modification. Using
+    the website or Online Services means you agree to this Agreement.
+  </p>
+
+  <h3>Modification of These Terms of Use</h3>
+  <p>
+    Employee Benefits Corporation may update the terms, conditions, and notices that apply to the
+    website and Online Services, including any charges tied to those services. Continued use after an
+    update constitutes acceptance of the revised terms.
+  </p>
+
+  <h3>Links to Third-party Sites</h3>
+  <p>
+    The website may include links to third-party sites. Those Linked Sites are outside Employee Benefits
+    Corporation control. Employee Benefits Corporation is not responsible for Linked Site content,
+    updates, or transmissions, and a link does not create an endorsement or affiliation with the
+    Linked Site operator. Links are provided for convenience only.
+  </p>
+
+  <h3>No Unlawful or Prohibited Use</h3>
+  <p>
+    You agree not to use the website or Online Services for unlawful purposes or for any use barred by
+    these terms. You may not damage, disable, overload, or interfere with the services, or disrupt
+    another party’s enjoyment of them. You may not obtain materials through means that were not
+    intentionally made available through the website or Online Services.
+  </p>
+
+  <h3>Multi-Factor Authentication</h3>
+  <p>
+    When you use Online Services to reach an account or run transactions, Employee Benefits Corporation
+    may require multi-factor authentication. That may include providing at least one telephone number
+    that can receive a verification code by SMS/text, voice call, or email. Carrier message and data
+    rates may apply under your mobile plan.
+  </p>
+
+  <h3>Online Security</h3>
+  <p>
+    You agree to choose a password that is not easy for others to guess and to keep it confidential.
+    Take reasonable steps to stop unauthorized password use. Employee Benefits Corporation is not liable
+    for unauthorized access or transactions that occur before it is notified of the problem.
+  </p>
+
+  <h3>Alerts Service</h3>
+  <p>
+    If you enable alerts, Employee Benefits Corporation may send SMS/text messages to your mobile phone.
+    Carrier charges may apply. Alerts may be unencrypted and can include your name and account-related
+    information. Delivery can be delayed or blocked by telephone, internet, or other provider factors.
+    Delivery and content accuracy are not guaranteed. Either you or Employee Benefits Corporation may end
+    alert service at any time.
+  </p>
+
+  <h3>Use of Communication Services</h3>
+  <p>
+    The website may offer forums, message areas, calendars, or similar Communication Services. Use them
+    only for proper, related communications. Without limiting that duty, you agree not to:
+  </p>
+  <ul>
+    <li>Harass, threaten, defame, or otherwise violate others’ legal rights.</li>
+    <li>Post unlawful, infringing, obscene, or otherwise improper material.</li>
+    <li>Upload files that violate intellectual property or privacy rights without authority.</li>
+    <li>Upload malware, corrupted files, or programs that harm another system.</li>
+    <li>Advertise or solicit sales unless the specific Communication Service allows it.</li>
+    <li>Download content you know (or should know) cannot lawfully be distributed that way.</li>
+    <li>Remove or falsify authorship, legal notices, or source labels on uploaded material.</li>
+    <li>Block others from using Communication Services.</li>
+    <li>Break applicable codes of conduct, guidelines, laws, or regulations.</li>
+    <li>Harvest contact data about others without consent.</li>
+  </ul>
+  <p>
+    Employee Benefits Corporation may review and remove posts, disclose information when required by law,
+    and terminate Communication Service access without notice. It does not endorse user content and
+    disclaims liability for participation. Managers or hosts are not authorized spokespersons. Uploaded
+    materials may carry usage limits that you must follow.
+  </p>
+
+  <h3>Materials Provided to or Posted on the Website and Online Services</h3>
+  <p>
+    Employee Benefits Corporation does not claim ownership of feedback, suggestions, or other Submissions
+    you provide. By submitting material, you grant Employee Benefits Corporation and its affiliates
+    permission to use that Submission in operating internet businesses — including rights to copy,
+    distribute, display, edit, translate, and reformat it, and to publish your name with it. No
+    compensation is owed for that use. Employee Benefits Corporation may decline or remove any
+    Submission. You represent that you control the rights needed to submit the material.
+  </p>
+  <p>
+    This section does not cover personal information or personal health information handled under the
+    <a href="/privacy">Privacy Statement</a>.
+  </p>
+
+  <h3>Liability Disclaimer</h3>
+  <p class="legal-disclaimer">
+    Information, software, products, and services available through the website and Online Services may
+    contain errors. Content may change. Do not rely on website advice for personal, medical, legal, or
+    financial decisions — consult a qualified professional. To the fullest extent allowed by law,
+    materials are provided “as is” without warranties of any kind, including merchantability, fitness
+    for a particular purpose, title, and non-infringement. Employee Benefits Corporation and its
+    suppliers are not liable for direct, indirect, incidental, special, consequential, or similar
+    damages arising from use, delay, inability to use, or content obtained through the services, even if
+    advised of possible damages. Some jurisdictions limit these exclusions; where they do, limits apply
+    only as far as the law allows. If you are dissatisfied, your sole remedy is to stop using the
+    website and Online Services.
+  </p>
+
+  <h3>Termination / Access Restriction</h3>
+  <p>
+    Employee Benefits Corporation may end or restrict access to the website, Online Services, or related
+    services at any time, in its sole discretion, without notice.
+  </p>
+
+  <h3>General</h3>
+  <p>
+    To the maximum extent permitted by law, Wisconsin law governs this Agreement, and disputes are
+    subject to exclusive jurisdiction in Dane County, Wisconsin courts. Use is unauthorized in any
+    jurisdiction that will not give effect to these terms. No partnership, employment, or agency
+    relationship is created by this Agreement. Performance remains subject to applicable law and lawful
+    government or court requests. If a provision is unenforceable, it is replaced by a valid provision
+    that closest matches its intent, and the rest remains in force. This Agreement is the entire
+    understanding regarding the website and Online Services and supersedes prior communications on that
+    subject. Printed copies of electronic notices may be used in proceedings like other business
+    records. The parties intend the Agreement and related documents to be in English.
+  </p>
+
+  <h3>Use of Cookie File Features</h3>
+  <p>
+    Employee Benefits Corporation may store cookies or similar files to reflect preferences and improve
+    the experience. Rejecting cookies may limit some areas, including account access and related web
+    applications. Preference guidance is available via public opt-out resources such as
+    <a href="https://www.usa.gov/optout-instructions">usa.gov opt-out instructions</a>. Additional
+    cookie detail appears in the <a href="/privacy">Privacy Statement</a>.
+  </p>
+
+  <h3>Copyright and Trademark Notices</h3>
+  <p>
+    Website and Online Services content is protected by copyright held by Employee Benefits Corporation
+    and/or its suppliers, including updates through {year}. All rights reserved. Company and product
+    names mentioned may be trademarks of their owners. Sample names or events used for illustration are
+    fictitious. Rights not expressly granted are reserved.
+  </p>
+
+  <h3>Notices and Procedure for Making Claims of Copyright Infringement</h3>
+  <p>
+    Under 17 U.S.C. § 512(c)(2), copyright infringement notices must follow the process below.
+    Inquiries unrelated to copyright notifications may receive no response. Provide:
+  </p>
+  <ul>
+    <li>A description of the copyrighted work claimed to be infringed.</li>
+    <li>A description of where the allegedly infringing material appears on the website or Online Services.</li>
+    <li>Your address, telephone number, and email address.</li>
+    <li>A good-faith statement that the disputed use is unauthorized.</li>
+    <li>A statement under penalty of perjury that the notice is accurate and that you are the owner or authorized agent.</li>
+    <li>An electronic or physical signature of the authorized person.</li>
+  </ul>
+  <p>Send copyright notices to the Compliance Department:</p>
+  <address>
+    Employee Benefits Corporation<br />
+    ATTN: Compliance Department<br />
+    PO Box 44347<br />
+    Madison, WI 53744-4347<br />
+    Fax: (608) 831-8445<br />
+    Email: <a href="mailto:Compliance@ebcflex.com">Compliance@ebcflex.com</a>
+  </address>
+</EbcMarketingLegal>

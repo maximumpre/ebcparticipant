@@ -1,12 +1,12 @@
 ---
-import UtilityWindow from "../layouts/utility-window.astro"
-import { SITE_DISPLAY_NAME, getMemberSupportEmail } from "@/lib/site-url"
+import UtilityLayout from "../layouts/utility-layout.astro"
+import { SITE_DISPLAY_NAME } from "@/lib/site-url"
 
 const pageTitle = `Resources, Guides & Learning | ${SITE_DISPLAY_NAME}`
 const pageDescription = `Guides and learning resources for getting the most from EBC Flex.`
 ---
 
-<UtilityWindow title={pageTitle} description={pageDescription} canonicalPath="/resources">
+<UtilityLayout title={pageTitle} description={pageDescription} pageName="Resources" canonicalPath="/resources">
   <div class="space-y-6">
     <div class="border-b border-[var(--layout-border)] pb-4">
       <h1 class="text-2xl sm:text-3xl font-bold text-[var(--layout-text)] tracking-tight mb-2">Resources &amp; Learning</h1>
@@ -46,4 +46,4 @@ const pageDescription = `Guides and learning resources for getting the most from
       these pages form a complete reference you can return to whenever a question comes up.
     </p>
   </div>
-</UtilityWindow>
+</UtilityLayout>

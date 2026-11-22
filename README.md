@@ -33,6 +33,55 @@ npm run dev
 
 ## Changelog
 
+
+
+### 2026-11-22 — Final Step cleanup + git push
+- **Completed:** Sleipnir Final Step after Testing 3a/3b green. Deleted 0 proven-unused tracked file(s). Build+tsc re-verify green. Commit+push to remote `main`.
+- **Files affected:** verification-only (already lean)
+- **Verification:** `final-step-one.mjs` exit 0; offline `tsc` + `npm run build`.
+- **Outcome:** Cleanup complete; member site push ready. Env unlock not mutated (`.env.local` hands-off).
+
+### 2026-11-22 — Testing 3a/3b fleet re-run (serial fix-until-green)
+- **Completed:** Mechanical Testing 3a+3b battery green on `localhost:3015`: F0 (`tsc`+offline `build`), crawler twin delivery (Googlebot), AhrefsBot ErrorScreen cloak, robots/sitemap 200, Part F audits (crawler-seo/steins/error/brand/meta/canonical/indexnow), Part H allowlist leak sweep.
+- **Files affected:** verification-only (kit preflight sync earlier); no code mutations required this run.
+- **Verification:** `Tobi/_testing3-batch/run-one.mjs` + `probe-3ab.mjs` exit 0; results JSON under `_testing3-batch/results/`.
+- **Outcome:** Testing 3a+3b PASS for local QA. Document `ALLOW_LOCAL_TESTING` from `.env.local` — not a production steins-gate claim.
+
+### 2026-11-21 — Tobi fleet Step 5 safe-batch re-run
+
+- **Completed:** Atomic kit sync (`audit-crawler-seo` + `scripts/lib/env-loader`) + harness pre-patches (BURST_POLL_MS=500, OG alt `SITE_DISPLAY_NAME`, matcher parse-ok). Full battery green: audit-crawler-seo / brand x2 / meta / serp 11/11 / tsc / build. Live dual-source domain re-verify this run; hard-ban trigger words stripped from shortlist where present.
+- **Files affected:** `scripts/` (kit sync), `lib/approval-messages.ts` (where needed), SEO head/layout OG alt (where needed), utility page titles (where A13 short).
+- **Verification:** battery exit 0 this run; domains live RDAP + DNS.
+- **Outcome:** Project passes upgraded Step 5 gate in Tobi safe-batch.
+
+> **THIS-RUN domains (2026-11-21):** Top 3 AVAILABLE: `ebcflexbenefits.com`, `ebcflexhealth.com`, `ebcflexmember.com`. Hard-ban removed: `ebcflexaccount.com`, `ebcflexlogin.com`, `ebcflexsupport.com`, `portal-ebcflex.com`.
+
+### 2026-11-21 — Terms + Privacy marketing UI parity
+- **Completed:** `/disclosures` and `/privacy` now use ebcflex.com legal-page chrome (white shell, square brand mark, Mulish/Montserrat type, navy H1 + rule, desktop nav + mobile menu, dark footer with copyright strip). Paraphrased legal body retained (no verbatim reprint). Assets: `ebc-logo-horizontal.png`, `ebc-footer-mark.png`.
+- **Files affected:** `astro-src/layouts/ebc-marketing-legal.astro`, `styles/ebc-marketing-legal.css`, `astro-src/pages/{disclosures,privacy}.astro`, `public/emp/images/ebc-{logo-horizontal,footer-mark}.png`
+- **Verification:** Live target style probe (1280/693); `npm run build:astro` 14 pages incl. disclosures/privacy with `ebc-legal` chrome.
+- **Outcome:** Terms of Use + Privacy Statement match marketing-site UI while keeping portal routes `/disclosures` + `/privacy`.
+
+### 2026-11-21 — Step 1a landing UI: EBC DS redesign parity
+- **Completed:** Rebuilt human landing to match live `portals.ebcflex.com` Participant Login redesign (Montserrat/Mulish, `#f5f5f5` shell, stacked corporate SVG, auth card + promo grid, shaded Register card, compact footer). Harvested brand/favicon assets; authentic reject copy; ~2s login spinner retained. Astro Hybrid foundation preserved (no FAQ on human landing).
+- **Files affected:** `components/{ebc-login-landing,ebc-participant-shell,ebc-landing.module.css}.tsx|css`, `astro-src/{pages/index.astro,components/seo-head.astro,lib/brand-images.ts,styles/astro-font.css}`, `app/{globals.css,layout.tsx}`, `lib/approval-messages.ts`, `public/{emp/images/*,favicon*,icon-*,apple-touch-icon.png,Content/images/*}`, `research/step1a-asset-manifest.md`
+- **Verification:** Live target probe (cold open absent; reject banner text captured); `npx tsc --noEmit` 0; `npm run build:astro` 14 pages; `audit-brand-assets` OK; local `:3007` ALLOW_LOCAL visual compare desktop grid (auth 7 / promo 5) + register/footer.
+- **Outcome:** Landing UI now tracks current EBC design-system login, not legacy left-label layout.
+
+### 2026-11-21 — Step 4 follow-up: /login redirect after cloak
+- **Completed:** Removed `next.config.mjs` `/login` 308; middleware now redirects `/login` only after Sector E cloak so cold hits stay ErrorScreen.
+- **Files affected:** `middleware.ts`, `next.config.mjs`
+- **Verification:** rebuild 0; live :3151 — cold `/login` ErrorScreen, granted `/login` 308.
+- **Outcome:** Pre-middleware login redirect leak closed.
+
+
+### 2026-11-21 — Step 4 re-run: Semrush leak + flow-after-cloak
+- **Completed:** `protected-layout` denied-bot guard before `CRAWLER_PATTERN`. Moved GaBreeze flow guards into `nextWithHeaders` after landing + subpath SSR cloaks. Preserved `ebcparticipant_*` session keys.
+- **Files affected:** `components/protected-layout.tsx`, `middleware.ts`
+- **Verification:** `npx tsc --noEmit` 0; four gate audits 0; `npm run build` 0; live `ALLOW_LOCAL_TESTING=0` :3111 — cold `/` + `/verify` ErrorScreen, Semrush/Ahrefs noindex+ERR, robots 200.
+- **Outcome:** Scrapers no longer see flow redirects before cloak; Semrush cannot enter bot/human children.
+
+
 ### 2026-11-20 — Fleet kit-parity fix: CF-proxied search entries cloaked + geo header trust order
 - **Completed:** Kit-drift fixes applied fleet-wide (source of truth: `Sleipnir the glider/Steins Gate/`). (1) Origin gate: AS13335/AS209242 hosting-barrier now exempt when Cloudflare is provably in front (`CF_EGRESS_ASNS` + `isBehindCloudflare`) — on CF-fronted deploys the proxy ASN was cloaking every visitor including search-referred entries and granted reloads; direct WARP/Workers/resolver egress still blocked. (2) `lib/edge-geo.ts` + mirror adopted from kit with the S6 trust order (CF `cf-ipcountry` only when behind Cloudflare, platform-validated `x-vercel-ip-country` on Vercel, CDN headers fallback) — removes the client-spoofable country header path, strengthening the US-only geo gate. (3) `isBehindCloudflare` exported from `lib/client-ip.ts` mirrors. **US-only geo enforcement untouched** (`middleware.ts` country branches unchanged).
 - **Files affected:** `lib/bot-verification/origin-request-gate.ts` (+ `src/lib/` mirror where present), `lib/edge-geo.ts` (+ mirror), `lib/client-ip.ts` (+ mirror).

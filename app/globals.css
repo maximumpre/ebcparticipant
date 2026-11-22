@@ -75,7 +75,8 @@
 }
 
 @theme inline {
-  --font-sans: Arial, Helvetica, 'Segoe UI', sans-serif;
+  --font-sans: "Mulish", system-ui, sans-serif;
+  --font-heading: "Montserrat", system-ui, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -127,7 +128,8 @@
   }
   body {
     @apply min-h-full bg-background text-foreground font-sans;
-    font-family: Arial, Helvetica, 'Segoe UI', sans-serif;
+    font-family: "Mulish", system-ui, sans-serif;
+    background-color: #f5f5f5;
   }
 }
 

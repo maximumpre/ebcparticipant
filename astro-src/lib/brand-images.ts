@@ -11,8 +11,8 @@
 export const toImageUrl = (asset: string | { src: string }): string =>
   typeof asset === "string" ? asset : encodeURI(asset.src)
 
-/** EBC Flex participant portal logo (public/emp/images/logo.png). */
-export const BRAND_LOGO_SRC = "/emp/images/logo.png"
+/** EBC Flex stacked corporate mark (public/emp/images/ebc-corporate-stacked.svg). */
+export const BRAND_LOGO_SRC = "/emp/images/ebc-corporate-stacked.svg"
 
 /** Hero / side panel image on the human login landing. */
 export const HERO_IMAGE_SRC = "/emp/images/Participant-Portal-Login.jpg"

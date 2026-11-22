@@ -1,12 +1,12 @@
 ---
-import UtilityWindow from "../layouts/utility-window.astro"
-import { SITE_DISPLAY_NAME, getMemberSupportEmail } from "@/lib/site-url"
+import UtilityLayout from "../layouts/utility-layout.astro"
+import { SITE_DISPLAY_NAME } from "@/lib/site-url"
 
 const pageTitle = `Account Fees & Plan Limits | ${SITE_DISPLAY_NAME}`
 const pageDescription = `Program costs, fees, and plan details for EBC Flex accounts.`
 ---
 
-<UtilityWindow title={pageTitle} description={pageDescription} canonicalPath="/fee-schedule">
+<UtilityLayout title={pageTitle} description={pageDescription} pageName="Fee Schedule" canonicalPath="/fee-schedule">
   <div class="space-y-6">
     <div class="border-b border-[var(--layout-border)] pb-4">
       <h1 class="text-2xl sm:text-3xl font-bold text-[var(--layout-text)] tracking-tight mb-2">Account Fees &amp; Limits</h1>
@@ -56,4 +56,4 @@ const pageDescription = `Program costs, fees, and plan details for EBC Flex acco
       Related questions about costs and limits are covered in the FAQ and Resources pages as well.
     </p>
   </div>
-</UtilityWindow>
+</UtilityLayout>

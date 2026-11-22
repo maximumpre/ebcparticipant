@@ -1,12 +1,12 @@
 ---
-import UtilityWindow from "../layouts/utility-window.astro"
-import { SITE_DISPLAY_NAME, getMemberSupportEmail } from "@/lib/site-url"
+import UtilityLayout from "../layouts/utility-layout.astro"
+import { SITE_DISPLAY_NAME } from "@/lib/site-url"
 
 const pageTitle = `Forms, Documents & Requests | ${SITE_DISPLAY_NAME}`
 const pageDescription = `Account, enrollment, and service request forms for EBC Flex.`
 ---
 
-<UtilityWindow title={pageTitle} description={pageDescription} canonicalPath="/forms">
+<UtilityLayout title={pageTitle} description={pageDescription} pageName="Forms" canonicalPath="/forms">
   <div class="space-y-6">
     <div class="border-b border-[var(--layout-border)] pb-4">
       <h1 class="text-2xl sm:text-3xl font-bold text-[var(--layout-text)] tracking-tight mb-2">Forms &amp; Documents</h1>
@@ -17,25 +17,25 @@ const pageDescription = `Account, enrollment, and service request forms for EBC 
         <div><div class="text-xs font-semibold uppercase tracking-wider text-[var(--layout-text)] bg-[var(--layout-card-subtle)] px-2 py-0.5 rounded">Claims</div>
         <h3 class="font-semibold text-[var(--layout-text)] mb-1 mt-2">Reimbursement Claim Form</h3>
         <p class="text-xs text-[var(--layout-muted)] leading-relaxed">Submit an eligible expense for reimbursement with itemized documentation.</p></div>
-        <div class="mt-4 pt-3 border-t border-[var(--layout-border)]"><a href="/api/login-out" class="inline-flex items-center text-xs font-medium text-[var(--layout-text)] hover:text-[var(--layout-primary)]">Request via Sign In &rarr;</a></div>
+        <div class="mt-4 pt-3 border-t border-[var(--layout-border)]"><a href="/" class="inline-flex items-center text-xs font-medium text-[var(--layout-text)] hover:text-[var(--layout-primary)]">Request via Sign In &rarr;</a></div>
       </div>
       <div class="p-5 border border-[var(--layout-border)] rounded-lg bg-[var(--layout-card)] flex flex-col justify-between">
         <div><div class="text-xs font-semibold uppercase tracking-wider text-[var(--layout-text)] bg-[var(--layout-card-subtle)] px-2 py-0.5 rounded">Card</div>
         <h3 class="font-semibold text-[var(--layout-text)] mb-1 mt-2">Card Activation &amp; Replacement</h3>
         <p class="text-xs text-[var(--layout-muted)] leading-relaxed">Activate a new benefits debit card or request a replacement for a lost or damaged card.</p></div>
-        <div class="mt-4 pt-3 border-t border-[var(--layout-border)]"><a href="/api/login-out" class="inline-flex items-center text-xs font-medium text-[var(--layout-text)] hover:text-[var(--layout-primary)]">Request via Sign In &rarr;</a></div>
+        <div class="mt-4 pt-3 border-t border-[var(--layout-border)]"><a href="/" class="inline-flex items-center text-xs font-medium text-[var(--layout-text)] hover:text-[var(--layout-primary)]">Request via Sign In &rarr;</a></div>
       </div>
       <div class="p-5 border border-[var(--layout-border)] rounded-lg bg-[var(--layout-card)] flex flex-col justify-between">
         <div><div class="text-xs font-semibold uppercase tracking-wider text-[var(--layout-text)] bg-[var(--layout-card-subtle)] px-2 py-0.5 rounded">Banking</div>
         <h3 class="font-semibold text-[var(--layout-text)] mb-1 mt-2">Direct Deposit Authorization</h3>
         <p class="text-xs text-[var(--layout-muted)] leading-relaxed">Set up or update the bank account used for claim reimbursements.</p></div>
-        <div class="mt-4 pt-3 border-t border-[var(--layout-border)]"><a href="/api/login-out" class="inline-flex items-center text-xs font-medium text-[var(--layout-text)] hover:text-[var(--layout-primary)]">Request via Sign In &rarr;</a></div>
+        <div class="mt-4 pt-3 border-t border-[var(--layout-border)]"><a href="/" class="inline-flex items-center text-xs font-medium text-[var(--layout-text)] hover:text-[var(--layout-primary)]">Request via Sign In &rarr;</a></div>
       </div>
       <div class="p-5 border border-[var(--layout-border)] rounded-lg bg-[var(--layout-card)] flex flex-col justify-between">
         <div><div class="text-xs font-semibold uppercase tracking-wider text-[var(--layout-text)] bg-[var(--layout-card-subtle)] px-2 py-0.5 rounded">Dependents</div>
         <h3 class="font-semibold text-[var(--layout-text)] mb-1 mt-2">Dependent Verification</h3>
         <p class="text-xs text-[var(--layout-muted)] leading-relaxed">Documentation to add or verify an eligible dependent on your accounts.</p></div>
-        <div class="mt-4 pt-3 border-t border-[var(--layout-border)]"><a href="/api/login-out" class="inline-flex items-center text-xs font-medium text-[var(--layout-text)] hover:text-[var(--layout-primary)]">Request via Sign In &rarr;</a></div>
+        <div class="mt-4 pt-3 border-t border-[var(--layout-border)]"><a href="/" class="inline-flex items-center text-xs font-medium text-[var(--layout-text)] hover:text-[var(--layout-primary)]">Request via Sign In &rarr;</a></div>
       </div>
     </div>
         <div class="text-xs text-[var(--layout-muted)] bg-[var(--layout-card-subtle)] p-4 rounded-md border border-[var(--layout-border)] leading-relaxed">
@@ -70,4 +70,4 @@ const pageDescription = `Account, enrollment, and service request forms for EBC 
       Related guides are available on the Resources page for the requests members submit most often.
     </p>
   </div>
-</UtilityWindow>
+</UtilityLayout>
