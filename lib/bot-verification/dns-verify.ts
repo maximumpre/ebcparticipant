@@ -3,10 +3,31 @@ const DOH_GOOGLE = "https://dns.google/resolve"
 
 type DohAnswer = { name?: string; type?: number; data?: string }
 
-const DNS_CACHE = new Map<string, { result: "VERIFIED" | "SPOOFED"; expiresAt: number }>()
+const DNS_CACHE = new Map<string, { result: "VERIFIED" | "SPOOFED" | "UNVERIFIED"; expiresAt: number }>()
 const CACHE_TTL_MS = 60 * 60 * 1000 // 1 hour
+/** N-8: short TTL for verified no-PTR hosts so DoH queries cannot be pre-rate-limit amplified. */
+const UNVERIFIED_CACHE_TTL_MS = 90 * 1000 // 90 seconds
+/** Cap so IP-diverse traffic cannot grow the Map unbounded (S16). */
+const DNS_CACHE_MAX_ENTRIES = 10_000
 
-async function dohQuery(name: string, type: "PTR" | "A" | "AAAA"): Promise<DohAnswer[]> {
+function cacheDnsResult(key: string, result: "VERIFIED" | "SPOOFED" | "UNVERIFIED", ttlMs: number = CACHE_TTL_MS): void {
+  if (DNS_CACHE.size >= DNS_CACHE_MAX_ENTRIES) {
+    // Map preserves insertion order — evict the oldest entry.
+    const oldest = DNS_CACHE.keys().next()
+    if (!oldest.done) DNS_CACHE.delete(oldest.value)
+  }
+  DNS_CACHE.set(key, { result, expiresAt: Date.now() + ttlMs })
+}
+
+/**
+ * Returns `null` when BOTH DoH providers were unreachable (network error /
+ * timeout), so callers can distinguish "cannot verify" from "verified empty
+ * answer" (S3) and avoid caching a negative result across an outage.
+ */
+async function dohQuery(
+  name: string,
+  type: "PTR" | "A" | "AAAA",
+): Promise<DohAnswer[] | null> {
   // 1. Primary: Cloudflare DoH with 2500ms timeout
   try {
     const cfUrl = `${DOH_CLOUDFLARE}?name=${encodeURIComponent(name)}&type=${type}`
@@ -39,7 +60,7 @@ async function dohQuery(name: string, type: "PTR" | "A" | "AAAA"): Promise<DohAn
     // Both DoH providers unreachable
   }
 
-  return []
+  return null
 }
 
 function isPrivateIpv4(ip: string): boolean {
@@ -101,20 +122,25 @@ function hostnameMatchesSuffix(hostname: string, suffixes: readonly string[]): b
   })
 }
 
-async function forwardResolvesToIp(hostname: string, ip: string): Promise<boolean> {
+async function forwardResolvesToIp(hostname: string, ip: string): Promise<boolean | null> {
   const clean = hostname.replace(/\.$/, "")
   const [aRecords, aaaaRecords] = await Promise.all([
     dohQuery(clean, "A"),
     dohQuery(clean, "AAAA"),
   ])
 
-  for (const record of aRecords) {
+  if (aRecords === null && aaaaRecords === null) {
+    // Both DoH providers unreachable or timed out — cannot determine forward resolution
+    return null
+  }
+
+  for (const record of aRecords ?? []) {
     if (record.data === ip) return true
   }
 
   if (ip.includes(":")) {
     const normalized = expandIpv6(ip)
-    for (const record of aaaaRecords) {
+    for (const record of aaaaRecords ?? []) {
       if (record.data && expandIpv6(record.data) === normalized) return true
     }
   }
@@ -140,19 +166,36 @@ export async function verifyDnsBot(
 
   try {
     const ptrAnswers = await dohQuery(ptrName, "PTR")
-    const hostname = ptrAnswers.find((a) => a.type === 12)?.data?.replace(/\.$/, "")
-    if (!hostname) {
+    if (ptrAnswers === null) {
+      // Both DoH providers unreachable — cannot verify; do NOT cache a
+      // negative result (S3), so the next request retries.
       return "UNVERIFIED"
     }
 
-    if (!hostnameMatchesSuffix(hostname, suffixes)) {
-      DNS_CACHE.set(cacheKey, { result: "SPOOFED", expiresAt: Date.now() + CACHE_TTL_MS })
+    // Evaluate ALL PTR records (S19): multi-PTR hosts pass if ANY name matches
+    // the expected suffix; that hostname is then forward-confirmed.
+    const ptrHostnames = ptrAnswers
+      .filter((a) => a.type === 12)
+      .map((a) => a.data?.replace(/\.$/, ""))
+      .filter((h): h is string => Boolean(h))
+    if (ptrHostnames.length === 0) {
+      cacheDnsResult(cacheKey, "UNVERIFIED", UNVERIFIED_CACHE_TTL_MS)
+      return "UNVERIFIED"
+    }
+
+    const matchingHostname = ptrHostnames.find((h) => hostnameMatchesSuffix(h, suffixes))
+    if (!matchingHostname) {
+      cacheDnsResult(cacheKey, "SPOOFED")
       return "SPOOFED"
     }
 
-    const forwardOk = await forwardResolvesToIp(hostname, cleanIp)
-    const result = forwardOk ? "VERIFIED" : "SPOOFED"
-    DNS_CACHE.set(cacheKey, { result, expiresAt: Date.now() + CACHE_TTL_MS })
+    const forwardRes = await forwardResolvesToIp(matchingHostname, cleanIp)
+    if (forwardRes === null) {
+      // DoH timed out or unreachable — cannot confirm forward DNS; do not poison cache with SPOOFED
+      return "UNVERIFIED"
+    }
+    const result = forwardRes ? "VERIFIED" : "SPOOFED"
+    cacheDnsResult(cacheKey, result)
     return result
   } catch {
     return "UNVERIFIED"

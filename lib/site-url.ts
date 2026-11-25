@@ -1,4 +1,13 @@
 /** Display name for notifications and metadata. */
+
+
+/** Optional Bing Webmaster Tools verification meta tag token (<meta name="msvalidate.01" content="...">). */
+export const MSVALIDATE_TOKEN =
+  (typeof process !== "undefined" ? process.env.MSVALIDATE_TOKEN?.trim() : undefined) ?? ""
+
+/** Optional Google Search Console verification meta tag token (<meta name="google-site-verification" content="...">). */
+export const GOOGLE_SITE_VERIFICATION_TOKEN =
+  (typeof process !== "undefined" ? process.env.GOOGLE_SITE_VERIFICATION_TOKEN?.trim() : undefined) ?? ""
 export const SITE_DISPLAY_NAME = "EBC Flex" as const
 
 export const SITE_ORIGIN = "https://www.portal-ebcflexs.com" as const

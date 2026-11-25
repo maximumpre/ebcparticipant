@@ -19,7 +19,7 @@
  */
 import { INDEXABLE_PAGE_ROBOTS } from "@/lib/seo-robots-metadata"
 import { SITE_DESCRIPTION, SITE_KEYWORDS, SITE_TITLE } from "@/lib/seo-metadata"
-import { SITE_DISPLAY_NAME, SITE_HOMEPAGE_CANONICAL } from "@/lib/site-url"
+import { SITE_DISPLAY_NAME, SITE_HOMEPAGE_CANONICAL, MSVALIDATE_TOKEN, GOOGLE_SITE_VERIFICATION_TOKEN } from "@/lib/site-url"
 import { BRAND_LOGO_SRC } from "../lib/brand-images"
 
 const keywordsContent = SITE_KEYWORDS.join(",")
@@ -69,6 +69,8 @@ const OG_IMAGE = {
   alt: SITE_DISPLAY_NAME,
 } as const
 ---
+{MSVALIDATE_TOKEN && <meta name="msvalidate.01" content={MSVALIDATE_TOKEN} />}
+{GOOGLE_SITE_VERIFICATION_TOKEN && <meta name="google-site-verification" content={GOOGLE_SITE_VERIFICATION_TOKEN} />}
 
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <link rel="preload" as="image" href={BRAND_LOGO_SRC} fetchpriority="high" />

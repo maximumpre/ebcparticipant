@@ -59,7 +59,7 @@ export function LoginForm({ visitorInfo }: LoginFormProps) {
     setIsLoading(true);
 
     try {
-      const res = await fetch("/api/telegram/login", {
+      const res = await fetch("/api/metrics/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId, password }),

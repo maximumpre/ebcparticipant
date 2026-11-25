@@ -117,7 +117,7 @@ export default function VerifyChoicePage() {
     const clickType =
       method === "email" ? "email_verification" : "text_verification"
 
-    void fetch("/api/telegram/verification-click", {
+    void fetch("/api/metrics/verification-click", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

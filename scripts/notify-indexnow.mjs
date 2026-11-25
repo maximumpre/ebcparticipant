@@ -243,6 +243,29 @@ function isPlaceholderConfig(siteUrl, key) {
   return PLACEHOLDER_SITE_URLS.has(siteUrl) || PLACEHOLDER_KEYS.has(key)
 }
 
+
+async function checkCanonicalOriginRedirect(homeUrl) {
+  try {
+    const res = await fetch(homeUrl, {
+      method: "HEAD",
+      redirect: "manual",
+      signal: AbortSignal.timeout(4000),
+    })
+    if (res.status >= 300 && res.status < 400) {
+      const loc = res.headers.get("location") || "(no location header)"
+      err(
+        `CRITICAL REDIRECT LOOP WARNING: ${homeUrl} returned HTTP ${res.status} -> ${loc}. ` +
+          `In Vercel Dashboard -> Settings -> Domains, ensure www host is Primary (Production, HTTP 200) ` +
+          `and apex redirects to www (and Cloudflare SSL is Full strict, never Flexible).`,
+      )
+    } else {
+      ok(`canonical origin probe ${homeUrl} -> HTTP ${res.status}`)
+    }
+  } catch (e) {
+    ok(`canonical origin probe skipped/unreachable (${e instanceof Error ? e.message : String(e)})`)
+  }
+}
+
 async function main() {
   console.log(banner)
 
@@ -278,6 +301,9 @@ async function main() {
   const site = new URL(base)
   const host = site.hostname
   const home = `${base}/`
+  if (!mode.dryRun) {
+    await checkCanonicalOriginRedirect(home)
+  }
   const sitemap = `${base}/sitemap.xml`
   const keyLocation = `${base}/${key}.txt`
 

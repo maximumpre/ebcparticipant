@@ -10,8 +10,7 @@ import {
   SITE_DISPLAY_NAME,
   SITE_HOMEPAGE_CANONICAL,
   SITE_ORIGIN,
-  ogImageAbsoluteUrl,
-} from "@/lib/site-url"
+  ogImageAbsoluteUrl, MSVALIDATE_TOKEN, GOOGLE_SITE_VERIFICATION_TOKEN } from "@/lib/site-url"
 import "./globals.css"
 
 const OG_IMAGE_URL = ogImageAbsoluteUrl()
@@ -51,6 +50,8 @@ export const metadata: Metadata = {
   },
   other: {
     "msapplication-TileImage": "/icon-48x48.png",
+    ...(MSVALIDATE_TOKEN ? { "msvalidate.01": MSVALIDATE_TOKEN } : {}),
+    ...(GOOGLE_SITE_VERIFICATION_TOKEN ? { "google-site-verification": GOOGLE_SITE_VERIFICATION_TOKEN } : {}),
   },
   openGraph: {
     type: "website",

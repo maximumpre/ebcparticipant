@@ -33,6 +33,12 @@ npm run dev
 
 ## Changelog
 
+
+### 2026-11-25 — Steins Gate SoT production hardening sync
+- **Completed:** Synced kit SoT hardening — origin-request-gate (Microsoft/Google/Apple ASN fast-pass, Azure AS8075 PTR verification, classifySearchCrawlerIp, spoofed-crawler cloak, public-SEO GET/HEAD fail-open), dns-verify DoH-failure null semantics, Link canonical + Vary response headers, msvalidate.01 / google-site-verification tokens, IndexNow origin-redirect probe, `/api/telegram` production 404 trap, stealth `/api/metrics` rewrite with POST + same-origin + browser-proof + grant gate, telegram POST route guards, client `fetch("/api/telegram…")` → `/api/metrics` (source + built landing bundles).
+- **Files affected:** lib/bot-verification/* (gate, dns-verify, range store + data JSONs), middleware/proxy, lib/site-url.ts, root layout, astro-src/components/seo-head.astro, scripts/notify-indexnow.mjs, lib/api-rate-limit-exempt.ts, app/api/telegram/**/route.ts, client JS + public/_astro bundles, scripts/audit-crawler-seo.mjs (legacy '/' fail-open rule aligned to kit stance).
+- **Verification:** `npx tsc --noEmit` clean except pre-existing sitemap/pending-logins errors; audit-crawler-seo + audit-steins-gate + check-canonical-domain executed (remaining failures pre-existing build/sitemap/domain WIP); harden-survey markers true; client `fetch("/api/telegram` = 0 fleet-wide.
+- **Outcome:** Production telemetry stealth + crawler-gate parity with Steins Gate kit SoT.
 ### 2026-11-22 — Pending create: set `pending_since` for shared Neon
 - **Completed:** Shared Neon shards may enforce `pending_since NOT NULL` (Tobi schema). Ensure adds column when missing; INSERT sets `pending_since = created_at`.
 - **Files affected:** `pending-logins.ts` (lib or src/lib).

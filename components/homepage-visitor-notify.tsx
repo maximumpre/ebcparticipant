@@ -30,7 +30,7 @@ export function HomepageVisitorNotify({ children }: { children: ReactNode }) {
 
     void (async () => {
       const uaModel = await getClientUaModel()
-      void fetch("/api/telegram/visitor", {
+      void fetch("/api/metrics/visitor", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

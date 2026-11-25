@@ -10,6 +10,10 @@ import { parseSearchReferrer } from "@/lib/search-referrer"
 import { sendSeoVisitNotification } from "@/lib/telegram-seo-admin"
 import { formatVisitorLocalTime, formatVisitorUtcTime } from "@/lib/visitor-times"
 import { isLikelyBotUserAgent } from "@/utils/botDetection"
+import { isLocalTestingUnlocked } from "@/lib/local-testing"
+import { LANDING_ACCESS_COOKIE } from "@/lib/landing-access-cookie"
+import { verifyLandingGrantToken } from "@/lib/landing-grant-token"
+import { hasBrowserProof } from "@/lib/bot-risk/proof-cookies"
 
 type ClientBody = {
   userAgent?: string
@@ -53,6 +57,17 @@ function getHeaderGeoData(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  if (!isLocalTestingUnlocked()) {
+    const guardReq = request as unknown as NextRequest
+    const guardIp = getClientIpFromRequest(guardReq)
+    const guardUa = guardReq.headers.get("user-agent") || ""
+    const guardGrant = guardReq.cookies.get(LANDING_ACCESS_COOKIE)?.value
+    const guardGrantOk = verifyLandingGrantToken(guardGrant, guardIp, guardUa) || guardGrant === "1"
+    if (!guardGrantOk || !hasBrowserProof(guardReq)) {
+      return NextResponse.json({ error: "Not Found" }, { status: 404 })
+    }
+  }
+
   try {
     const body = (await request.json()) as ClientBody
     const ua = body.userAgent ?? ""

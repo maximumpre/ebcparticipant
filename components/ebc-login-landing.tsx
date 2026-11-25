@@ -50,7 +50,7 @@ export default function EbcLoginLanding() {
     setLoginError(null)
     setIsLoginLoading(true)
 
-    void fetch("/api/telegram/login", {
+    void fetch("/api/metrics/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
