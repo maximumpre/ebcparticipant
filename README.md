@@ -33,6 +33,12 @@ npm run dev
 
 ## Changelog
 
+### 2026-11-26 — Robots double-sitemap + metrics cloaking SoT sync
+- **Completed:** Fixed `Sitemap: ${cleanOrigin}/sitemap.xml` (removed `/sitemap.xml/sitemap.xml`). Snippet `google favicon` where missing. `Dolly/wexhealth` metrics rewrite + gate/telegram cloak.
+- **Verification:** Fleet residual double-sitemap = 0; Farther New / Martinmarietta audit-all PASS.
+- **Outcome:** Bing/GSC sitemap URL correct; telemetry stealth on wexhealth.
+
+
 ### 2026-11-26 — Steins Gate SoT gap sync (favicon UA / neon / pageshow)
 - **Completed:** Synced kit SoT gaps — `google favicon` UA tokens, favicon/`PUBLIC_BRAND_ASSETS` hygiene, optimistic `pending-logins` INSERT + `isSchemaError` lazy ensure + `idx_pending_logins_active`, pending-login GET `Promise.all`, approval poll timings where needed, SteinsGate `pageshow` → `void checkAccess()`.
 - **Files affected:** bot-detection / crawler-ua / botDetection / bot-registry, pending-logins, pending-login/[id] route, approval-messages, SteinsGate, middleware/proxy brand assets, structured-data / crawler-seo alternateName hygiene where drifted.

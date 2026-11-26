@@ -76,7 +76,7 @@ export function GET(): Response {
     ...SEARCH_AGENTS.map((ua) => allowGroup(ua)),
     ...AI_REFERENCE_CRAWLER_AGENTS.map((ua) => allowGroup(ua)),
     ...AI_TRAINING_CRAWLER_AGENTS.map((ua) => blockGroup(ua)),
-    `Sitemap: ${cleanOrigin}/sitemap.xml/sitemap.xml`,
+    `Sitemap: ${cleanOrigin}/sitemap.xml`,
     `Host: ${cleanOrigin.replace(/^https?:\/\//, "")}`,
     "",
   ].join("\n")
