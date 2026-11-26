@@ -1289,6 +1289,18 @@ if (isAstro) {
   }
 }
 
+// Guard against double sitemap paths (e.g. /sitemap.xml/sitemap.xml) in robots.txt.
+const robotsFile = readIfExists([
+  "app/robots.txt/route.ts",
+  "app/robots.ts",
+  "app/robots.txt/route.js",
+  "public/robots.txt",
+  "src/app/robots.txt/route.ts",
+])
+if (robotsFile && /\/sitemap\.xml\/sitemap\.xml/i.test(robotsFile.text)) {
+  failures.push(`${robotsFile.rel}: doubled '/sitemap.xml/sitemap.xml' pointer — must be '/sitemap.xml'`)
+}
+
 // Built twin, when present, must carry the site name and the keyword block.
 const builtTwin = readIfExists(["public/crawler-seo.html"])
 if (builtTwin) {

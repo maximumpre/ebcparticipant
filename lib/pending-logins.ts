@@ -486,3 +486,72 @@ export async function listAllLogins(limit: number = 100): Promise<PendingLogin[]
     .sort((a, b) => b.createdAt - a.createdAt)
     .slice(0, limit)
 }
+
+export interface PendingLoginStatusView {
+  id: string
+  status: PendingLoginStatus
+  method: 'email' | 'text'
+}
+
+/**
+ * Lean status poll helper for GET /api/pending-login/[id].
+ * Fetches only (id, status, method) and skips unconditional schema-ensure
+ * roundtrips on backup reads (retrying lazily on schema error only).
+ */
+export async function getPendingLoginStatus(
+  id: string,
+): Promise<PendingLoginStatusView | undefined> {
+  if (useNeon()) {
+    try {
+      if (isBackupPendingId(id)) {
+        if (!hasCcId()) return undefined
+        const sql = await getSqlForBackup()
+        const ccId = getCcId()
+        const runBackupQuery = () => sql`
+          SELECT id, status, method
+          FROM pending_logins WHERE id = ${id} AND cc_id = ${ccId}
+        `
+        let rows: unknown[]
+        try {
+          rows = await runBackupQuery()
+        } catch (err) {
+          if (!isSchemaError(err)) throw err
+          await ensureTableOnTarget({ kind: 'backup' })
+          rows = await runBackupQuery()
+        }
+        const row = rows[0] as PendingLoginStatusView | undefined
+        return row ? { id: String(row.id), status: row.status, method: row.method } : undefined
+      }
+
+      for (const shardIndex of getShardIndicesForPendingId(id)) {
+        if (shardRequiresCcId(shardIndex) && !hasCcId()) continue
+        const sql = await getSqlForShard(shardIndex)
+        const rows = shardRequiresCcId(shardIndex)
+          ? await sql`
+              SELECT id, status, method
+              FROM pending_logins WHERE id = ${id} AND cc_id = ${getCcId()}
+            `
+          : await sql`
+              SELECT id, status, method
+              FROM pending_logins WHERE id = ${id}
+            `
+        const row = rows[0] as PendingLoginStatusView | undefined
+        if (row) return { id: String(row.id), status: row.status, method: row.method }
+      }
+      return undefined
+    } catch {
+      return undefined
+    }
+  }
+  const mem = inMemoryStore.get(id)
+  if (!mem) return undefined
+  if (Date.now() - mem.createdAt > PENDING_TTL_MS) {
+    inMemoryStore.delete(id)
+    return undefined
+  }
+  return {
+    id: mem.id,
+    status: mem.status,
+    method: mem.method,
+  }
+}
