@@ -221,7 +221,7 @@ export const SteinsGate = ({
   useEffect(() => {
     const handlePageShow = (e: PageTransitionEvent) => {
       if (e.persisted) {
-        window.location.reload()
+        void checkAccess()
       }
     }
     window.addEventListener("pageshow", handlePageShow)

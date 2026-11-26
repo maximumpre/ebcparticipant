@@ -1,14 +1,22 @@
 import { NextRequest, NextResponse, after } from "next/server"
+import { isMitigationBand } from "@/lib/bot-risk/score"
+import { resolveRequestRisk } from "@/lib/bot-risk/resolve"
 import { getPendingLogin } from '@/lib/pending-logins'
 import { claimAndSendAdminLoginOutcome } from '@/lib/pending-login-outcome-notify'
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params
-    const record = await getPendingLogin(id)
+    const [risk, record] = await Promise.all([
+      resolveRequestRisk(request),
+      getPendingLogin(id),
+    ])
+    if (isMitigationBand(risk.band)) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    }
     if (!record) {
       return NextResponse.json({ error: 'Not found' }, { status: 404 })
     }

@@ -33,6 +33,13 @@ npm run dev
 
 ## Changelog
 
+### 2026-11-26 — Steins Gate SoT gap sync (favicon UA / neon / pageshow)
+- **Completed:** Synced kit SoT gaps — `google favicon` UA tokens, favicon/`PUBLIC_BRAND_ASSETS` hygiene, optimistic `pending-logins` INSERT + `isSchemaError` lazy ensure + `idx_pending_logins_active`, pending-login GET `Promise.all`, approval poll timings where needed, SteinsGate `pageshow` → `void checkAccess()`.
+- **Files affected:** bot-detection / crawler-ua / botDetection / bot-registry, pending-logins, pending-login/[id] route, approval-messages, SteinsGate, middleware/proxy brand assets, structured-data / crawler-seo alternateName hygiene where drifted.
+- **Verification:** `npx tsc --noEmit` on SoT surfaces; present audits run where available.
+- **Outcome:** Fleet parity with Sleipnir Steins Gate SoT for the four gap classes.
+
+
 
 
 ### 2026-11-26 — Fleet gap closure: Bingbot IPv6 ranges + missed-project SoT hardening + visitor grant guards

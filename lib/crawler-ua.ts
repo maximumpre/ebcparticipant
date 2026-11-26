@@ -14,7 +14,7 @@
  * on a lowercased or raw UA; do not anchor it.
  */
 export const CRAWLER_PATTERN =
-  /googlebot|mediapartners-google|adsbot-google|feedfetcher-google|google-inspectiontool|storebot-google|bingbot|msnbot|bingpreview|microsoftpreview|bingvideopreview|adidxbot|slurp|duckduckbot|duckassistbot|baiduspider|petalbot|seznambot|mj12bot|yandexbot|yandex|mojeekbot|mojeek|marginalia|chatgpt-user|oai-searchbot|claude-searchbot|claude-user|claude-web|perplexitybot|perplexity-user|meta-webindexer|amzn-searchbot|amzn-user|youbot|facebookexternalhit|facebot|facebookbot|twitterbot|linkedinbot|applebot(?!-extended)|ia_archiver|slackbot|discordbot|telegrambot|whatsapp|skypeuripreview|pinterest|meta-externalfetcher|snapchat/i
+  /googlebot|mediapartners-google|adsbot-google|feedfetcher-google|google-inspectiontool|storebot-google|google favicon|bingbot|msnbot|bingpreview|microsoftpreview|bingvideopreview|adidxbot|slurp|duckduckbot|duckassistbot|baiduspider|petalbot|seznambot|mj12bot|yandexbot|yandex|mojeekbot|mojeek|marginalia|chatgpt-user|oai-searchbot|claude-searchbot|claude-user|claude-web|perplexitybot|perplexity-user|meta-webindexer|amzn-searchbot|amzn-user|youbot|facebookexternalhit|facebot|facebookbot|twitterbot|linkedinbot|applebot(?!-extended)|ia_archiver|slackbot|discordbot|telegrambot|whatsapp|skypeuripreview|pinterest|meta-externalfetcher|snapchat/i
 
 export function isCrawlerUserAgent(userAgent: string | null | undefined): boolean {
   if (!userAgent) return false

@@ -19,7 +19,7 @@ import {
  */
 
 export const GOOGLE_CRAWLER_UA =
-  /googlebot|mediapartners-google|adsbot-google|feedfetcher-google|google-inspectiontool|storebot-google/i
+  /googlebot|mediapartners-google|adsbot-google|feedfetcher-google|google-inspectiontool|storebot-google|google favicon/i
 
 export const BING_CRAWLER_UA =
   /bingbot|msnbot|bingpreview|microsoftpreview|bingvideopreview|adidxbot/i

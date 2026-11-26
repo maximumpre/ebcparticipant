@@ -10,8 +10,7 @@ import { SITE_DISPLAY_NAME,
  */
 export const ORGANIZATION_SAME_AS: readonly string[] = [
   "https://www.linkedin.com/company/employeebenefitscorporation",
-  "https://x.com/EBCflex",
-]
+  "https://x.com/EBCflex"]
 /** Brand phrases only — never hostnames (Google SERP Layer 1 duplicate-URL trap). */
 function buildAlternateNames(): string[] {
   return [
@@ -21,8 +20,7 @@ function buildAlternateNames(): string[] {
     "Employee Benefits Corporation",
     "EBCentral",
     "Your Personal Benefit Account",
-    "My Account Assistant",
-  ]
+    "My Account Assistant"]
 }
 export function StructuredData() {
   const websiteId = `${SITE_HOMEPAGE_CANONICAL}#website`
@@ -90,10 +88,8 @@ export function StructuredData() {
             position: 2,
             name: `Sign in to ${SITE_DISPLAY_NAME}`,
             item: SITE_HOMEPAGE_CANONICAL,
-          },
-        ],
-      },
-    ],
+          }],
+      }],
   }
   return (
     <script

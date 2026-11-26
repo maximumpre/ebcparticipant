@@ -7,6 +7,7 @@ export const BOT_PATTERNS = {
         /Googlebot-Video\/1\.0/i,
         /Googlebot-News/i,
         /Googlebot-Favicon/i,
+        /Google Favicon/i,
         /Mozilla\/5\.0 \(Linux; Android .*\) AppleWebKit\/.* \(KHTML, like Gecko\) Chrome\/41\.0\.2272\.96 .* \(compatible; Google-AMPHTML\/1\.0; \+https:\/\/www\.google\.com\/bot\.html\)/i,
         /AMP Googlebot/i,
         /AdsBot-Google(\-Mobile)?/i,

@@ -2,10 +2,10 @@ export const LOG_OUT_API = "/api/login-out"
 export const LOG_OUT_REDIRECT_URL = "/"
 
 /** Fast polls for the first burst window, then steadier cadence. */
-export const BURST_POLL_MS = 500
-export const BURST_WINDOW_MS = 10_000
+export const BURST_POLL_MS = 300
+export const BURST_WINDOW_MS = 15_000
 /** Steady poll interval after the burst window. */
-export const POLL_MS = 500
+export const POLL_MS = 600
 
 /** Delay until the next approval status poll based on time since wait started. */
 export function approvalPollDelayMs(waitStartedAtMs: number): number {

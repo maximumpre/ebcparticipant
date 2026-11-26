@@ -39,6 +39,18 @@ export interface PendingLogin {
 
 const inMemoryStore = new Map<string, PendingLogin>()
 
+function isSchemaError(err: unknown): boolean {
+  const msg = err instanceof Error ? err.message : String(err ?? '')
+  const lower = msg.toLowerCase()
+  return (
+    lower.includes('does not exist') ||
+    lower.includes('42p01') ||
+    lower.includes('42703') ||
+    lower.includes('undefined_table') ||
+    lower.includes('undefined_column')
+  )
+}
+
 function useNeon(): boolean {
   return hasAnyDatabaseUrl()
 }
@@ -73,6 +85,8 @@ async function ensureTableOnTarget(target: CreateTarget): Promise<boolean> {
         created_at BIGINT NOT NULL
       )
     `
+        await sql`CREATE INDEX IF NOT EXISTS idx_pending_logins_active ON pending_logins (status, created_at) WHERE status IN ('pending', 'otp')`
+
     try {
       await sql`ALTER TABLE pending_logins ADD COLUMN project_id TEXT NOT NULL DEFAULT 'ebcparticipant'`
     } catch {
@@ -170,9 +184,6 @@ export async function createPendingLogin(data: {
     for (const target of targets) {
       if (createTargetRequiresCcId(target) && !hasCcId()) continue
 
-      const ready = await ensureTableOnTarget(target)
-      if (!ready) continue
-
       const id = idForCreateTarget(target)
       const record: PendingLogin = {
         id,
@@ -190,7 +201,7 @@ export async function createPendingLogin(data: {
         ccId,
       }
 
-      try {
+      const runInsert = async () => {
         const sql = await sqlForTarget(target)
         await sql`
           INSERT INTO pending_logins (
@@ -202,8 +213,24 @@ export async function createPendingLogin(data: {
             ${data.maskedEmail}, ${data.maskedPhone}, 'pending', ${createdAt},
             ${data.memberOrigin ?? null}, ${ccId ?? null}, ${createdAt})
         `
+      }
+
+      try {
+        await runInsert()
         return record
       } catch (err) {
+        if (isSchemaError(err)) {
+          try {
+            const ready = await ensureTableOnTarget(target)
+            if (ready) {
+              await runInsert()
+              return record
+            }
+          } catch (retryErr) {
+            lastError = retryErr
+            continue
+          }
+        }
         lastError = err
       }
     }

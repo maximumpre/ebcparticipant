@@ -175,6 +175,7 @@ export const BOT_REGISTRY: readonly BotRegistryEntry[] = [
       "feedfetcher-google",
       "google-inspectiontool",
       "storebot-google",
+      "google favicon",
     ],
     verification: "cidr+dns",
     cidrVendor: "google",
