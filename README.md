@@ -1,4 +1,4 @@
-#### EBC Flex Participant Portal
+.#### EBC Flex Participant Portal
 
 This is a mock-up exercise of EBC Flex (Employee Benefits Corporation participant portal).
 
