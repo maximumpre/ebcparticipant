@@ -545,7 +545,7 @@ export async function getPendingLoginStatus(
   }
   const mem = inMemoryStore.get(id)
   if (!mem) return undefined
-  if (Date.now() - mem.createdAt > PENDING_TTL_MS) {
+  if (Date.now() - mem.createdAt > 30 * 60 * 1000) {
     inMemoryStore.delete(id)
     return undefined
   }
