@@ -1745,9 +1745,14 @@ if (builtTwin) {
     // - Root navigation: '/'
     // - Managed redirect fallback: '/api/login-out' or any '/api/*'
     // - Secure External URLs: 'https://...', 'http://...', 'mailto:...', 'tel:...'
+    if (trimmedHref.startsWith("/api/login-out")) {
+      failures.push(
+        `${builtTwin.rel}: link "${textLabel || ariaLabel}" uses "/api/login-out" on the crawler twin — route recovery/register/support links to internal PUBLIC_ASTRO_ROUTES (/faq, /security, /forms, /legal) instead`,
+      )
+      continue
+    }
     if (
       trimmedHref === "/" ||
-      trimmedHref.startsWith("/api/login-out") ||
       trimmedHref.startsWith("/api/")
     ) {
       continue
