@@ -1,5 +1,4 @@
-import { createHmac, timingSafeEqual } from "node:crypto"
-
+import { hmacSha256Hex, timingSafeEqualHex } from "./edge-crypto"
 import { resolveAdminNotifySecret } from "./admin-notify-secret"
 import { isLocalTestingUnlocked } from "./local-testing"
 import { LANDING_GRANT_SALT } from "./landing-grant-salt"
@@ -16,8 +15,9 @@ import { LANDING_GRANT_SALT } from "./landing-grant-salt"
  *    cannot be replayed from another IP or UA (Y-4 salt-and-pepper without
  *    breaking plain reloads, where both values are stable).
  *
- * SERVER-ONLY module: imports node:crypto and the salt. Do not import from a
- * "use client" component — use `lib/landing-access-cookie.ts` there instead.
+ * Edge-safe: uses `lib/edge-crypto.ts` (no `node:crypto`) so middleware/proxy
+ * bundles on Vercel Edge. Do not import from a "use client" component — use
+ * `lib/landing-access-cookie.ts` there instead.
  */
 export const LANDING_GRANT_MAX_AGE_SEC = 60 * 60 * 12
 
@@ -32,10 +32,7 @@ function getGrantSigningKey(): string {
 }
 
 function hashUa(userAgent: string): string {
-  return createHmac("sha256", "landing-grant-ua")
-    .update((userAgent || "").trim())
-    .digest("hex")
-    .slice(0, 16)
+  return hmacSha256Hex("landing-grant-ua", (userAgent || "").trim()).slice(0, 16)
 }
 
 /** Stable subject string bound into the token. */
@@ -51,10 +48,7 @@ export function createLandingGrantToken(
 ): string {
   const exp = Date.now() + Math.max(1, Math.floor(maxAgeSec)) * 1000
   const key = getGrantSigningKey()
-  const sig = createHmac("sha256", key)
-    .update(`${grantSubject(ip, userAgent)}:${exp}`)
-    .digest("hex")
-    .slice(0, 32)
+  const sig = hmacSha256Hex(key, `${grantSubject(ip, userAgent)}:${exp}`).slice(0, 32)
   return `${exp}:${sig}`
 }
 
@@ -78,13 +72,6 @@ export function verifyLandingGrantToken(
   if (!Number.isFinite(exp) || exp <= Date.now()) return false
 
   const key = getGrantSigningKey()
-  const expectedSig = createHmac("sha256", key)
-    .update(`${grantSubject(ip, userAgent)}:${exp}`)
-    .digest("hex")
-    .slice(0, 32)
-
-  const a = Buffer.from(sig)
-  const b = Buffer.from(expectedSig)
-  if (a.length !== b.length) return false
-  return timingSafeEqual(a, b)
+  const expectedSig = hmacSha256Hex(key, `${grantSubject(ip, userAgent)}:${exp}`).slice(0, 32)
+  return timingSafeEqualHex(sig, expectedSig)
 }
